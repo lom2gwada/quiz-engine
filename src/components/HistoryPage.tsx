@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react'
 import type { Question, Quiz } from '../types/quiz'
 import type { QuestionResultRow, QuizResultRow } from '../types/history'
 import { useLocale, useT } from '../i18n'
-import { bucketsToRadarPoints, computeMissedQuestions, computeRecords, fetchQuestionResults, fetchQuizHistory, sumBuckets } from '../utils/quizHistory'
+import { bucketsToRadarPoints, computeCategoryWeekHeatmap, computeMissedQuestions, computeRecords, fetchQuestionResults, fetchQuizHistory, sumBuckets } from '../utils/quizHistory'
 import { formatDuration } from '../utils/time'
+import { CategoryWeekHeatmap } from './CategoryWeekHeatmap'
 import { HeatmapChart } from './HeatmapChart'
 import { LeaderboardPanel } from './LeaderboardPanel'
 import { QUESTION_TYPES, difficultyLabel, typeLabel, type GameMode } from './QuizPage'
@@ -43,6 +44,8 @@ export function HistoryPage({ onBack, quiz, historyKey, userId, onReplayMissed }
   const byCategory = quizRows ? bucketsToRadarPoints(sumBuckets(quizRows, (row) => row.by_category), catName) : []
   const byType = quizRows ? bucketsToRadarPoints(sumBuckets(quizRows, (row) => row.by_type), typeName) : []
   const byDifficulty = quizRows ? bucketsToRadarPoints(sumBuckets(quizRows, (row) => row.by_difficulty), diffName) : []
+
+  const weekHeatmap = quizRows ? computeCategoryWeekHeatmap(quizRows) : null
 
   const missedQuestions = activeQuiz ? computeMissedQuestions(questionRows, activeQuiz) : []
   const canReplay = activeQuiz === historyKey
@@ -88,6 +91,12 @@ export function HistoryPage({ onBack, quiz, historyKey, userId, onReplayMissed }
           <RadarChart points={byDifficulty} ariaLabel={t('result.byDifficulty')} />
         </div>
       </div>
+      {weekHeatmap && weekHeatmap.categories.length > 0 && <CategoryWeekHeatmap
+        heatmap={weekHeatmap}
+        title={t('history.weekHeatmapTitle')}
+        labelOf={catName}
+        note={weekHeatmap.truncated ? t('history.weekHeatmapNote', { count: weekHeatmap.categories.length }) : undefined}
+      />}
     </>}
     {missedQuestions.length > 0 && <div className="missed-questions">
       <div className="stats-group-header">

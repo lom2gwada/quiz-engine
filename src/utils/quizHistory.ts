@@ -1,5 +1,5 @@
 import type { AnswersByQuestion, Category, Question } from '../types/quiz'
-import type { ChartGroup, MissedQuestion, QuestionResultPayload, QuestionResultRow, QuizRecords, QuizResultPayload, QuizResultRow, RadarPoint, StatBucket } from '../types/history'
+import type { CategoryWeekHeatmap, ChartGroup, MissedQuestion, QuestionResultPayload, QuestionResultRow, QuizRecords, QuizResultPayload, QuizResultRow, RadarPoint, StatBucket } from '../types/history'
 import { isCorrect } from '../components/ResultPage'
 import type { GameMode } from '../components/QuizPage'
 import { storageKey, table } from '../config'
@@ -204,6 +204,41 @@ export function computeRecords(rows: QuizResultRow[]): QuizRecords {
 }
 
 /** Cumule les buckets `correct`/`total` d'une clé (par ex. `by_category`) sur l'ensemble de l'historique. */
+/** Lundi (heure locale) de la semaine contenant `date`, au format `YYYY-MM-DD` — clé de regroupement hebdomadaire. */
+export function weekStartKey(date: Date): string {
+  const monday = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7))
+  return `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`
+}
+
+/** Croise catégories (lignes) et semaines (colonnes) : pour chaque case, le cumul correct/total des parties de
+ * cette semaine, `null` si la catégorie n'a pas été jouée. Seules les `maxWeeks` dernières semaines comportant au
+ * moins une partie sont gardées (pas de colonnes vides), et les `maxCategories` catégories les plus jouées — au-delà,
+ * la grille devient illisible. */
+export function computeCategoryWeekHeatmap(rows: QuizResultRow[], maxWeeks = 12, maxCategories = 15): CategoryWeekHeatmap {
+  const weekKeys = Array.from(new Set(rows.map((row) => weekStartKey(new Date(row.created_at))))).sort().slice(-maxWeeks)
+  const byCategory = new Map<string, Map<string, StatBucket>>()
+  rows.forEach((row) => {
+    const week = weekStartKey(new Date(row.created_at))
+    if (!weekKeys.includes(week)) return
+    Object.entries(row.by_category).forEach(([category, bucket]) => {
+      const weeks = byCategory.get(category) ?? new Map<string, StatBucket>()
+      const cell = weeks.get(week) ?? { correct: 0, total: 0 }
+      cell.correct += bucket.correct
+      cell.total += bucket.total
+      weeks.set(week, cell)
+      byCategory.set(category, weeks)
+    })
+  })
+  const totalOf = (weeks: Map<string, StatBucket>) => Array.from(weeks.values()).reduce((sum, cell) => sum + cell.total, 0)
+  const all = Array.from(byCategory.entries()).sort(([, a], [, b]) => totalOf(b) - totalOf(a))
+  return {
+    weeks: weekKeys,
+    categories: all.slice(0, maxCategories).map(([key, weeks]) => ({ key, cells: weekKeys.map((week) => weeks.get(week) ?? null) })),
+    truncated: all.length > maxCategories,
+  }
+}
+
 export function sumBuckets(rows: QuizResultRow[], pick: (row: QuizResultRow) => Record<string, StatBucket>): Record<string, StatBucket> {
   const totals: Record<string, StatBucket> = {}
   rows.forEach((row) => {

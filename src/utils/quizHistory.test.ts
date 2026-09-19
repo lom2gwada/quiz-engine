@@ -2,7 +2,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { BooleanQuestion, Category, QCMQuestion } from '../types/quiz'
 import type { QuestionResultRow, QuizResultRow } from '../types/history'
-import { bucketsToChartGroups, bucketsToRadarPoints, buildQuestionResultPayloads, buildQuizResultPayload, computeMissedQuestions, computeRecords, sumBuckets } from './quizHistory'
+import { bucketsToChartGroups, bucketsToRadarPoints, buildQuestionResultPayloads, buildQuizResultPayload, computeCategoryWeekHeatmap, computeMissedQuestions, computeRecords, sumBuckets, weekStartKey } from './quizHistory'
 
 vi.mock('./supabase', () => ({ supabase: { from: vi.fn() } }))
 
@@ -119,6 +119,44 @@ describe('computeRecords', () => {
       row({ mode: 'timeAttack', correct_count: 99 }),
     ])
     expect(records.bestStreak).toBe(18)
+  })
+})
+
+describe('weekStartKey', () => {
+  it('returns the Monday of the week, Sunday included', () => {
+    expect(weekStartKey(new Date(2026, 0, 7))).toBe('2026-01-05') // mercredi
+    expect(weekStartKey(new Date(2026, 0, 11))).toBe('2026-01-05') // dimanche
+    expect(weekStartKey(new Date(2026, 0, 12))).toBe('2026-01-12') // lundi suivant
+  })
+})
+
+describe('computeCategoryWeekHeatmap', () => {
+  const at = (day: number, by_category: QuizResultRow['by_category']) => row({ id: String(day), created_at: new Date(2026, 0, day, 12).toISOString(), by_category })
+
+  it('sums games of the same week and leaves unplayed weeks null', () => {
+    const heatmap = computeCategoryWeekHeatmap([
+      at(5, { histoire: { correct: 1, total: 2 } }),
+      at(7, { histoire: { correct: 2, total: 2 }, geo: { correct: 0, total: 1 } }),
+      at(13, { histoire: { correct: 1, total: 1 } }),
+    ])
+    expect(heatmap.weeks).toEqual(['2026-01-05', '2026-01-12'])
+    expect(heatmap.categories).toEqual([
+      { key: 'histoire', cells: [{ correct: 3, total: 4 }, { correct: 1, total: 1 }] },
+      { key: 'geo', cells: [{ correct: 0, total: 1 }, null] },
+    ])
+    expect(heatmap.truncated).toBe(false)
+  })
+
+  it('keeps only the latest weeks and the most played categories', () => {
+    const rows = [5, 12, 19].map((day) => at(day, { a: { correct: 1, total: 3 }, b: { correct: 1, total: 2 }, c: { correct: 1, total: 1 } }))
+    const heatmap = computeCategoryWeekHeatmap(rows, 2, 2)
+    expect(heatmap.weeks).toEqual(['2026-01-12', '2026-01-19'])
+    expect(heatmap.categories.map((category) => category.key)).toEqual(['a', 'b'])
+    expect(heatmap.truncated).toBe(true)
+  })
+
+  it('is empty without history', () => {
+    expect(computeCategoryWeekHeatmap([])).toEqual({ weeks: [], categories: [], truncated: false })
   })
 })
 

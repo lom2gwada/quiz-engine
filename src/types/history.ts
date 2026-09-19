@@ -49,6 +49,14 @@ export interface RadarPoint {
   percent: number
 }
 
+export interface CategoryWeekHeatmap {
+  /** Débuts de semaine (lundi, `YYYY-MM-DD`), du plus ancien au plus récent. */
+  weeks: string[]
+  /** Une ligne par catégorie (clé brute : id ou ancien libellé) ; `cells[i]` correspond à `weeks[i]`, `null` si non jouée cette semaine-là. */
+  categories: { key: string; cells: (StatBucket | null)[] }[]
+  truncated: boolean
+}
+
 export interface QuestionResultPayload {
   quiz_title: string
   question_id: string
