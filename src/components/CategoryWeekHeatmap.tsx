@@ -1,8 +1,6 @@
 import type { CategoryWeekHeatmap as Heatmap } from '../types/history'
 import { useLocale, useT } from '../i18n'
-
-/** Du rouge (0 %) au vert (100 %) en passant par l'ambre — teinte HSL directe, lisible en thème clair comme sombre. */
-const rateColor = (rate: number) => `hsl(${Math.round(rate * 1.2)} 62% 38%)`
+import { rateColor } from '../utils/rateColor'
 
 /** Réussite par catégorie (lignes) et par semaine (colonnes) : montre la progression dans le temps. */
 export function CategoryWeekHeatmap({ heatmap, title, labelOf, note }: { heatmap: Heatmap; title: string; labelOf: (key: string) => string; note?: string }) {
