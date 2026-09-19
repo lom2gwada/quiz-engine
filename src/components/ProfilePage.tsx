@@ -3,19 +3,23 @@ import type { Session } from '@supabase/supabase-js'
 import type { Profile, Theme } from '../types/profile'
 import type { Locale } from '../i18n/locale'
 import { LOCALE_LABELS, SUPPORTED_LOCALES, resolveLocale } from '../i18n/locale'
+import { peekEngineConfig } from '../config'
 import { useT } from '../i18n'
 import { playClick } from '../utils/sound'
 import { applyTheme } from '../utils/theme'
 import { AuthPanel } from './AuthPanel'
 import { GuestPassPanel } from './GuestPassPanel'
 
-// Grille orientée Caraïbes / voyage, groupée par thème (une ligne visuelle ≈ un groupe) :
+// Grille par défaut, orientée Caraïbes / voyage et groupée par thème (une ligne visuelle ≈ un groupe) :
 // visages + faune marine · faune de terre + paysage d'île · eau + voyage/navigation + soleil.
-export const AVATAR_OPTIONS = [
+// Une appli fournit la sienne via `EngineConfig.avatars`.
+const DEFAULT_AVATARS = [
   '🙂', '😎', '🐠', '🦈', '🐳', '🦀', '🐚', '🐢',
   '🦜', '🦩', '🦋', '🦎', '🏝️', '🌺', '🌋', '🥥',
   '🌊', '🌎', '✈️', '⛵', '⚓', '🧭', '🏴‍☠️', '☀️',
 ]
+
+const avatarOptions = (): string[] => peekEngineConfig()?.avatars ?? DEFAULT_AVATARS
 
 type Segmenter = { segment: (input: string) => Iterable<{ segment: string }> }
 const SegmenterCtor = (Intl as { Segmenter?: new (locale?: string, opts?: { granularity: 'grapheme' }) => Segmenter }).Segmenter
@@ -75,10 +79,11 @@ interface ProfilePageProps {
 export function ProfilePage({ profile, session, onBack, onSave, onViewHistory }: ProfilePageProps) {
   const t = useT()
   const [pseudo, setPseudo] = useState(profile?.pseudo ?? '')
-  const initialAvatar = profile?.avatar || AVATAR_OPTIONS[0]
+  const options = avatarOptions()
+  const initialAvatar = profile?.avatar || options[0]
   const [avatar, setAvatar] = useState(initialAvatar)
   // Pré-remplit le champ libre si l'avatar enregistré n'est pas dans la grille.
-  const [customRaw, setCustomRaw] = useState(AVATAR_OPTIONS.includes(initialAvatar) ? '' : initialAvatar)
+  const [customRaw, setCustomRaw] = useState(options.includes(initialAvatar) ? '' : initialAvatar)
   const [theme, setTheme] = useState<Theme>(profile?.theme ?? 'lagon')
   const [locale, setLocale] = useState<Locale>(profile?.locale ?? resolveLocale())
   const [error, setError] = useState('')
@@ -86,7 +91,7 @@ export function ProfilePage({ profile, session, onBack, onSave, onViewHistory }:
   const [saved, setSaved] = useState(false)
 
   const customAvatar = useMemo(() => resolveAvatarInput(customRaw), [customRaw])
-  const customSelected = customAvatar !== '' && avatar === customAvatar && !AVATAR_OPTIONS.includes(avatar)
+  const customSelected = customAvatar !== '' && avatar === customAvatar && !options.includes(avatar)
 
   const pickAvatar = (next: string) => { playClick(); setAvatar(next); setSaved(false) }
   const changeCustom = (raw: string) => {
@@ -128,7 +133,7 @@ export function ProfilePage({ profile, session, onBack, onSave, onViewHistory }:
       <fieldset className="avatar-picker">
         <legend>{t('profile.avatar')}</legend>
         <div className="avatar-options">
-          {AVATAR_OPTIONS.map((option) => <label key={option} className="avatar-option">
+          {options.map((option) => <label key={option} className="avatar-option">
             <input type="radio" name="avatar" value={option} checked={avatar === option} onChange={() => pickAvatar(option)} />
             <span>{option}</span>
           </label>)}

@@ -10,6 +10,8 @@ export interface EngineConfig {
   tablePrefix: string
   /** Nom affiché de l'appli (« Periodic Quiz ») : écran de connexion, auteur des quiz générés. */
   appName: string
+  /** Avatars proposés dans le profil (un emoji chacun, par lignes de 8) ; défaut : la grille voyage / Caraïbes du moteur. */
+  avatars?: string[]
   /** Libellés d'interface propres à l'appli, par locale : ajoutent des clés au dictionnaire du moteur
    *  ou en remplacent (libellés de thèmes, texte d'invitation…). */
   messages?: Record<string, Record<string, string>>
