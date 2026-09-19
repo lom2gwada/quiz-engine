@@ -1,6 +1,6 @@
 # quiz-engine
 
-Moteur partagé de **quiz-forge** et **periodic-quiz** : génération de quiz depuis un CSV, jeu (classique / contre-la-montre / sans-faute), historique, classement, connexion Supabase, liens invités, édition admin, thèmes, i18n (fr / en / es / nl / ht).
+Moteur partagé de **quiz-caraibes** (ex quiz-forge) et **periodic-quiz** : génération de quiz depuis un CSV, jeu (classique / contre-la-montre / sans-faute), historique, classement, connexion Supabase, liens invités, édition admin, thèmes, i18n (fr / en / es / nl / ht).
 
 Une application = ce dépôt (sous-module git `engine/`) + son propre jeu de données, ses traductions de données et ses vues spécifiques.
 
