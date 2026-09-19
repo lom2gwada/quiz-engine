@@ -29,7 +29,7 @@ export function Fiche({ row, schema, i18n, decor }: FicheProps) {
   const name = data.value(canonical)
   const article = data.article(canonical, articleColumn ? row[articleColumn] : undefined)
   const imageCol = Object.keys(columns).find((c) => columns[c].include && columns[c].isImage)
-  const flag = imageCol && /^https?:///.test((row[imageCol] ?? '').trim()) ? row[imageCol].trim() : null
+  const flag = imageCol && /^https?:\/\//.test((row[imageCol] ?? '').trim()) ? row[imageCol].trim() : null
   const { lead, trail } = decor?.(row, { name, canonical }) ?? {}
   const factCols = Object.entries(columns).filter(
     ([c, s]) => s.include && !s.isImage && c !== subjectColumn && c !== articleColumn,
