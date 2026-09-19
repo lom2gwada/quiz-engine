@@ -83,6 +83,13 @@ describe('buildSpeech', () => {
     expect(sentences).toContain('On y parle français et créole martiniquais.')
   })
 
+  it('joins lists with the conjunction of the spoken language (grammar), not platform ICU data', () => {
+    const list = { fr: ['{langues}'], en: ['{langues}'], ht: ['{langues}'] }
+    expect(buildSpeech(row('Martinique'), schema, i18n, 'fr', list)).toEqual(['français et créole martiniquais'])
+    expect(buildSpeech(row('Martinique'), schema, i18n, 'en', list)).toEqual(['French and Martinican Creole'])
+    expect(buildSpeech(row('Martinique'), schema, i18n, 'ht', list)).toEqual(['français ak créole martiniquais'])
+  })
+
   it('returns nothing without templates', () => {
     expect(buildSpeech(row('Cuba'), schema, i18n, 'fr', undefined)).toEqual([])
   })

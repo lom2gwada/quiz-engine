@@ -1,5 +1,6 @@
 import type { DataI18n } from '../i18n/data'
 import { makeDatasetI18n, splitAnnotation } from '../i18n/dataset'
+import { getGrammar } from '../i18n/grammar'
 import { DEFAULT_LOCALE, type Locale } from '../i18n/locale'
 import type { SpeechTemplates } from '../types/app'
 import { formatNumber } from './number'
@@ -9,11 +10,6 @@ const MARKER = /\{(\w+)(?::(\d+))?\}/g
 const OPTIONAL = /\[([^[\]]*)\]/g
 
 const upperFirst = (text: string, locale: Locale): string => (text ? text.charAt(0).toLocaleUpperCase(locale) + text.slice(1) : text)
-
-function joinList(items: string[], locale: Locale): string {
-  const ListFormat = (Intl as { ListFormat?: new (locale: string, options: { style: string; type: string }) => { format: (list: string[]) => string } }).ListFormat
-  return ListFormat ? new ListFormat(locale, { style: 'long', type: 'conjunction' }).format(items) : items.join(', ')
-}
 
 /** Locale réellement utilisée pour parler : celle de l'interface si le jeu de données a des phrases pour elle,
  *  sinon le français (texte ET données, pour que la voix ne mélange pas deux langues). */
@@ -41,7 +37,7 @@ export function buildSpeech(row: Row, schema: GenSchema, i18n: DataI18n | undefi
       const names = raw.split(spec.multivalueSeparator)
         .map((part) => data.value(splitAnnotation(part.trim()).name))
         .filter(Boolean)
-      return names.length ? joinList(count ? names.slice(0, count) : names, spoken) : null
+      return names.length ? getGrammar(spoken).list(count ? names.slice(0, count) : names) : null
     }
     if (spec.kind === 'number') {
       const n = Number(raw.replace(/\s/g, '').replace(',', '.'))
