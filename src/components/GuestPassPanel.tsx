@@ -58,7 +58,7 @@ export function GuestPassPanel({ userId }: GuestPassPanelProps) {
 
   return <div className="guest-pass-panel">
     <h3>{t('guest.title')}</h3>
-    <p className="guest-pass-hint">{t('guest.hint', { app: engineConfig().appId })}</p>
+    <p className="guest-pass-hint">{t('guest.hint', { app: engineConfig().appName })}</p>
     <form className="guest-pass-form" onSubmit={create}>
       <label>{t('guest.duration')}
         <select value={hours} onChange={(event) => setHours(Number(event.target.value))}>
