@@ -127,7 +127,7 @@ export function ResultPage({ questions, answers, categories, elapsedSeconds, onR
       <p className="mention">{emoji} {t(key)}</p>
       <p className="duration">{t('result.time', { duration: formatDuration(elapsedSeconds) })}</p>
     </div>
-    <div className="quiz-actions">
+    <div className="result-actions">
       {onRestartSame && <button type="button" onClick={onRestartSame}>{t('result.restartSame')}</button>}
       <button type="button" className={onRestartSame ? 'secondary' : undefined} onClick={onBackToSettings}>{t('result.backToSettings')}</button>
     </div>

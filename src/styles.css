@@ -251,3 +251,4 @@ pre { padding: 1rem; overflow: auto; background: var(--code-bg); border: 1px sol
 .week-heatmap-legend { display: flex; align-items: center; gap: .5rem; margin-top: .8rem; color: var(--text-muted); font-size: .75rem; }
 .week-heatmap-legend-bar { flex: 0 1 12rem; height: .6rem; border-radius: 99px; background: linear-gradient(to right, hsl(0 62% 38%), hsl(60 62% 38%), hsl(120 62% 38%)); }
 .week-heatmap-note { margin: .6rem 0 0; color: var(--text-muted); font-size: .75rem; }
+.result-actions { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1.5rem 0 1rem; }
