@@ -32,12 +32,15 @@ export const fr = {
   'start.mode.classic': 'Classique',
   'start.mode.timeAttack': 'Contre la montre',
   'start.mode.noMistake': 'Sans-faute',
+  'start.mode.blitz': "Blitz",
   'start.duration': 'Durée',
   'start.duration.one': '{n} minute',
   'start.duration.other': '{n} minutes',
   'start.duration.infinite': 'Illimitée',
   'start.timeAttackHint': '{n} questions disponibles pour tenir la distance.',
   'start.noMistakeHint': "Temps illimité, {n} questions disponibles — la partie s'arrête à la première erreur.",
+  'start.blitzHint': "{count} questions à 4 choix, {seconds} secondes chacune, sans retour en arrière — {n} questions éligibles avec ces filtres.",
+  'quiz.blitzTimer': "Temps restant pour cette question",
   'start.play': 'Démarrer le quiz',
 
   // — filtres —

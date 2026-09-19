@@ -1,9 +1,12 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { AnswersByQuestion, Difficulty, Question, Quiz } from '../types/quiz'
 import type { MessageKey, TFunction } from '../i18n'
 import { useT } from '../i18n'
 import { formatDuration } from '../utils/time'
 import { shuffle } from '../utils/shuffle'
+import { BLITZ_SECONDS } from '../utils/blitz'
+import { rateColor } from '../utils/rateColor'
+import { BlitzQuestion } from './BlitzQuestion'
 import { isCorrect } from './ResultPage'
 import { QuestionImage } from './QuestionImage'
 import { QuestionRenderer } from './QuestionRenderer'
@@ -17,8 +20,9 @@ export const difficultyLabel = (difficulty: Difficulty, t: TFunction): string =>
 
 /** 'classic' : nombre de questions fixé à l'avance, on les parcourt toutes.
  * 'timeAttack' : contre la montre — on avance dans un grand pool tant que le temps le permet.
- * 'noMistake' : sans-faute — temps illimité, la partie s'arrête à la première erreur. */
-export type GameMode = 'classic' | 'timeAttack' | 'noMistake'
+ * 'noMistake' : sans-faute — temps illimité, la partie s'arrête à la première erreur.
+ * 'blitz' : peu de questions à 4 choix (cases 2 × 2), chacune limitée à quelques secondes ; un clic valide et passe à la suivante. */
+export type GameMode = 'classic' | 'timeAttack' | 'noMistake' | 'blitz'
 
 /** Mélange les options de réponse une fois par question, pour que la bonne réponse ne soit pas toujours au même endroit. */
 function withShuffledAnswers(question: Question): Question {
@@ -46,6 +50,7 @@ export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, 
   const question = shuffledQuestions[current]
   const timeAttack = mode === 'timeAttack'
   const noMistake = mode === 'noMistake'
+  const blitz = mode === 'blitz'
   const remaining = timeAttack && timeLimitSeconds !== undefined ? Math.max(0, timeLimitSeconds - elapsed) : undefined
   const unlimited = remaining === undefined && (timeAttack || noMistake)
   const atEnd = current === shuffledQuestions.length - 1
@@ -65,6 +70,40 @@ export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, 
     return () => clearInterval(interval)
   }, [])
 
+  // Blitz : chaque question a sa propre échéance (horloge murale, pas le compteur d'une seconde de `elapsed`, pour que
+  // le temps par question soit exact). Une question sans réponse à l'échéance compte fausse ; `Infinity` = verrou une
+  // fois la question quittée (clic tardif ou double clic sans effet).
+  const [questionMs, setQuestionMs] = useState(BLITZ_SECONDS * 1000)
+  const deadline = useRef(Infinity)
+  const elapsedRef = useRef(0)
+  elapsedRef.current = elapsed
+  const advanceBlitz = (nextAnswers: AnswersByQuestion) => {
+    deadline.current = Infinity
+    if (atEnd) onFinish(nextAnswers, elapsedRef.current, shuffledQuestions)
+    else setCurrent((value) => value + 1)
+  }
+  const pickBlitz = (answerId: string) => {
+    if (deadline.current === Infinity) return
+    const next = { ...answers, [question.id]: [answerId] }
+    setAnswers(next)
+    advanceBlitz(next)
+  }
+  useEffect(() => {
+    if (!blitz) return
+    deadline.current = Date.now() + BLITZ_SECONDS * 1000
+    setQuestionMs(BLITZ_SECONDS * 1000)
+    const interval = setInterval(() => {
+      const left = deadline.current - Date.now()
+      if (left <= 0) {
+        if (deadline.current !== Infinity) advanceBlitz(answers)
+        setQuestionMs(0)
+      } else {
+        setQuestionMs(left)
+      }
+    }, 100)
+    return () => clearInterval(interval)
+  }, [blitz, current]) // `answers`/`atEnd` de ce rendu suffisent : ils ne changent qu'en quittant la question
+
   // Contre la montre à durée fixe : fin automatique dès que le temps est écoulé.
   useEffect(() => {
     if (timeAttack && timeLimitSeconds !== undefined && elapsed >= timeLimitSeconds) finish()
@@ -73,6 +112,28 @@ export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, 
   if (!question) return <section className="empty"><h2>{t('quiz.noQuestion')}</h2><p>{t('quiz.noQuestionHint')}</p><button type="button" className="secondary" onClick={onCancel}>{t('common.back')}</button></section>
   const category = quiz.categories.find((item) => item.id === question.category)?.label ?? question.category
   const answeredCount = Object.keys(answers).length
+  if (blitz && question.type === 'qcm') {
+    const fraction = Math.max(0, Math.min(1, questionMs / (BLITZ_SECONDS * 1000)))
+    return <section className="quiz-card blitz-card">
+      <div className="question-meta">
+        <span>⚡ {t('start.mode.blitz')}</span><span>{category}</span><span>{t('quiz.points', { n: question.points })}</span>
+        <span>⏱ {formatDuration(Math.ceil(questionMs / 1000))}</span>
+      </div>
+      <div className="quiz-progress" role="timer" aria-label={t('quiz.blitzTimer')}>
+        <div className="quiz-progress-fill" style={{ width: `${fraction * 100}%`, background: rateColor(fraction * 100), transition: 'none' }} />
+      </div>
+      <p className="progress">{t('quiz.progress', { current: current + 1, total: shuffledQuestions.length })}</p>
+      <div className="question-body" key={question.id}>
+        {question.imageUrl && <QuestionImage src={question.imageUrl} alt={question.imageAlt} />}
+        {question.shapeSvg && <QuestionShape svg={question.shapeSvg} alt={question.imageAlt} />}
+        <h2>{question.question}</h2>
+        <BlitzQuestion question={question} onPick={pickBlitz} />
+      </div>
+      <div className="quiz-actions">
+        <button type="button" className="secondary" onClick={cancelQuiz}>{t('common.cancel')}</button>
+      </div>
+    </section>
+  }
   return <section className="quiz-card">
     <div className="question-meta">
       <span>{TYPE_ICONS[question.type]} {typeLabel(question.type, t)}</span><span>{category}</span><span>{difficultyLabel(question.difficulty, t)}</span><span>{t('quiz.points', { n: question.points })}</span>

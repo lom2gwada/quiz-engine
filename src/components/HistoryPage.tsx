@@ -11,7 +11,7 @@ import { QUESTION_TYPES, difficultyLabel, typeLabel, type GameMode } from './Qui
 import { RadarChart } from './RadarChart'
 import { ScoreChart } from './ScoreChart'
 
-export const MODE_ICONS: Record<GameMode, string> = { classic: '🎯', timeAttack: '⏱️', noMistake: '🔥' }
+export const MODE_ICONS: Record<GameMode, string> = { classic: '🎯', timeAttack: '⏱️', noMistake: '🔥', blitz: '⚡' }
 
 export function HistoryPage({ onBack, quiz, historyKey, userId, onReplayMissed }: { onBack: () => void; quiz: Quiz; historyKey: string; userId?: string | null; onReplayMissed: (questions: Question[]) => void }) {
   const t = useT()
@@ -23,7 +23,7 @@ export function HistoryPage({ onBack, quiz, historyKey, userId, onReplayMissed }
   // Les parties stockent l'id de catégorie (indépendant de la langue) ; on résout le libellé ici.
   // Anciennes lignes (libellé FR déjà stocké) : introuvable comme id → affiché tel quel.
   const catName = (key: string) => quiz.categories.find((category) => category.id === key)?.label ?? key
-  const modeLabel = (mode: GameMode) => mode === 'timeAttack' ? t('start.mode.timeAttack') : mode === 'noMistake' ? t('start.mode.noMistake') : t('start.mode.classic')
+  const modeLabel = (mode: GameMode) => mode === 'timeAttack' ? t('start.mode.timeAttack') : mode === 'noMistake' ? t('start.mode.noMistake') : mode === 'blitz' ? t('start.mode.blitz') : t('start.mode.classic')
 
   const [rows, setRows] = useState<QuizResultRow[] | null>(null)
   const [questionRows, setQuestionRows] = useState<QuestionResultRow[]>([])

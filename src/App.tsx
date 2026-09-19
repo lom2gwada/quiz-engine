@@ -23,6 +23,7 @@ import { formatNumber } from './utils/number'
 import { generateQuiz, inferSchema, parseCsv, randomSeed } from './utils/quizGenerator'
 import type { GenSchema, Row } from './utils/quizGenerator'
 import { isSoundMuted, playClick, setSoundMuted } from './utils/sound'
+import { BLITZ_QUESTION_COUNT, BLITZ_SECONDS, blitzPool } from './utils/blitz'
 import { shuffle } from './utils/shuffle'
 
 type BuiltinView = 'start' | 'quiz' | 'results' | 'content' | 'history' | 'profile' | 'atlas'
@@ -166,6 +167,9 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
   const filteredQuestions = useMemo(() => quiz.questions.filter((question) =>
     (!selectedCategories.length || selectedCategories.includes(question.category)) && (!difficulty || question.difficulty === difficulty)), [quiz, selectedCategories, difficulty])
 
+  // Questions jouables en blitz avec les filtres courants (à 4 choix, une seule bonne réponse).
+  const blitzAvailable = useMemo(() => blitzPool(filteredQuestions).length, [filteredQuestions])
+
   const toggleCategory = (categoryId: string) => setSelectedCategories((previous) =>
     previous.includes(categoryId) ? previous.filter((id) => id !== categoryId) : [...previous, categoryId])
 
@@ -255,7 +259,10 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     setActiveMode(gameMode)
     const seen = new Set(avoid.map((question) => question.id))
     const ordered = [...shuffle(filteredQuestions.filter((q) => !seen.has(q.id))), ...shuffle(filteredQuestions.filter((q) => seen.has(q.id)))]
-    if (gameMode === 'classic') {
+    if (gameMode === 'blitz') {
+      setActiveTimeLimit(undefined)
+      setSessionQuestions(blitzPool(ordered).slice(0, BLITZ_QUESTION_COUNT))
+    } else if (gameMode === 'classic') {
       setActiveTimeLimit(undefined)
       setSessionQuestions(ordered.slice(0, Math.min(questionCount, ordered.length)))
     } else {
@@ -310,6 +317,10 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
           <input type="radio" name="game-mode" checked={gameMode === 'noMistake'} onChange={() => { playClick(); setGameMode('noMistake') }} />
           🔥 {t('start.mode.noMistake')}
         </label>
+        <label className={gameMode === 'blitz' ? 'mode-chip is-active' : 'mode-chip'}>
+          <input type="radio" name="game-mode" checked={gameMode === 'blitz'} onChange={() => { playClick(); setGameMode('blitz') }} />
+          ⚡ {t('start.mode.blitz')}
+        </label>
       </div>
       {gameMode === 'classic' && <>
         <label className="question-count">{t('start.questionCount')}<select value={questionCount} onChange={(event) => { playClick(); setQuestionCount(Number(event.target.value)) }}>{questionCounts.map((count) => <option key={count} value={count} disabled={count > filteredQuestions.length}>{t(count === 1 ? 'start.count.one' : 'start.count.other', { n: count })}{count > filteredQuestions.length ? t('start.unavailableSuffix') : ''}</option>)}<option value={filteredQuestions.length}>{t('start.allQuestions', { n: formatNumber(filteredQuestions.length) })}</option></select></label>
@@ -320,7 +331,8 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
         <p>{t('start.timeAttackHint', { n: formatNumber(filteredQuestions.length) })}</p>
       </>}
       {gameMode === 'noMistake' && <p>{t('start.noMistakeHint', { n: formatNumber(filteredQuestions.length) })}</p>}
-      <div className="quiz-actions"><button type="button" onClick={startQuiz} disabled={!filteredQuestions.length}>{t('start.play')}</button></div>
+      {gameMode === 'blitz' && <p>{t('start.blitzHint', { count: Math.min(BLITZ_QUESTION_COUNT, blitzAvailable), seconds: BLITZ_SECONDS, n: formatNumber(blitzAvailable) })}</p>}
+      <div className="quiz-actions"><button type="button" onClick={startQuiz} disabled={gameMode === 'blitz' ? !blitzAvailable : !filteredQuestions.length}>{t('start.play')}</button></div>
     </section>}
     {view === 'quiz' && <QuizPage quiz={quiz} questions={sessionQuestions} mode={activeMode} timeLimitSeconds={activeTimeLimit} onFinish={(nextAnswers, duration, shown) => {
       setAnswers(nextAnswers); setResultQuestions(shown); setElapsedSeconds(duration); replace('results')

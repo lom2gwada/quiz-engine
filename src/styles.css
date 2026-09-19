@@ -253,3 +253,13 @@ pre { padding: 1rem; overflow: auto; background: var(--code-bg); border: 1px sol
 .week-heatmap-legend-bar { flex: 0 1 12rem; height: .6rem; border-radius: 99px; background: linear-gradient(to right, hsl(0 62% 38%), hsl(60 62% 38%), hsl(120 62% 38%)); }
 .week-heatmap-note { margin: .6rem 0 0; color: var(--text-muted); font-size: .75rem; }
 .result-actions { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1.5rem 0 1rem; }
+.blitz-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; width: min(100%, 24rem); margin: 1.2rem auto; }
+.blitz-square { position: relative; display: flex; align-items: center; justify-content: center; aspect-ratio: 1; padding: .8rem; border: 0; border-radius: .9rem; color: #fff; font-size: 1rem; font-weight: 700; line-height: 1.25; text-align: center; text-wrap: balance; overflow-wrap: anywhere; cursor: pointer; text-shadow: 0 1px 2px rgba(0, 0, 0, .35); transition: transform .08s ease, filter .12s ease; }
+.blitz-square:hover, .blitz-square:focus-visible { filter: brightness(1.12); }
+.blitz-square:active { transform: scale(.96); }
+.blitz-square-1 { background: hsl(350 62% 42%); }
+.blitz-square-2 { background: hsl(215 62% 42%); }
+.blitz-square-3 { background: hsl(38 78% 38%); }
+.blitz-square-4 { background: hsl(145 55% 32%); }
+.blitz-key { position: absolute; top: .4rem; left: .55rem; font-size: .7rem; font-weight: 800; opacity: .75; }
+.blitz-card .question-body h2 { text-align: center; }

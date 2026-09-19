@@ -16,12 +16,15 @@ export interface LeaderboardRow {
 // quiz, déjà jointe à <prefixe>_profiles pour pseudo/avatar (vue security-definer, volontaire —
 // même mécanisme que les leaderboards d'Oliver Quiz — pour lire ces deux champs au-delà de la RLS
 // propre à chaque utilisateur).
-const VIEW_BY_MODE: Record<GameMode, string> = {
+/** Modes qui ont un classement (le blitz n'en a pas encore). */
+export type RankedMode = Exclude<GameMode, 'blitz'>
+
+const VIEW_BY_MODE: Record<RankedMode, string> = {
   classic: 'leaderboard_classic',
   timeAttack: 'leaderboard_time_attack',
   noMistake: 'leaderboard_no_mistake',
 }
-const VALUE_COLUMN_BY_MODE: Record<GameMode, string> = {
+const VALUE_COLUMN_BY_MODE: Record<RankedMode, string> = {
   classic: 'best_score',
   timeAttack: 'best_correct',
   noMistake: 'best_streak',
@@ -29,7 +32,7 @@ const VALUE_COLUMN_BY_MODE: Record<GameMode, string> = {
 
 /** Classement d'un quiz pour un mode donné, meilleur score en tête. `[]` si indisponible
  *  (hors-ligne, personne n'a encore joué…) : jamais bloquant pour l'affichage. */
-export async function fetchLeaderboard(quizTitle: string, mode: GameMode, limit = 20): Promise<LeaderboardRow[]> {
+export async function fetchLeaderboard(quizTitle: string, mode: RankedMode, limit = 20): Promise<LeaderboardRow[]> {
   const valueColumn = VALUE_COLUMN_BY_MODE[mode]
   const { data, error } = await supabase
     .from(table(VIEW_BY_MODE[mode]))
