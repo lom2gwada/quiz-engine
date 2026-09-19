@@ -9,6 +9,8 @@ import type { GenSchema, Row } from './quizGenerator'
 const MARKER = /\{(\w+)(?::(\d+))?\}/g
 const OPTIONAL = /\[([^[\]]*)\]/g
 // Part chiffrée d'une annotation de valeur multivaleur : « (68 %) » → 68.
+// Mot dit à la place du signe d'un nombre négatif (« -259 » : la voix lit rarement le tiret).
+const MINUS: Record<string, string> = { fr: 'moins', en: 'minus', es: 'menos', nl: 'min', ht: 'mwens' }
 const PERCENT = /(\d+(?:[.,]\d+)?)\s*%/
 
 const upperFirst = (text: string, locale: Locale): string => (text ? text.charAt(0).toLocaleUpperCase(locale) + text.slice(1) : text)
@@ -47,7 +49,9 @@ export function buildSpeech(row: Row, schema: GenSchema, i18n: DataI18n | undefi
     }
     if (spec.kind === 'number') {
       const n = Number(raw.replace(/\s/g, '').replace(',', '.'))
-      return Number.isFinite(n) ? (spec.isYear ? String(n) : formatNumber(n, spoken)) : null
+      if (!Number.isFinite(n)) return null
+      if (spec.isYear) return String(n)
+      return n < 0 ? `${MINUS[spoken] ?? 'moins'} ${formatNumber(-n, spoken)}` : formatNumber(n, spoken)
     }
     return data.value(raw)
   }

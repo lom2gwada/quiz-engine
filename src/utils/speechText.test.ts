@@ -100,6 +100,15 @@ describe('buildSpeech', () => {
     expect(buildSpeech(row('Martinique'), schema, i18n, 'ht', list)).toEqual(['français ak créole martiniquais'])
   })
 
+  it('says negative numbers with a word and elides the article before a vowel', () => {
+    const cold = parseCsv('element;article;point_fusion_c\nHydrogène;l\';-259.34\nSodium;le;97.8')
+    const s = { ...inferSchema(cold), noun: 'élément', title: 'x' }
+    const names: DataI18n = { values: {}, articles: {}, columnLabels: {}, commonNouns: true }
+    expect(buildSpeech(cold[0], s, names, 'fr', { fr: ['{Name} fond à {point_fusion_c} degrés.'] })).toEqual(["L'hydrogène fond à moins 259,34 degrés."])
+    expect(buildSpeech(cold[1], s, names, 'fr', { fr: ['{Name} fond à {point_fusion_c} degrés.'] })).toEqual(['Le sodium fond à 97,8 degrés.'])
+    expect(buildSpeech(cold[0], s, names, 'en', { en: ['Melts at {point_fusion_c}.'] })).toEqual(['Melts at minus 259.34.'])
+  })
+
   it('returns nothing without templates', () => {
     expect(buildSpeech(row('Cuba'), schema, i18n, 'fr', undefined)).toEqual([])
   })

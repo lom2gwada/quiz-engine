@@ -39,7 +39,7 @@ export function Fiche({ row, schema, i18n, decor }: FicheProps) {
     <div className="fiche">
       <header className="fiche-head">
         {lead}
-        <h3>{article && <span className="fiche-article">{article} </span>}{name}</h3>
+        <h3>{article && <span className="fiche-article">{article}{/['’]$/.test(article) ? '' : ' '}</span>}{name}</h3>
         {flag && (
           <HoverPreview
             href={flag}
