@@ -100,13 +100,15 @@ interface ResultPageProps {
   answers: AnswersByQuestion
   categories: Category[]
   elapsedSeconds: number
-  onRestart: () => void
+  /** Absent quand relancer n'a pas de sens (reprise ciblée de ses erreurs). */
+  onRestartSame?: () => void
+  onBackToSettings: () => void
   onViewHistory: () => void
   /** Ouvre la fiche du sujet d'une question ; absent s'il n'y a pas de jeu de données (quiz JSON importé). */
   onViewFiche?: (subject: string) => void
 }
 
-export function ResultPage({ questions, answers, categories, elapsedSeconds, onRestart, onViewHistory, onViewFiche }: ResultPageProps) {
+export function ResultPage({ questions, answers, categories, elapsedSeconds, onRestartSame, onBackToSettings, onViewHistory, onViewFiche }: ResultPageProps) {
   const t = useT()
   const earned = questions.filter((question) => isCorrect(question, answers[question.id])).reduce((total, question) => total + question.points, 0)
   const total = questions.reduce((sum, question) => sum + question.points, 0)
@@ -125,7 +127,10 @@ export function ResultPage({ questions, answers, categories, elapsedSeconds, onR
       <p className="mention">{emoji} {t(key)}</p>
       <p className="duration">{t('result.time', { duration: formatDuration(elapsedSeconds) })}</p>
     </div>
-    <button type="button" onClick={onRestart}>{t('result.restart')}</button>
+    <div className="quiz-actions">
+      {onRestartSame && <button type="button" onClick={onRestartSame}>{t('result.restartSame')}</button>}
+      <button type="button" className={onRestartSame ? 'secondary' : undefined} onClick={onBackToSettings}>{t('result.backToSettings')}</button>
+    </div>
     <div className="nav-links">
       <button type="button" className="secondary" onClick={onViewHistory}>🕓 {t('nav.history')}</button>
     </div>

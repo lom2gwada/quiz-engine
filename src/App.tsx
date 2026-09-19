@@ -79,10 +79,6 @@ function initialStateOf(spec: QuizAppSpec): { dataset: Dataset | null; quiz: Qui
   return state
 }
 
-function pickRandomQuestions<T>(questions: T[], count: number): T[] {
-  return shuffle(questions).slice(0, Math.min(count, questions.length))
-}
-
 export default function App({ spec, session }: { spec: QuizAppSpec; session: Session | null }) {
   const userId = session?.user.id ?? null
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -132,6 +128,8 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
   // du panneau de démarrage qui restent modifiables pendant la partie sans l'affecter.
   const [activeMode, setActiveMode] = useState<GameMode>('classic')
   const [activeTimeLimit, setActiveTimeLimit] = useState<number | undefined>(undefined)
+  // Vrai pour une reprise ciblée de ses erreurs : « rejouer avec les mêmes paramètres » n'a alors pas de sens.
+  const [isReplay, setIsReplay] = useState(false)
   const [sessionQuestions, setSessionQuestions] = useState<Quiz['questions']>([])
   const [resultQuestions, setResultQuestions] = useState<Quiz['questions']>([])
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
@@ -247,23 +245,32 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     applyGenerated(dataset, randomSeed())
   }
 
-  const startQuiz = () => {
+  // Lance une partie avec les réglages courants. `avoid` = questions de la partie qu'on vient de finir :
+  // les autres passent en premier (mélangées), celles-ci ne reviennent qu'en complément si le pool est trop
+  // petit. `goTo` : `navigate` depuis l'accueil, `replace` depuis les résultats (le retour ramène à l'accueil).
+  const beginQuiz = (avoid: Question[], goTo: (view: View) => void) => {
     playClick()
     setAnswers({})
+    setIsReplay(false)
     setActiveMode(gameMode)
+    const seen = new Set(avoid.map((question) => question.id))
+    const ordered = [...shuffle(filteredQuestions.filter((q) => !seen.has(q.id))), ...shuffle(filteredQuestions.filter((q) => seen.has(q.id)))]
     if (gameMode === 'classic') {
       setActiveTimeLimit(undefined)
-      setSessionQuestions(pickRandomQuestions(filteredQuestions, questionCount))
+      setSessionQuestions(ordered.slice(0, Math.min(questionCount, ordered.length)))
     } else {
       setActiveTimeLimit(gameMode === 'timeAttack' && timeAttackMinutes > 0 ? timeAttackMinutes * 60 : undefined)
-      setSessionQuestions(shuffle(filteredQuestions))
+      setSessionQuestions(ordered)
     }
-    navigate('quiz')
+    goTo('quiz')
   }
+  const startQuiz = () => beginQuiz([], navigate)
+  const restartQuiz = () => beginQuiz(resultQuestions, replace)
 
   const replayMissed = (questions: Question[]) => {
     playClick()
     setAnswers({})
+    setIsReplay(true)
     setActiveMode('classic')
     setActiveTimeLimit(undefined)
     setSessionQuestions(questions)
@@ -321,7 +328,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
       saveQuizResult(buildQuizResultPayload(shown, nextAnswers, quiz.categories, duration, historyKey, activeMode), session?.user.id)
       saveQuestionResults(buildQuestionResultPayloads(shown, nextAnswers, historyKey), session?.user.id)
     }} onCancel={backToStart} />}
-    {view === 'results' && <ResultPage questions={resultQuestions} answers={answers} categories={quiz.categories} elapsedSeconds={elapsedSeconds} onRestart={backToStart} onViewHistory={() => viewHistory('results')} onViewFiche={dataset ? setFicheSubject : undefined} />}
+    {view === 'results' && <ResultPage questions={resultQuestions} answers={answers} categories={quiz.categories} elapsedSeconds={elapsedSeconds} onRestartSame={isReplay ? undefined : restartQuiz} onBackToSettings={backToStart} onViewHistory={() => viewHistory('results')} onViewFiche={dataset ? setFicheSubject : undefined} />}
     {view === 'content' && <QuizContentPage quiz={quiz} dataset={dataset} onBack={() => navigate('start')} onCsvChange={loadCsv} onGenerate={generateFromPanel} onRegenerate={regenerateQuestions} fileError={fileError} genError={genError} />}
     {view === 'atlas' && dataset && <AtlasPage rows={dataset.rows} schema={dataset.schema} decor={dataset.ficheDecor} i18n={dataset.i18n} actions={dataset.views?.filter((v) => v.entry === 'atlas').map(viewButton)} onOpenFiche={setFicheSubject} onBack={() => navigate('start')} />}
     {dataset && (() => {
