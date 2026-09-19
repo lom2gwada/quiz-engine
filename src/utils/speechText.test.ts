@@ -6,6 +6,7 @@ import { inferSchema, parseCsv } from './quizGenerator'
 const rows = parseCsv([
   'pays;article;capitale;population;superficie_km2;independance;langues;religions',
   'Martinique;la;Fort-de-France;349000;1128;;français|créole martiniquais;catholicisme (80 %)|protestantisme (5 %)|autre (15 %)',
+  'Barbade;la;Bridgetown;282000;430;1966;anglais;protestantisme (66 %)|catholicisme (4 %)|sans religion ou autre (30 %)',
   'Cuba;;La Havane;11000000;109884;1902;espagnol;',
   'Bahamas;les;Nassau;410000;13878;1973;anglais;',
 ].join('\n'))
@@ -59,7 +60,16 @@ describe('buildSpeech', () => {
     const cuba = buildSpeech(row('Cuba'), schema, i18n, 'fr', templates)
     expect(cuba).toContain('Son indépendance date de 1902.')
     const martinique = buildSpeech(row('Martinique'), schema, i18n, 'fr', { fr: ['Religions : {religions:2}.', 'Toutes : {religions}.'] })
-    expect(martinique).toEqual(['Religions : catholicisme et protestantisme.', 'Toutes : catholicisme, protestantisme et autre.'])
+    expect(martinique).toEqual(['Religions : catholicisme et autre.', 'Toutes : catholicisme, autre et protestantisme.'])
+  })
+
+  it('says the biggest values first when they carry a percentage, not the first ones in the file', () => {
+    const barbade = buildSpeech(row('Barbade'), schema, i18n, 'fr', { fr: ['Principaux : {religions:2}.'] })
+    expect(barbade).toEqual(['Principaux : protestantisme et sans religion ou autre.'])
+  })
+
+  it('keeps the file order for values without a percentage', () => {
+    expect(buildSpeech(row('Martinique'), schema, i18n, 'fr', { fr: ['{langues}'] })).toEqual(['français et créole martiniquais'])
   })
 
   it('drops the optional segment when one of its columns is empty', () => {

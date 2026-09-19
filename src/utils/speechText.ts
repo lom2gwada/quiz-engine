@@ -8,6 +8,8 @@ import type { GenSchema, Row } from './quizGenerator'
 
 const MARKER = /\{(\w+)(?::(\d+))?\}/g
 const OPTIONAL = /\[([^[\]]*)\]/g
+// Part chiffrée d'une annotation de valeur multivaleur : « (68 %) » → 68.
+const PERCENT = /(\d+(?:[.,]\d+)?)\s*%/
 
 const upperFirst = (text: string, locale: Locale): string => (text ? text.charAt(0).toLocaleUpperCase(locale) + text.slice(1) : text)
 
@@ -34,9 +36,13 @@ export function buildSpeech(row: Row, schema: GenSchema, i18n: DataI18n | undefi
     const raw = (row[key] ?? '').trim()
     if (!spec || !raw) return null
     if (spec.multivalueSeparator) {
-      const names = raw.split(spec.multivalueSeparator)
-        .map((part) => data.value(splitAnnotation(part.trim()).name))
-        .filter(Boolean)
+      // Les valeurs annotées d'un pourcentage sont dites par ordre d'importance (le fichier les liste dans un ordre
+      // quelconque, et « les 2 principales » doit être les 2 plus grandes) ; sans pourcentage, l'ordre du fichier.
+      const parts = raw.split(spec.multivalueSeparator).map((part) => splitAnnotation(part.trim()))
+        .map(({ name, annotation }) => ({ name: data.value(name), percent: Number(annotation.match(PERCENT)?.[1].replace(',', '.') ?? NaN) }))
+        .filter((part) => part.name)
+      const rank = (part: { percent: number }): number => (Number.isFinite(part.percent) ? part.percent : -1)
+      const names = parts.map((part, index) => ({ ...part, index })).sort((a, b) => rank(b) - rank(a) || a.index - b.index).map((part) => part.name)
       return names.length ? getGrammar(spoken).list(count ? names.slice(0, count) : names) : null
     }
     if (spec.kind === 'number') {
