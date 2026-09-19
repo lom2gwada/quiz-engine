@@ -270,9 +270,11 @@ function mockTable({ selectResult = { data: [] as unknown, error: null as unknow
 }
 
 describe('saveQuizResult / fetchQuizHistory (sync cloud)', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     localStorage.clear()
     vi.resetModules()
+    // resetModules jette aussi la config du moteur : on la redéclare sur la nouvelle instance.
+    ;(await import('../config')).configureEngine((await import('../testing/setup')).TEST_CONFIG)
   })
 
   it('reste 100% local quand personne n’est connecté (comportement inchangé)', async () => {
@@ -331,9 +333,11 @@ describe('saveQuizResult / fetchQuizHistory (sync cloud)', () => {
 })
 
 describe('saveQuestionResults / fetchQuestionResults (sync cloud)', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     localStorage.clear()
     vi.resetModules()
+    // resetModules jette aussi la config du moteur : on la redéclare sur la nouvelle instance.
+    ;(await import('../config')).configureEngine((await import('../testing/setup')).TEST_CONFIG)
   })
 
   it('fusionne les réponses locales et celles du cloud (union par id)', async () => {
