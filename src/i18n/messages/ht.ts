@@ -207,6 +207,8 @@ export const ht: Record<MessageKey, string> = {
   'fiche.modalLabel': 'Fich: {name}',
   'fiche.close': 'Fèmen',
   'fiche.edit': 'Modifye',
+  'fiche.speak': "Koute",
+  'fiche.speakStop': "Sispann",
   'fiche.editError': 'Pa ka anrejistre chanjman yo. Eseye ankò.',
 
   'data.title': 'Done sous — {rows} liy × {cols} kolòn',

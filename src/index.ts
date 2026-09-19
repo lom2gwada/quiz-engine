@@ -12,5 +12,5 @@ export { makeDatasetI18n } from './i18n/dataset'
 export type { DataI18n } from './i18n/data'
 export type { Locale } from './i18n/locale'
 export type {
-  Dataset, DatasetView, DatasetViewContext, FicheDecor, FicheDecorator, QuizAppSpec, RemoteDataset, SchemaConfig,
+  SpeechTemplates, Dataset, DatasetView, DatasetViewContext, FicheDecor, FicheDecorator, QuizAppSpec, RemoteDataset, SchemaConfig,
 } from './types/app'

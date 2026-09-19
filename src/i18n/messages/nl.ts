@@ -206,6 +206,8 @@ export const nl: Record<MessageKey, string> = {
   'fiche.modalLabel': 'Kaart: {name}',
   'fiche.close': 'Sluiten',
   'fiche.edit': 'Bewerken',
+  'fiche.speak': "Beluisteren",
+  'fiche.speakStop': "Stop",
   'fiche.editError': 'Kon de wijzigingen niet opslaan. Probeer opnieuw.',
 
   'data.title': 'Brongegevens — {rows} rijen × {cols} kolommen',

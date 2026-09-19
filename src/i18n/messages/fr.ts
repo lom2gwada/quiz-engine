@@ -220,6 +220,8 @@ export const fr = {
   'fiche.modalLabel': 'Fiche : {name}',
   'fiche.close': 'Fermer',
   'fiche.edit': 'Modifier',
+  'fiche.speak': "Écouter",
+  'fiche.speakStop': "Arrêter",
   'fiche.editError': "Impossible d'enregistrer les modifications. Réessayez.",
 
   // — tableau de données —

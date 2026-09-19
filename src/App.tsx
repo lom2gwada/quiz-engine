@@ -337,7 +337,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     })()}
     {ficheSubject && dataset && (() => {
       const row = dataset.rows.find((r) => r[dataset.schema.subjectColumn] === ficheSubject)
-      return row ? <FicheModal row={row} schema={dataset.schema} decor={dataset.ficheDecor} i18n={dataset.i18n} canEdit={isAdmin && Boolean(dataset.editable && spec.remote)} updateRow={spec.remote?.updateRow} onRowUpdated={handleDatasetRowUpdated} onClose={() => setFicheSubject(null)} /> : null
+      return row ? <FicheModal row={row} schema={dataset.schema} decor={dataset.ficheDecor} speech={dataset.speech} i18n={dataset.i18n} canEdit={isAdmin && Boolean(dataset.editable && spec.remote)} updateRow={spec.remote?.updateRow} onRowUpdated={handleDatasetRowUpdated} onClose={() => setFicheSubject(null)} /> : null
     })()}
     {view === 'history' && <HistoryPage onBack={() => navigate(historyBack)} quiz={quiz} historyKey={historyKeyOf(dataset, quiz)} userId={session?.user.id} onReplayMissed={replayMissed} />}
     {view === 'profile' && <ProfilePage profile={profile} session={session} onBack={() => navigate('start')} onSave={async (next) => { await saveProfile(next, session?.user.id); onProfileChange(next) }} onViewHistory={() => viewHistory('profile')} />}

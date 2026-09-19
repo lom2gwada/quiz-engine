@@ -4,14 +4,18 @@ import type { GenSchema, Row } from '../utils/quizGenerator'
 import type { DataI18n } from '../i18n/data'
 import { makeDatasetI18n } from '../i18n/dataset'
 import { useLocale, useT } from '../i18n'
-import type { FicheDecorator } from '../types/app'
+import type { FicheDecorator, SpeechTemplates } from '../types/app'
 import { Fiche } from './Fiche'
+import { buildSpeech, speechLocale } from '../utils/speechText'
 import { FicheEditForm } from './FicheEditForm'
+import { SpeakButton } from './SpeakButton'
 
 interface FicheModalProps {
   row: Row
   schema: GenSchema
   decor?: FicheDecorator
+  /** Phrases lues par le bouton « Écouter » ; absent : pas de bouton. */
+  speech?: SpeechTemplates
   i18n?: DataI18n
   /** Admin sur un dataset éditable : affiche le bouton « Modifier ». */
   canEdit?: boolean
@@ -22,12 +26,14 @@ interface FicheModalProps {
 
 /** Affiche une fiche dans une modale centrée (portail sur `<body>`) : Échap / clic hors panneau
  * / bouton × pour fermer. Admin sur un dataset éditable : bascule vers FicheEditForm. */
-export function FicheModal({ row, schema, decor, i18n, canEdit, updateRow, onRowUpdated, onClose }: FicheModalProps) {
+export function FicheModal({ row, schema, decor, speech, i18n, canEdit, updateRow, onRowUpdated, onClose }: FicheModalProps) {
   const t = useT()
   const locale = useLocale()
   const closeRef = useRef<HTMLButtonElement>(null)
   const [editing, setEditing] = useState(false)
   const name = useMemo(() => makeDatasetI18n(i18n, locale).value(row[schema.subjectColumn] ?? ''), [i18n, locale, row, schema.subjectColumn])
+
+  const sentences = useMemo(() => buildSpeech(row, schema, i18n, locale, speech), [row, schema, i18n, locale, speech])
 
   useEffect(() => {
     closeRef.current?.focus()
@@ -51,7 +57,10 @@ export function FicheModal({ row, schema, decor, i18n, canEdit, updateRow, onRow
         onClick={(event) => event.stopPropagation()}
       >
         <button ref={closeRef} type="button" className="modal-close" onClick={onClose} aria-label={t('fiche.close')}>×</button>
-        {canEdit && updateRow && !editing && <button type="button" className="secondary fiche-edit-toggle" onClick={() => setEditing(true)}>✏️ {t('fiche.edit')}</button>}
+        {!editing && (canEdit && updateRow || (speech && sentences.length > 0)) && <div className="fiche-modal-actions">
+          {speech && <SpeakButton sentences={sentences} locale={speechLocale(speech, locale)} />}
+          {canEdit && updateRow && <button type="button" className="secondary fiche-edit-toggle" onClick={() => setEditing(true)}>✏️ {t('fiche.edit')}</button>}
+        </div>}
         {editing
           ? <FicheEditForm row={row} schema={schema} save={updateRow!} onCancel={() => setEditing(false)} onSaved={(updatedRow) => { onRowUpdated?.(updatedRow); setEditing(false) }} />
           : <Fiche row={row} schema={schema} decor={decor} i18n={i18n} />}

@@ -206,6 +206,8 @@ export const es: Record<MessageKey, string> = {
   'fiche.modalLabel': 'Ficha: {name}',
   'fiche.close': 'Cerrar',
   'fiche.edit': 'Editar',
+  'fiche.speak': "Escuchar",
+  'fiche.speakStop': "Detener",
   'fiche.editError': 'No se pudieron guardar los cambios. Inténtalo de nuevo.',
 
   'data.title': 'Datos de origen — {rows} filas × {cols} columnas',

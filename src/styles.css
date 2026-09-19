@@ -184,7 +184,8 @@ pre { padding: 1rem; overflow: auto; background: var(--code-bg); border: 1px sol
 .fiche-modal .fiche-shape.question-shape svg { height: 58px; }
 .fiche-modal .fiche-flag { height: 38px; }
 .fiche-modal .fiche-fact { font-size: .9rem; }
-.fiche-edit-toggle { display: block; margin: 0 0 1.2rem; }
+.fiche-modal-actions { display: flex; flex-wrap: wrap; gap: .6rem; margin: 0 0 1.2rem; padding-right: 2rem; }
+.fiche-edit-toggle { display: block; margin: 0; }
 .fiche-edit-form { display: grid; gap: .9rem; }
 .fiche-edit-form label { display: grid; gap: .35rem; color: var(--text-soft); font-size: .85rem; }
 .fiche-edit-form input { width: 100%; background: var(--surface-solid); color: var(--text); border: 1px solid var(--border-input); border-radius: .45rem; padding: .6rem .7rem; }

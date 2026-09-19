@@ -32,6 +32,14 @@ export interface FicheDecor {
 }
 export type FicheDecorator = (row: Row, ctx: { name: string; canonical: string }) => FicheDecor
 
+/** Phrases lues à voix haute sur une fiche, par locale. Une phrase est un gabarit avec des marqueurs :
+ *  - `{Name}` / `{name}` : le sujet avec son article (« La Martinique » / « la Martinique »), `{of_name}` : « de la Martinique » ;
+ *  - `{colonne}` : valeur de la colonne (traduite, nombre formaté), `{colonne:2}` : ses 2 premières valeurs si elle est multivaleur ;
+ *  - `[ … ]` : segment optionnel, retiré si l'un de ses marqueurs est vide.
+ *  Une phrase dont un marqueur (hors segment optionnel) est vide est ignorée. Locale absente : repli sur le français.
+ *  Les unités s'écrivent en toutes lettres dans le gabarit (« kilomètres carrés ») : c'est ce que la voix doit dire. */
+export type SpeechTemplates = Partial<Record<Locale, string[]>>
+
 export interface Dataset {
   rows: Row[]
   schema: GenSchema
@@ -47,6 +55,8 @@ export interface Dataset {
    *  celui-ci a une table éditable en face, donc seul lui autorise l'édition admin des fiches. */
   editable?: boolean
   ficheDecor?: FicheDecorator
+  /** Absent : pas de bouton « Écouter » sur les fiches. */
+  speech?: SpeechTemplates
   views?: DatasetView[]
 }
 
