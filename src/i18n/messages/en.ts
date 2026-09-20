@@ -70,6 +70,8 @@ export const en: Record<MessageKey, string> = {
   "badge.blitz50.hint": "Play 50 blitz games.",
   "badge.record1": "Record broken",
   "badge.record1.hint": "Beat your personal blitz record.",
+  "badge.daily7": "Full week",
+  "badge.daily7.hint": "Take the daily challenge 7 days in a row.",
   'quiz.blitzTimer': "Time left for this question",
   'start.play': 'Start the quiz',
 

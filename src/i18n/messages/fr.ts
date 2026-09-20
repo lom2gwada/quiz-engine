@@ -74,6 +74,8 @@ export const fr = {
   "badge.blitz50.hint": "Jouez 50 parties de blitz.",
   "badge.record1": "Record battu",
   "badge.record1.hint": "Battez votre record personnel au blitz.",
+  "badge.daily7": "Semaine complète",
+  "badge.daily7.hint": "Relevez le défi du jour 7 jours de suite.",
   'quiz.blitzTimer': "Temps restant pour cette question",
   'start.play': 'Démarrer le quiz',
 

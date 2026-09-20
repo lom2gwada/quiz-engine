@@ -71,6 +71,8 @@ export const es: Record<MessageKey, string> = {
   "badge.blitz50.hint": "Juega 50 partidas de blitz.",
   "badge.record1": "Récord batido",
   "badge.record1.hint": "Bate tu récord personal en blitz.",
+  "badge.daily7": "Semana completa",
+  "badge.daily7.hint": "Acepta el reto del día 7 días seguidos.",
   'quiz.blitzTimer': "Tiempo restante para esta pregunta",
   'start.play': 'Empezar el quiz',
 

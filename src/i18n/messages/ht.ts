@@ -72,6 +72,8 @@ export const ht: Record<MessageKey, string> = {
   "badge.blitz50.hint": "Jwe 50 pati blitz.",
   "badge.record1": "Rekò kraze",
   "badge.record1.hint": "Kraze rekò pèsonèl ou nan blitz.",
+  "badge.daily7": "Semèn konplè",
+  "badge.daily7.hint": "Fè defi jou a 7 jou youn dèyè lòt.",
   'quiz.blitzTimer': "Tan ki rete pou kesyon sa a",
   'start.play': 'Kòmanse quiz la',
 

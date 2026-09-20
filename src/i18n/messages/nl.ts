@@ -71,6 +71,8 @@ export const nl: Record<MessageKey, string> = {
   "badge.blitz50.hint": "Speel 50 blitzpartijen.",
   "badge.record1": "Record verbroken",
   "badge.record1.hint": "Verbreek je persoonlijke blitzrecord.",
+  "badge.daily7": "Volle week",
+  "badge.daily7.hint": "Speel de dagelijkse uitdaging 7 dagen op rij.",
   'quiz.blitzTimer': "Resterende tijd voor deze vraag",
   'start.play': 'Start de quiz',
 

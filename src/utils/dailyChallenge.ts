@@ -81,6 +81,11 @@ function writeStore(store: LocalStore): void {
 
 export const readDailyLocal = (day: string): DailyLocal | null => readStore()[day] ?? null
 
+/** Jours dont le défi a été terminé sur cet appareil. */
+export function finishedLocalDays(): string[] {
+  return Object.entries(readStore()).filter(([, entry]) => entry.finished).map(([day]) => day)
+}
+
 export function markDailyStarted(day: string): void {
   const store = readStore()
   if (!store[day]) store[day] = { finished: false, correct: 0, played: 0, bestStreak: 0, elapsed: 0 }

@@ -28,7 +28,7 @@ import type { BlitzSummaryData } from './components/BlitzSummary'
 import { GameExtras, type DailySummaryData } from './components/GameExtras'
 import { DailyChallengePanel } from './components/DailyChallengePanel'
 import { earnedBadges, addBadges, pushBadges, readBadges, syncBadges, writeBadges, type BadgeContext, type BadgeId, type OwnedBadges } from './utils/badges'
-import { DAILY_QUESTION_COUNT, claimDaily, dailyKey, dailyRank, dailySeed, fetchDailyLeaderboard, finishDaily, markDailyFinished, markDailyStarted, pickDailyIds, readDailyLocal, selectDaily } from './utils/dailyChallenge'
+import { DAILY_QUESTION_COUNT, claimDaily, dailyKey, dailyRank, dailySeed, dailyStreak, fetchDailyLeaderboard, fetchMyDaily, finishDaily, finishedLocalDays, markDailyFinished, markDailyStarted, pickDailyIds, readDailyLocal, selectDaily } from './utils/dailyChallenge'
 import { shuffle } from './utils/shuffle'
 
 type BuiltinView = 'start' | 'quiz' | 'results' | 'content' | 'history' | 'profile' | 'atlas'
@@ -352,7 +352,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     const next = addBadges(owned, fresh, now)
     writeBadges(next)
     setBadges(next)
-    setNewBadges(fresh)
+    setNewBadges((previous) => Array.from(new Set([...previous, ...fresh]))) // deux attributions possibles par partie (bilan, série du défi)
     if (userId) pushBadges(userId, fresh, now).catch(() => {})
   }
 
@@ -386,12 +386,20 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     navigate('quiz')
   }
 
+  // Badge « semaine complète » : les jours de défi consécutifs, comptés sur cet appareil et (si connecté) dans le cloud.
+  const awardDailyStreak = (day: string, cloudDays: string[]) => {
+    const streak = dailyStreak([...finishedLocalDays(), ...cloudDays], day)
+    awardNewBadges({ stats: null, freeBlitz: false, brokeRecord: false, history: [], currentByCategory: {}, categoryIds: [], dailyStreakDays: streak })
+  }
+
   const finishDailyRun = (day: string, stats: BlitzSummaryData, duration: number) => {
     markDailyFinished(day, stats, duration)
     setDailySummary({ played: stats.played, correct: stats.correct, bestStreak: stats.bestStreak, guest: !userId })
     setDailyRefresh((value) => value + 1)
-    if (!userId) return
+    if (!userId) { awardDailyStreak(day, []); return }
     finishDaily(userId, day, stats, duration)
+      .then(() => fetchMyDaily(userId))
+      .then((mine) => { awardDailyStreak(day, mine.filter((row) => row.finished_at).map((row) => row.day)) })
       .then(() => fetchDailyLeaderboard(day))
       .then((rows) => {
         setDailySummary((previous) => (previous ? { ...previous, rank: dailyRank(rows, userId) } : previous))

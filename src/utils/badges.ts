@@ -3,7 +3,7 @@ import type { QuizResultRow, StatBucket } from '../types/history'
 import type { BlitzStats } from './blitz'
 import { supabase } from './supabase'
 
-export type BadgeId = 'streak10' | 'flawless20' | 'globe10' | 'blitz50' | 'record1'
+export type BadgeId = 'streak10' | 'flawless20' | 'globe10' | 'blitz50' | 'record1' | 'daily7'
 
 /** Ordre d'affichage. Nom et condition : messages `badge.<id>` et `badge.<id>.hint`. */
 export const BADGES: { id: BadgeId; icon: string }[] = [
@@ -12,6 +12,7 @@ export const BADGES: { id: BadgeId; icon: string }[] = [
   { id: 'globe10', icon: '🌍' },
   { id: 'blitz50', icon: '⚡' },
   { id: 'record1', icon: '🏆' },
+  { id: 'daily7', icon: '📅' },
 ]
 
 export interface BadgeContext {
@@ -27,6 +28,8 @@ export interface BadgeContext {
   currentByCategory: Record<string, StatBucket>
   /** Catégories du quiz (les identifiants). */
   categoryIds: string[]
+  /** Jours de défi du jour consécutifs, aujourd'hui compris (renseigné à la fin d'un défi du jour). */
+  dailyStreakDays?: number
 }
 
 /** Tous les badges que ce contexte satisfait (y compris ceux déjà obtenus : c'est à l'appelant de filtrer). */
@@ -46,6 +49,7 @@ export function earnedBadges(ctx: BadgeContext): BadgeId[] {
   const blitzGames = ctx.history.filter((row) => row.mode === 'blitz').length + (ctx.freeBlitz ? 1 : 0)
   if (blitzGames >= 50) earned.push('blitz50')
   if (ctx.brokeRecord) earned.push('record1')
+  if ((ctx.dailyStreakDays ?? 0) >= 7) earned.push('daily7')
   return earned
 }
 

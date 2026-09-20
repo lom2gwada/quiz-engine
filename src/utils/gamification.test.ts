@@ -75,6 +75,12 @@ describe('badges', () => {
     expect(earnedBadges({ ...blank, brokeRecord: true })).toEqual(['record1'])
   })
 
+  it('awards the full-week badge from 7 consecutive daily-challenge days', () => {
+    expect(earnedBadges({ ...blank, dailyStreakDays: 6 })).toEqual([])
+    expect(earnedBadges({ ...blank, dailyStreakDays: 7 })).toEqual(['daily7'])
+    expect(earnedBadges({ ...blank, dailyStreakDays: 12 })).toEqual(['daily7'])
+  })
+
   it('only adds badges that are not owned yet, keeping the original date', () => {
     const owned = { streak10: '2026-09-01T00:00:00Z' }
     const next = addBadges(owned, ['streak10', 'record1'], '2026-09-20T00:00:00Z')
