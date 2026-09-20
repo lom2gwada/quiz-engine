@@ -27,6 +27,8 @@ export interface BlitzStats {
   correct: number
   /** Plus longue suite de bonnes réponses consécutives. */
   bestStreak: number
+  /** Points de base des bonnes réponses (hors bonus de rapidité). */
+  points: number
 }
 
 /** Bilan d'une partie : `shown` = les questions jouées, dans l'ordre. */
@@ -34,15 +36,33 @@ export function blitzStats(shown: Question[], answers: AnswersByQuestion): Blitz
   let correct = 0
   let bestStreak = 0
   let run = 0
+  let points = 0
   for (const question of shown) {
-    if (isCorrect(question, answers[question.id])) { correct += 1; run += 1; bestStreak = Math.max(bestStreak, run) } else run = 0
+    if (isCorrect(question, answers[question.id])) { correct += 1; points += question.points; run += 1; bestStreak = Math.max(bestStreak, run) } else run = 0
   }
-  return { played: shown.length, correct, bestStreak }
+  return { played: shown.length, correct, bestStreak, points }
 }
 
 /** Meilleur nombre de bonnes réponses en blitz sur ce quiz (parties avec 3 erreurs seulement), `null` s'il n'y en a pas. */
 export function previousBestBlitz(rows: QuizResultRow[], quizTitle: string): number | null {
   const scores = rows.filter((row) => row.mode === 'blitz' && row.quiz_title === quizTitle && row.created_at >= BLITZ_LIVES_SINCE).map((row) => row.correct_count)
+  return scores.length ? Math.max(...scores) : null
+}
+
+/** Bonus de rapidité d'une bonne réponse, en dixièmes de point : les points de la question × la part du temps qui reste
+ *  (réponse instantanée = points doublés, dernière seconde = presque rien). En dixièmes entiers pour additionner sans dérive. */
+export function speedBonusTenths(points: number, msLeft: number): number {
+  const share = Math.max(0, Math.min(1, msLeft / (BLITZ_SECONDS * 1000)))
+  return Math.round(points * share * 10)
+}
+
+/** Score blitz = points de base + bonus de rapidité, arrondi au dixième. */
+export const blitzScore = (stats: BlitzStats, bonus: number): number => Math.round((stats.points + bonus) * 10) / 10
+
+/** Meilleur score blitz (points + bonus) sur ce quiz, parties avec 3 erreurs seulement ; `null` s'il n'y en a pas. */
+export function previousBestBlitzScore(rows: QuizResultRow[], quizTitle: string): number | null {
+  const scores = rows.filter((row) => row.mode === 'blitz' && row.quiz_title === quizTitle && row.created_at >= BLITZ_LIVES_SINCE)
+    .map((row) => Math.round((row.earned_points + (row.bonus_points ?? 0)) * 10) / 10)
   return scores.length ? Math.max(...scores) : null
 }
 

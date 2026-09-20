@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { AnswersByQuestion, Difficulty, Question, Quiz } from '../types/quiz'
 import type { MessageKey, TFunction } from '../i18n'
-import { useT } from '../i18n'
+import { useLocale, useT } from '../i18n'
+import { formatNumber } from '../utils/number'
 import { formatDuration } from '../utils/time'
 import { shuffle } from '../utils/shuffle'
-import { BLITZ_MAX_ERRORS, BLITZ_SECONDS } from '../utils/blitz'
+import { BLITZ_MAX_ERRORS, BLITZ_SECONDS, speedBonusTenths } from '../utils/blitz'
 import { playCorrect, playStreak, playTick, playWrong } from '../utils/sound'
 import { preloadAnswerImages } from '../utils/preload'
 import { rateColor } from '../utils/rateColor'
@@ -40,12 +41,14 @@ interface QuizPageProps {
   mode?: GameMode
   /** Contre la montre uniquement : durée en secondes ; absent = illimité. */
   timeLimitSeconds?: number
-  onFinish: (answers: AnswersByQuestion, elapsedSeconds: number, shown: Question[]) => void
+  /** `extra.speedBonus` : blitz uniquement, bonus de rapidité cumulé (en points). */
+  onFinish: (answers: AnswersByQuestion, elapsedSeconds: number, shown: Question[], extra?: { speedBonus: number }) => void
   onCancel: () => void
 }
 
 export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, onFinish, onCancel }: QuizPageProps) {
   const t = useT()
+  const locale = useLocale()
   const [current, setCurrent] = useState(0)
   const [answers, setAnswers] = useState<AnswersByQuestion>({})
   const [elapsed, setElapsed] = useState(0)
@@ -82,6 +85,10 @@ export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, 
   elapsedRef.current = elapsed
   const [errors, setErrors] = useState(0)
   const [streak, setStreak] = useState(0) // bonnes réponses d'affilée
+  // Score courant (points + bonus, en dixièmes), dernier gain affiché, bonus cumulé.
+  const [scoreTenths, setScoreTenths] = useState(0)
+  const [gain, setGain] = useState<{ key: number; tenths: number } | null>(null)
+  const bonusTenths = useRef(0)
   const lastTick = useRef(-1) // dernière seconde « tic » jouée sur la question
   const advanceBlitz = (nextAnswers: AnswersByQuestion, wrong: boolean) => {
     deadline.current = Infinity
@@ -93,14 +100,22 @@ export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, 
     const nextErrors = errors + (wrong ? 1 : 0)
     // Fin : 3e erreur ou plus de question. Les questions jouées = celles jusqu'à la courante incluse (une question
     // sans réponse, temps écoulé, compte fausse).
-    if (nextErrors >= BLITZ_MAX_ERRORS || atEnd) onFinish(nextAnswers, elapsedRef.current, shuffledQuestions.slice(0, current + 1))
+    if (nextErrors >= BLITZ_MAX_ERRORS || atEnd) onFinish(nextAnswers, elapsedRef.current, shuffledQuestions.slice(0, current + 1), { speedBonus: bonusTenths.current / 10 })
     else { setErrors(nextErrors); setCurrent((value) => value + 1) }
   }
   const pickBlitz = (answerId: string) => {
     if (deadline.current === Infinity) return
     const next = { ...answers, [question.id]: [answerId] }
     setAnswers(next)
-    advanceBlitz(next, !isCorrect(question, [answerId]))
+    const wrong = !isCorrect(question, [answerId])
+    if (wrong) setGain(null)
+    else {
+      const bonus = speedBonusTenths(question.points, deadline.current - Date.now())
+      bonusTenths.current += bonus
+      setScoreTenths((value) => value + question.points * 10 + bonus)
+      setGain({ key: Date.now(), tenths: question.points * 10 + bonus })
+    }
+    advanceBlitz(next, wrong)
   }
   useEffect(() => {
     if (!blitz) return
@@ -143,7 +158,7 @@ export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, 
     return <section className="quiz-card blitz-card">
       <div className="question-meta">
         <span>⚡ {t('start.mode.blitz')}</span>
-        <span key={errors} className={errors > 0 ? 'blitz-lives is-hit' : 'blitz-lives'} role="img" aria-label={t('quiz.blitzLives', { n: BLITZ_MAX_ERRORS - errors })}>{'❤️'.repeat(BLITZ_MAX_ERRORS - errors)}{'🖤'.repeat(errors)}</span>{streak >= 2 && <span key={streak} className="blitz-streak" role="img" aria-label={t('quiz.blitzStreak', { n: streak })}>🔥 {streak}</span>}<span>{category}</span><span>{t('quiz.points', { n: question.points })}</span>
+        <span key={errors} className={errors > 0 ? 'blitz-lives is-hit' : 'blitz-lives'} role="img" aria-label={t('quiz.blitzLives', { n: BLITZ_MAX_ERRORS - errors })}>{'❤️'.repeat(BLITZ_MAX_ERRORS - errors)}{'🖤'.repeat(errors)}</span>{streak >= 2 && <span key={streak} className="blitz-streak" role="img" aria-label={t('quiz.blitzStreak', { n: streak })}>🔥 {streak}</span>}<span role="img" aria-label={t('quiz.blitzScore', { n: formatNumber(scoreTenths / 10, locale, 1) })}>⭐ {formatNumber(scoreTenths / 10, locale, 1)}</span>{gain && <span key={gain.key} className="blitz-gain">+{formatNumber(gain.tenths / 10, locale, 1)}</span>}<span>{category}</span><span>{t('quiz.points', { n: question.points })}</span>
         <span>⏱ {formatDuration(Math.ceil(questionMs / 1000))}</span>
       </div>
       <div className="quiz-progress" role="timer" aria-label={t('quiz.blitzTimer')}>

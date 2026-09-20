@@ -23,7 +23,7 @@ import { formatNumber } from './utils/number'
 import { generateQuiz, inferSchema, parseCsv, randomSeed } from './utils/quizGenerator'
 import type { GenSchema, Row } from './utils/quizGenerator'
 import { isSoundMuted, playClick, setSoundMuted } from './utils/sound'
-import { BLITZ_MAX_ERRORS, BLITZ_QUESTION_COUNT, BLITZ_SECONDS, blitzPool, blitzStats, previousBestBlitz } from './utils/blitz'
+import { BLITZ_MAX_ERRORS, BLITZ_QUESTION_COUNT, BLITZ_SECONDS, blitzPool, blitzStats, previousBestBlitz, previousBestBlitzScore } from './utils/blitz'
 import type { BlitzSummaryData } from './components/BlitzSummary'
 import { GameExtras, type DailySummaryData } from './components/GameExtras'
 import { DailyChallengePanel } from './components/DailyChallengePanel'
@@ -394,7 +394,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
 
   const finishDailyRun = (day: string, stats: BlitzSummaryData, duration: number) => {
     markDailyFinished(day, stats, duration)
-    setDailySummary({ played: stats.played, correct: stats.correct, bestStreak: stats.bestStreak, guest: !userId })
+    setDailySummary({ played: stats.played, correct: stats.correct, bestStreak: stats.bestStreak, points: stats.points, bonus: stats.bonus, guest: !userId })
     setDailyRefresh((value) => value + 1)
     if (!userId) { awardDailyStreak(day, []); return }
     finishDaily(userId, day, stats, duration)
@@ -446,24 +446,25 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
       {gameMode === 'blitz' && <p>{t('start.blitzHint', { count: Math.min(BLITZ_QUESTION_COUNT, blitzAvailable), seconds: BLITZ_SECONDS, lives: BLITZ_MAX_ERRORS, n: formatNumber(blitzAvailable) })}</p>}
       <div className="quiz-actions"><button type="button" onClick={startQuiz} disabled={gameMode === 'blitz' ? !blitzAvailable : !filteredQuestions.length}>{t('start.play')}</button></div>
     </section>}
-    {view === 'quiz' && <QuizPage quiz={quiz} questions={sessionQuestions} mode={activeMode} timeLimitSeconds={activeTimeLimit} onFinish={(nextAnswers, duration, shown) => {
+    {view === 'quiz' && <QuizPage quiz={quiz} questions={sessionQuestions} mode={activeMode} timeLimitSeconds={activeTimeLimit} onFinish={(nextAnswers, duration, shown, extra) => {
       setAnswers(nextAnswers); setResultQuestions(shown); setElapsedSeconds(duration); replace('results')
       const historyKey = historyKeyOf(dataset, quiz)
-      const payload = buildQuizResultPayload(shown, nextAnswers, quiz.categories, duration, historyKey, activeMode)
       const daily = dailyRun
       const stats = activeMode === 'blitz' ? blitzStats(shown, nextAnswers) : null
+      const bonus = extra?.speedBonus ?? 0
+      const payload = { ...buildQuizResultPayload(shown, nextAnswers, quiz.categories, duration, historyKey, activeMode), ...(stats ? { bonus_points: bonus } : {}) }
       // Un défi du jour n'entre pas dans l'historique blitz (ni records, ni classement blitz) : son résultat a sa propre table.
       const persist = () => {
         if (!daily) saveQuizResult(payload, session?.user.id)
         saveQuestionResults(buildQuestionResultPayloads(shown, nextAnswers, historyKey), session?.user.id)
       }
-      if (daily && stats) finishDailyRun(daily.day, stats, duration)
-      if (stats && !daily) setBlitzSummary(stats)
+      if (daily && stats) finishDailyRun(daily.day, { ...stats, bonus }, duration)
+      if (stats && !daily) setBlitzSummary({ ...stats, bonus })
       // L'historique est lu AVANT d'y enregistrer cette partie : record et badges se calculent par rapport à l'existant.
       fetchQuizHistory(session?.user.id)
         .then((rows) => {
           const previousBest = stats && !daily ? previousBestBlitz(rows, historyKey) : undefined
-          if (stats && !daily) setBlitzSummary({ ...stats, previousBest })
+          if (stats && !daily) setBlitzSummary({ ...stats, bonus, previousBest, previousBestScore: previousBestBlitzScore(rows, historyKey) })
           awardNewBadges({
             stats,
             freeBlitz: Boolean(stats && !daily),

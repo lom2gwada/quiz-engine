@@ -20,6 +20,8 @@ export interface QuizResultPayload {
   by_category: Record<string, StatBucket>
   by_type: Record<string, StatBucket>
   by_difficulty: Record<string, StatBucket>
+  /** Blitz : points de bonus de rapidité gagnés (en plus de `earned_points`) ; absent/0 ailleurs. */
+  bonus_points?: number
 }
 
 export interface QuizResultRow extends QuizResultPayload {

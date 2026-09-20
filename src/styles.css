@@ -307,3 +307,6 @@ pre { padding: 1rem; overflow: auto; background: var(--code-bg); border: 1px sol
   .leaderboard-score { max-width: 5rem; font-size: .9rem; line-height: 1.15; text-align: right; white-space: normal; }
   .daily-panel { padding: .9rem; }
 }
+.blitz-gain { display: inline-block; font-weight: 700; color: var(--success, #34d399); animation: blitz-gain .9s ease-out both; }
+@keyframes blitz-gain { 0% { opacity: 0; transform: translateY(6px); } 20% { opacity: 1; transform: translateY(0); } 100% { opacity: .35; transform: translateY(-3px); } }
+@media (prefers-reduced-motion: reduce) { .blitz-gain { animation: none; } }

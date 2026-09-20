@@ -55,10 +55,10 @@ describe('badges', () => {
   })
 
   it('awards the streak and flawless badges from the blitz result', () => {
-    expect(earnedBadges({ ...blank, stats: { played: 12, correct: 11, bestStreak: 10 } })).toEqual(['streak10'])
-    expect(earnedBadges({ ...blank, stats: { played: 20, correct: 20, bestStreak: 20 } })).toEqual(['streak10', 'flawless20'])
-    expect(earnedBadges({ ...blank, stats: { played: 19, correct: 19, bestStreak: 19 } })).toEqual(['streak10'])
-    expect(earnedBadges({ ...blank, stats: { played: 20, correct: 19, bestStreak: 9 } })).toEqual([])
+    expect(earnedBadges({ ...blank, stats: { played: 12, correct: 11, bestStreak: 10, points: 0 } })).toEqual(['streak10'])
+    expect(earnedBadges({ ...blank, stats: { played: 20, correct: 20, bestStreak: 20, points: 0 } })).toEqual(['streak10', 'flawless20'])
+    expect(earnedBadges({ ...blank, stats: { played: 19, correct: 19, bestStreak: 19, points: 0 } })).toEqual(['streak10'])
+    expect(earnedBadges({ ...blank, stats: { played: 20, correct: 19, bestStreak: 9, points: 0 } })).toEqual([])
   })
 
   it('awards the globetrotter badge once every category has 10 correct answers, counting history and this game', () => {

@@ -73,7 +73,7 @@ async function pushQuizRowsToCloud(userId: string, rows: QuizResultRow[]): Promi
 async function fetchCloudQuizRows(userId: string): Promise<QuizResultRow[]> {
   const { data, error } = await supabase
     .from(table('quiz_results'))
-    .select('id,quiz_title,mode,score,earned_points,total_points,correct_count,elapsed_seconds,question_count,categories,by_category,by_type,by_difficulty,created_at')
+    .select('id,quiz_title,mode,score,earned_points,total_points,correct_count,elapsed_seconds,question_count,categories,by_category,by_type,by_difficulty,bonus_points,created_at')
     .eq('user_id', userId)
   if (error) throw error
   return data ?? []
@@ -95,7 +95,7 @@ type LegacyQuizResultRow = QuizResultRow & { themes?: string[]; by_theme?: Recor
  * — toutes antérieures au contre-la-montre/sans-faute, donc forcément « classique ») sous les noms actuels. */
 function normalizeRow(row: LegacyQuizResultRow): QuizResultRow {
   const withCategories = row.by_category !== undefined ? row : { ...row, categories: row.categories ?? row.themes ?? [], by_category: row.by_theme ?? {} }
-  return { ...withCategories, mode: withCategories.mode ?? 'classic', correct_count: withCategories.correct_count ?? 0 }
+  return { ...withCategories, mode: withCategories.mode ?? 'classic', correct_count: withCategories.correct_count ?? 0, bonus_points: Number(withCategories.bonus_points ?? 0) }
 }
 
 /** Historique local (par navigateur), fusionné avec le cloud si connecté : les parties déjà
