@@ -297,3 +297,13 @@ pre { padding: 1rem; overflow: auto; background: var(--code-bg); border: 1px sol
 .badge.is-locked .badge-icon { filter: grayscale(1); }
 .badge.is-earned { border-color: var(--accent); }
 .new-badges { margin-top: .8rem; }
+.leaderboard-list { grid-template-columns: minmax(0, 1fr); }
+.leaderboard-item { min-width: 0; }
+.leaderboard-pseudo { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 550px) {
+  .leaderboard-item { gap: .5rem; padding: .6rem .7rem; }
+  .leaderboard-rank { min-width: 1.2rem; }
+  .leaderboard-pseudo { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; white-space: normal; overflow-wrap: anywhere; }
+  .leaderboard-score { max-width: 5rem; font-size: .9rem; line-height: 1.15; text-align: right; white-space: normal; }
+  .daily-panel { padding: .9rem; }
+}
