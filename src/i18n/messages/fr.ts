@@ -42,6 +42,13 @@ export const fr = {
   'start.blitzHint': "Jusqu'à {count} questions à 4 choix, {seconds} secondes chacune, la partie s'arrête à la {lives}e erreur — {n} questions éligibles avec ces filtres.",
   'quiz.blitzLives': "Vies restantes : {n}",
   'quiz.blitzChoice': "Choix {n}",
+  'quiz.blitzStreak': "Série de {n} bonnes réponses",
+  'blitz.summary.correct': "Bonnes réponses : {correct} sur {played}",
+  'blitz.summary.streak': "Meilleure série : {n}",
+  'blitz.summary.first': "Première partie blitz : ce score devient votre référence.",
+  'blitz.summary.record': "🏆 Nouveau record ! Le précédent était de {prev}.",
+  'blitz.summary.tie': "Vous égalez votre record ({prev}).",
+  'blitz.summary.behind': "Votre record : {prev} — il vous en manque {gap} pour l’égaler.",
   'quiz.blitzTimer': "Temps restant pour cette question",
   'start.play': 'Démarrer le quiz',
 

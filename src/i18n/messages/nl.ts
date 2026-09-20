@@ -39,6 +39,13 @@ export const nl: Record<MessageKey, string> = {
   'start.blitzHint': "Tot {count} vragen met 4 keuzes, {seconds} seconden per vraag, het spel stopt bij fout nummer {lives} — {n} geschikte vragen met deze filters.",
   'quiz.blitzLives': "Resterende levens: {n}",
   'quiz.blitzChoice': "Keuze {n}",
+  'quiz.blitzStreak': "Reeks van {n} juiste antwoorden",
+  'blitz.summary.correct': "Juiste antwoorden: {correct} van {played}",
+  'blitz.summary.streak': "Beste reeks: {n}",
+  'blitz.summary.first': "Eerste blitzpartij: deze score is nu je referentie.",
+  'blitz.summary.record': "🏆 Nieuw record! Het vorige was {prev}.",
+  'blitz.summary.tie': "Je evenaart je record ({prev}).",
+  'blitz.summary.behind': "Je record: {prev} — nog {gap} om het te evenaren.",
   'quiz.blitzTimer': "Resterende tijd voor deze vraag",
   'start.play': 'Start de quiz',
 

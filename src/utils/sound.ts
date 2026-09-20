@@ -46,3 +46,25 @@ export function playFinish(): void {
 export function playVictory(): void {
   [523.25, 659.25, 783.99, 1046.5].forEach((frequency, index) => tone(frequency, 0.2, index * 0.1, 'sine', 0.07))
 }
+
+/** Bonne réponse : deux notes montantes, brèves. */
+export function playCorrect(): void {
+  tone(659.25, 0.09, 0, 'sine', 0.06)
+  tone(880, 0.12, 0.07, 'sine', 0.06)
+}
+
+/** Mauvaise réponse ou temps écoulé : deux notes graves descendantes. */
+export function playWrong(): void {
+  tone(196, 0.16, 0, 'sawtooth', 0.045)
+  tone(147, 0.22, 0.1, 'sawtooth', 0.045)
+}
+
+/** Dernières secondes d'une question : un tic sec par seconde. */
+export function playTick(): void {
+  tone(880, 0.04, 0, 'square', 0.03)
+}
+
+/** Palier de série (toutes les 5 bonnes réponses d'affilée) : petit arpège. */
+export function playStreak(): void {
+  [784, 988, 1175, 1568].forEach((frequency, index) => tone(frequency, 0.12, 0.08 + index * 0.07, 'triangle', 0.06))
+}

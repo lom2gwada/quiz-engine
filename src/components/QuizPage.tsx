@@ -5,6 +5,7 @@ import { useT } from '../i18n'
 import { formatDuration } from '../utils/time'
 import { shuffle } from '../utils/shuffle'
 import { BLITZ_MAX_ERRORS, BLITZ_SECONDS } from '../utils/blitz'
+import { playCorrect, playStreak, playTick, playWrong } from '../utils/sound'
 import { preloadAnswerImages } from '../utils/preload'
 import { rateColor } from '../utils/rateColor'
 import { BlitzQuestion } from './BlitzQuestion'
@@ -80,8 +81,15 @@ export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, 
   const elapsedRef = useRef(0)
   elapsedRef.current = elapsed
   const [errors, setErrors] = useState(0)
+  const [streak, setStreak] = useState(0) // bonnes réponses d'affilée
+  const lastTick = useRef(-1) // dernière seconde « tic » jouée sur la question
   const advanceBlitz = (nextAnswers: AnswersByQuestion, wrong: boolean) => {
     deadline.current = Infinity
+    if (wrong) { playWrong(); setStreak(0) } else {
+      playCorrect()
+      setStreak(streak + 1)
+      if ((streak + 1) % 5 === 0) playStreak()
+    }
     const nextErrors = errors + (wrong ? 1 : 0)
     // Fin : 3e erreur ou plus de question. Les questions jouées = celles jusqu'à la courante incluse (une question
     // sans réponse, temps écoulé, compte fausse).
@@ -105,6 +113,7 @@ export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, 
     void preloadAnswerImages(shuffledQuestions[current]).then(() => {
       if (cancelled) return
       deadline.current = Date.now() + BLITZ_SECONDS * 1000
+      lastTick.current = -1
       interval = setInterval(() => {
         const left = deadline.current - Date.now()
         if (left <= 0) {
@@ -112,6 +121,8 @@ export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, 
           setQuestionMs(0)
         } else {
           setQuestionMs(left)
+          const second = Math.ceil(left / 1000)
+          if (second <= 3 && second !== lastTick.current) { lastTick.current = second; playTick() }
         }
       }, 100)
     })
@@ -132,11 +143,11 @@ export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, 
     return <section className="quiz-card blitz-card">
       <div className="question-meta">
         <span>⚡ {t('start.mode.blitz')}</span>
-        <span role="img" aria-label={t('quiz.blitzLives', { n: BLITZ_MAX_ERRORS - errors })}>{'❤️'.repeat(BLITZ_MAX_ERRORS - errors)}{'🖤'.repeat(errors)}</span><span>{category}</span><span>{t('quiz.points', { n: question.points })}</span>
+        <span key={errors} className={errors > 0 ? 'blitz-lives is-hit' : 'blitz-lives'} role="img" aria-label={t('quiz.blitzLives', { n: BLITZ_MAX_ERRORS - errors })}>{'❤️'.repeat(BLITZ_MAX_ERRORS - errors)}{'🖤'.repeat(errors)}</span>{streak >= 2 && <span key={streak} className="blitz-streak" role="img" aria-label={t('quiz.blitzStreak', { n: streak })}>🔥 {streak}</span>}<span>{category}</span><span>{t('quiz.points', { n: question.points })}</span>
         <span>⏱ {formatDuration(Math.ceil(questionMs / 1000))}</span>
       </div>
       <div className="quiz-progress" role="timer" aria-label={t('quiz.blitzTimer')}>
-        <div className="quiz-progress-fill" style={{ width: `${fraction * 100}%`, background: rateColor(fraction * 100), transition: 'none' }} />
+        <div className={fraction <= 0.3 ? 'quiz-progress-fill is-urgent' : 'quiz-progress-fill'} style={{ width: `${fraction * 100}%`, background: rateColor(fraction * 100), transition: 'none' }} />
       </div>
       <p className="progress">{t('quiz.progress', { current: current + 1, total: shuffledQuestions.length })}</p>
       <div className="question-body" key={question.id}>

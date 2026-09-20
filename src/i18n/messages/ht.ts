@@ -40,6 +40,13 @@ export const ht: Record<MessageKey, string> = {
   'start.blitzHint': "Jiska {count} kesyon ak 4 chwa, {seconds} segonn pou chak, jwèt la fini nan erè nimewo {lives} — {n} kesyon disponib ak filt sa yo.",
   'quiz.blitzLives': "Lavi ki rete: {n}",
   'quiz.blitzChoice': "Chwa {n}",
+  'quiz.blitzStreak': "Seri {n} repons kòrèk",
+  'blitz.summary.correct': "Repons kòrèk: {correct} sou {played}",
+  'blitz.summary.streak': "Pi bon seri: {n}",
+  'blitz.summary.first': "Premye pati blitz: nòt sa a se referans ou kounye a.",
+  'blitz.summary.record': "🏆 Nouvo rekò! Ansyen an te {prev}.",
+  'blitz.summary.tie': "Ou egale rekò ou ({prev}).",
+  'blitz.summary.behind': "Rekò ou: {prev} — ou bezwen {gap} anplis pou egale l.",
   'quiz.blitzTimer': "Tan ki rete pou kesyon sa a",
   'start.play': 'Kòmanse quiz la',
 

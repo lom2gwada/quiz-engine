@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
 import type { AnswersByQuestion, Category, Question } from '../types/quiz'
 import type { MessageKey, TFunction } from '../i18n'
@@ -106,9 +107,11 @@ interface ResultPageProps {
   onViewHistory: () => void
   /** Ouvre la fiche du sujet d'une question ; absent s'il n'y a pas de jeu de données (quiz JSON importé). */
   onViewFiche?: (subject: string) => void
+  /** Bloc affiché sous le score (bilan blitz…). */
+  summary?: ReactNode
 }
 
-export function ResultPage({ questions, answers, categories, elapsedSeconds, onRestartSame, onBackToSettings, onViewHistory, onViewFiche }: ResultPageProps) {
+export function ResultPage({ questions, answers, categories, elapsedSeconds, onRestartSame, onBackToSettings, onViewHistory, onViewFiche, summary }: ResultPageProps) {
   const t = useT()
   const earned = questions.filter((question) => isCorrect(question, answers[question.id])).reduce((total, question) => total + question.points, 0)
   const total = questions.reduce((sum, question) => sum + question.points, 0)
@@ -127,6 +130,7 @@ export function ResultPage({ questions, answers, categories, elapsedSeconds, onR
       <p className="mention">{emoji} {t(key)}</p>
       <p className="duration">{t('result.time', { duration: formatDuration(elapsedSeconds) })}</p>
     </div>
+    {summary}
     <div className="result-actions">
       {onRestartSame && <button type="button" onClick={onRestartSame}>{t('result.restartSame')}</button>}
       <button type="button" className={onRestartSame ? 'secondary' : undefined} onClick={onBackToSettings}>{t('result.backToSettings')}</button>

@@ -38,6 +38,13 @@ export const en: Record<MessageKey, string> = {
   'start.blitzHint': "Up to {count} four-choice questions, {seconds} seconds each, the game ends at mistake number {lives} — {n} eligible questions with these filters.",
   'quiz.blitzLives': "Lives left: {n}",
   'quiz.blitzChoice': "Choice {n}",
+  'quiz.blitzStreak': "Streak of {n} correct answers",
+  'blitz.summary.correct': "Correct answers: {correct} of {played}",
+  'blitz.summary.streak': "Best streak: {n}",
+  'blitz.summary.first': "First blitz game: this score is now your reference.",
+  'blitz.summary.record': "🏆 New record! The previous one was {prev}.",
+  'blitz.summary.tie': "You matched your record ({prev}).",
+  'blitz.summary.behind': "Your record: {prev} — {gap} more to match it.",
   'quiz.blitzTimer': "Time left for this question",
   'start.play': 'Start the quiz',
 

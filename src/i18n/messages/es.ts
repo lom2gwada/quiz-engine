@@ -39,6 +39,13 @@ export const es: Record<MessageKey, string> = {
   'start.blitzHint': "Hasta {count} preguntas de 4 opciones, {seconds} segundos cada una, la partida termina en el error número {lives} — {n} preguntas disponibles con estos filtros.",
   'quiz.blitzLives': "Vidas restantes: {n}",
   'quiz.blitzChoice': "Opción {n}",
+  'quiz.blitzStreak': "Racha de {n} aciertos",
+  'blitz.summary.correct': "Respuestas correctas: {correct} de {played}",
+  'blitz.summary.streak': "Mejor racha: {n}",
+  'blitz.summary.first': "Primera partida blitz: esta puntuación es ahora tu referencia.",
+  'blitz.summary.record': "🏆 ¡Nuevo récord! El anterior era {prev}.",
+  'blitz.summary.tie': "Igualas tu récord ({prev}).",
+  'blitz.summary.behind': "Tu récord: {prev} — te faltan {gap} para igualarlo.",
   'quiz.blitzTimer': "Tiempo restante para esta pregunta",
   'start.play': 'Empezar el quiz',
 

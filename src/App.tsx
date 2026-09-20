@@ -14,7 +14,7 @@ import { LocaleProvider, useLocale, useT } from './i18n'
 import { applyLocale, DEFAULT_LOCALE, resolveLocale, type Locale } from './i18n/locale'
 import type { Dataset, DatasetView, QuizAppSpec, SchemaConfig } from './types/app'
 import { engineConfig } from './config'
-import { buildQuestionResultPayloads, buildQuizResultPayload, saveQuestionResults, saveQuizResult } from './utils/quizHistory'
+import { buildQuestionResultPayloads, buildQuizResultPayload, fetchQuizHistory, saveQuestionResults, saveQuizResult } from './utils/quizHistory'
 import { fetchProfile, saveProfile } from './utils/profile'
 import { checkIsAdmin } from './utils/adminAccess'
 import { applyTheme } from './utils/theme'
@@ -23,7 +23,8 @@ import { formatNumber } from './utils/number'
 import { generateQuiz, inferSchema, parseCsv, randomSeed } from './utils/quizGenerator'
 import type { GenSchema, Row } from './utils/quizGenerator'
 import { isSoundMuted, playClick, setSoundMuted } from './utils/sound'
-import { BLITZ_MAX_ERRORS, BLITZ_QUESTION_COUNT, BLITZ_SECONDS, blitzPool } from './utils/blitz'
+import { BLITZ_MAX_ERRORS, BLITZ_QUESTION_COUNT, BLITZ_SECONDS, blitzPool, blitzStats, previousBestBlitz } from './utils/blitz'
+import { BlitzSummary, type BlitzSummaryData } from './components/BlitzSummary'
 import { shuffle } from './utils/shuffle'
 
 type BuiltinView = 'start' | 'quiz' | 'results' | 'content' | 'history' | 'profile' | 'atlas'
@@ -133,6 +134,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
   const [activeTimeLimit, setActiveTimeLimit] = useState<number | undefined>(undefined)
   // Vrai pour une reprise ciblée de ses erreurs : « rejouer avec les mêmes paramètres » n'a alors pas de sens.
   const [isReplay, setIsReplay] = useState(false)
+  const [blitzSummary, setBlitzSummary] = useState<BlitzSummaryData | null>(null)
   const [sessionQuestions, setSessionQuestions] = useState<Quiz['questions']>([])
   const [resultQuestions, setResultQuestions] = useState<Quiz['questions']>([])
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
@@ -268,6 +270,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     playClick()
     setAnswers({})
     setIsReplay(false)
+    setBlitzSummary(null)
     setActiveMode(gameMode)
     const seen = new Set(avoid.map((question) => question.id))
     const ordered = [...shuffle(filteredQuestions.filter((q) => !seen.has(q.id))), ...shuffle(filteredQuestions.filter((q) => seen.has(q.id)))]
@@ -292,6 +295,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     playClick()
     setAnswers({})
     setIsReplay(true)
+    setBlitzSummary(null)
     setActiveMode('classic')
     setActiveTimeLimit(undefined)
     setSessionQuestions(questions)
@@ -302,6 +306,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     setAnswers({})
     setSessionQuestions([])
     setResultQuestions([])
+    setBlitzSummary(null)
     setElapsedSeconds(0)
     replace('start')
   }
@@ -351,10 +356,21 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     {view === 'quiz' && <QuizPage quiz={quiz} questions={sessionQuestions} mode={activeMode} timeLimitSeconds={activeTimeLimit} onFinish={(nextAnswers, duration, shown) => {
       setAnswers(nextAnswers); setResultQuestions(shown); setElapsedSeconds(duration); replace('results')
       const historyKey = historyKeyOf(dataset, quiz)
-      saveQuizResult(buildQuizResultPayload(shown, nextAnswers, quiz.categories, duration, historyKey, activeMode), session?.user.id)
-      saveQuestionResults(buildQuestionResultPayloads(shown, nextAnswers, historyKey), session?.user.id)
+      const persist = () => {
+        saveQuizResult(buildQuizResultPayload(shown, nextAnswers, quiz.categories, duration, historyKey, activeMode), session?.user.id)
+        saveQuestionResults(buildQuestionResultPayloads(shown, nextAnswers, historyKey), session?.user.id)
+      }
+      if (activeMode === 'blitz') {
+        // Bilan blitz : le record se compare à l'historique AVANT d'y enregistrer cette partie.
+        const stats = blitzStats(shown, nextAnswers)
+        setBlitzSummary(stats)
+        fetchQuizHistory(session?.user.id)
+          .then((rows) => setBlitzSummary({ ...stats, previousBest: previousBestBlitz(rows, historyKey) }))
+          .catch(() => {})
+          .finally(persist)
+      } else persist()
     }} onCancel={backToStart} />}
-    {view === 'results' && <ResultPage questions={resultQuestions} answers={answers} categories={quiz.categories} elapsedSeconds={elapsedSeconds} onRestartSame={isReplay ? undefined : restartQuiz} onBackToSettings={backToStart} onViewHistory={() => viewHistory('results')} onViewFiche={dataset ? setFicheSubject : undefined} />}
+    {view === 'results' && <ResultPage questions={resultQuestions} answers={answers} categories={quiz.categories} elapsedSeconds={elapsedSeconds} onRestartSame={isReplay ? undefined : restartQuiz} onBackToSettings={backToStart} onViewHistory={() => viewHistory('results')} onViewFiche={dataset ? setFicheSubject : undefined} summary={activeMode === 'blitz' && blitzSummary ? <BlitzSummary data={blitzSummary} /> : undefined} />}
     {view === 'content' && <QuizContentPage quiz={quiz} dataset={dataset} onBack={() => navigate('start')} onCsvChange={loadCsv} onGenerate={generateFromPanel} onRegenerate={regenerateQuestions} fileError={fileError} genError={genError} />}
     {view === 'atlas' && dataset && <AtlasPage rows={dataset.rows} schema={dataset.schema} decor={dataset.ficheDecor} i18n={dataset.i18n} actions={dataset.views?.filter((v) => v.entry === 'atlas').map(viewButton)} onOpenFiche={setFicheSubject} onBack={() => navigate('start')} />}
     {dataset && (() => {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Question } from '../types/quiz'
-import { BLITZ_MAX_ERRORS, BLITZ_QUESTION_COUNT, BLITZ_SECONDS, blitzPool, isBlitzEligible } from './blitz'
+import type { QuizResultRow } from '../types/history'
+import { BLITZ_LIVES_SINCE, BLITZ_MAX_ERRORS, BLITZ_QUESTION_COUNT, BLITZ_SECONDS, blitzPool, blitzStats, isBlitzEligible, previousBestBlitz } from './blitz'
 
 const base = { category: 'c', difficulty: 'easy' as const, tags: [], explanation: '', points: 1 }
 const options = (count: number, correct: number) =>
@@ -39,5 +40,39 @@ describe('blitzPool', () => {
     expect(BLITZ_QUESTION_COUNT).toBe(100)
     expect(BLITZ_SECONDS).toBe(10)
     expect(BLITZ_MAX_ERRORS).toBe(3)
+  })
+})
+
+describe('blitzStats', () => {
+  // qcm(id, 4, 1) : la bonne réponse est l'option « 0 »
+  const questions = ['a', 'b', 'c', 'd', 'e', 'f'].map((id) => qcm(id, 4, 1))
+
+  it('counts correct answers and the longest streak; unanswered counts wrong', () => {
+    const answers = { a: ['0'], b: ['0'], c: ['1'], d: ['0'], e: ['0'], f: ['0'] }
+    expect(blitzStats(questions, answers)).toEqual({ played: 6, correct: 5, bestStreak: 3 })
+    expect(blitzStats(questions.slice(0, 3), { a: ['0'], b: ['0'] })).toEqual({ played: 3, correct: 2, bestStreak: 2 })
+  })
+
+  it('handles a game with no correct answer', () => {
+    expect(blitzStats(questions.slice(0, 2), {})).toEqual({ played: 2, correct: 0, bestStreak: 0 })
+  })
+})
+
+describe('previousBestBlitz', () => {
+  const row = (over: Partial<QuizResultRow>): QuizResultRow => ({
+    id: 'x', created_at: '2026-09-21T10:00:00Z', quiz_title: 'Q', mode: 'blitz', score: 0, earned_points: 0, total_points: 0,
+    correct_count: 0, elapsed_seconds: 0, question_count: 0, categories: [], by_category: {}, by_type: {}, by_difficulty: {}, ...over,
+  })
+
+  it('takes the best blitz score of this quiz, ignoring other modes and other quizzes', () => {
+    const rows = [row({ correct_count: 12 }), row({ correct_count: 30 }), row({ correct_count: 99, mode: 'classic' }), row({ correct_count: 80, quiz_title: 'Autre' })]
+    expect(previousBestBlitz(rows, 'Q')).toBe(30)
+  })
+
+  it('ignores games played before the 3-error rule, and returns null without history', () => {
+    const old = row({ correct_count: 90, created_at: '2026-09-19T12:00:00Z' })
+    expect(old.created_at < BLITZ_LIVES_SINCE).toBe(true)
+    expect(previousBestBlitz([old], 'Q')).toBeNull()
+    expect(previousBestBlitz([], 'Q')).toBeNull()
   })
 })
