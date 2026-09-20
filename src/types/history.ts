@@ -74,6 +74,6 @@ export interface QuestionResultRow extends QuestionResultPayload {
 export interface MissedQuestion {
   questionId: string
   questionText: string
-  /** Nombre de fois où la question a été ratée. */
+  attempts: number
   wrongCount: number
 }

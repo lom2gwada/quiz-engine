@@ -69,6 +69,6 @@ export function useLocale(): Locale {
 }
 
 /** Pour un compteur : renvoie la bonne clé `.one` / `.other`. */
-export function plural(key: 'start.count' | 'filter.selected' | 'history.missedCount', n: number): MessageKey {
+export function plural(key: 'start.count' | 'filter.selected', n: number): MessageKey {
   return `${key}.${n === 1 ? 'one' : 'other'}` as MessageKey
 }

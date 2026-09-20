@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Question, Quiz } from '../types/quiz'
 import type { QuestionResultRow, QuizResultRow } from '../types/history'
-import { plural, useLocale, useT } from '../i18n'
+import { useLocale, useT } from '../i18n'
 import { bucketsToRadarPoints, computeCategoryWeekHeatmap, computeMissedQuestions, computeRecords, fetchQuestionResults, fetchQuizHistory, sumBuckets } from '../utils/quizHistory'
 import { formatDuration } from '../utils/time'
 import { CategoryWeekHeatmap } from './CategoryWeekHeatmap'
@@ -106,7 +106,7 @@ export function HistoryPage({ onBack, quiz, historyKey, userId, onReplayMissed }
       <ul className="missed-list">
         {missedQuestions.map((missed) => <li className="missed-item" key={missed.questionId}>
           <span>{missed.questionText}</span>
-          <span className="missed-ratio">{t(plural('history.missedCount', missed.wrongCount), { n: missed.wrongCount })}</span>
+          <span className="missed-ratio">{t('history.missedRatio', { wrong: missed.wrongCount, attempts: missed.attempts })}</span>
         </li>)}
       </ul>
     </div>}

@@ -270,7 +270,7 @@ describe('computeMissedQuestions', () => {
       questionRow({ id: '3', created_at: '2026-01-03T00:00:00Z', correct: false }),
     ]
     const [missed] = computeMissedQuestions(rows, 'Culture générale')
-    expect(missed).toEqual({ questionId: 'q1', questionText: 'Q ?', wrongCount: 2 })
+    expect(missed).toEqual({ questionId: 'q1', questionText: 'Q ?', attempts: 3, wrongCount: 2 })
   })
 
   it('drops a question from the list once it is answered correctly', () => {
