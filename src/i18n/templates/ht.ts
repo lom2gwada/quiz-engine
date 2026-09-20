@@ -18,6 +18,7 @@ export const ht: Record<TemplateKey, string> = {
   'prompt.matching': 'Asosye chak {noun} ak: {label}.',
   'prompt.imageYear': '{imageLabel} sa a se pou yon {noun}. Nan ki ane: {label}?',
   'prompt.silhouette': 'Ki {noun} ki gen kontou sa a?',
+  'prompt.silhouetteInverse': 'Kontou {ofSubject}?',
 
   'explanation.fact': '{Label} {ofSubject}: {value}.',
   'explanation.image': '{label} sa a se pou {subject}.',

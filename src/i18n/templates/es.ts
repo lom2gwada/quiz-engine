@@ -20,6 +20,7 @@ export const es: Record<TemplateKey, string> = {
   'prompt.matching': 'Asocia cada {noun} con: {label}.',
   'prompt.imageYear': 'Esta {imageLabel} representa un {noun}. ¿En qué año: {label}?',
   'prompt.silhouette': '¿Qué {noun} tiene esta silueta?',
+  'prompt.silhouetteInverse': '¿Silueta {ofSubject}?',
 
   'explanation.fact': '{Label} {ofSubject}: {value}.',
   'explanation.image': 'Esta {label} pertenece a {subject}.',

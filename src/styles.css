@@ -257,9 +257,11 @@ pre { padding: 1rem; overflow: auto; background: var(--code-bg); border: 1px sol
 .blitz-square { position: relative; display: flex; align-items: center; justify-content: center; aspect-ratio: 1; padding: .8rem; border: 0; border-radius: .9rem; color: #fff; font-size: 1rem; font-weight: 700; line-height: 1.25; text-align: center; text-wrap: balance; overflow-wrap: anywhere; cursor: pointer; text-shadow: 0 1px 2px rgba(0, 0, 0, .35); transition: transform .08s ease, filter .12s ease; }
 .blitz-square:hover, .blitz-square:focus-visible { filter: brightness(1.12); }
 .blitz-square:active { transform: scale(.96); }
-.blitz-square-1 { background: hsl(350 62% 42%); }
-.blitz-square-2 { background: hsl(215 62% 42%); }
-.blitz-square-3 { background: hsl(38 78% 38%); }
-.blitz-square-4 { background: hsl(145 55% 32%); }
 .blitz-key { position: absolute; top: .4rem; left: .55rem; font-size: .7rem; font-weight: 800; opacity: .75; }
 .blitz-card .question-body h2 { text-align: center; }
+.blitz-square { background: transparent; border: 1.5px solid var(--border-input); color: var(--text); text-shadow: none; }
+.blitz-square:hover, .blitz-square:focus-visible { filter: none; border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.blitz-square.has-visual { padding: .6rem; }
+.blitz-image { display: block; max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 3px; pointer-events: none; }
+.blitz-square .blitz-shape { margin: 0; width: 100%; height: 100%; color: var(--ink); pointer-events: none; }
+.blitz-square .blitz-shape svg { width: 100%; height: 100%; margin: 0; filter: none; }

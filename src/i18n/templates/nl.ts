@@ -18,6 +18,7 @@ export const nl: Record<TemplateKey, string> = {
   'prompt.matching': 'Koppel elk {noun} aan: {label}.',
   'prompt.imageYear': 'Deze {imageLabel} hoort bij een {noun}. In welk jaar: {label}?',
   'prompt.silhouette': 'Welk {noun} heeft deze omtrek?',
+  'prompt.silhouetteInverse': 'Omtrek {ofSubject}?',
 
   'explanation.fact': '{Label} {ofSubject}: {value}.',
   'explanation.image': 'Deze {label} hoort bij {subject}.',

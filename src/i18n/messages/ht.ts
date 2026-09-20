@@ -39,6 +39,7 @@ export const ht: Record<MessageKey, string> = {
   'start.noMistakeHint': 'Tan ilimite, {n} kesyon disponib — jwèt la fini nan premye erè.',
   'start.blitzHint': "Jiska {count} kesyon ak 4 chwa, {seconds} segonn pou chak, jwèt la fini nan erè nimewo {lives} — {n} kesyon disponib ak filt sa yo.",
   'quiz.blitzLives': "Lavi ki rete: {n}",
+  'quiz.blitzChoice': "Chwa {n}",
   'quiz.blitzTimer': "Tan ki rete pou kesyon sa a",
   'start.play': 'Kòmanse quiz la',
 

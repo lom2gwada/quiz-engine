@@ -37,6 +37,7 @@ export const en: Record<MessageKey, string> = {
   'start.noMistakeHint': "Unlimited time, {n} questions available — the game ends at the first mistake.",
   'start.blitzHint': "Up to {count} four-choice questions, {seconds} seconds each, the game ends at mistake number {lives} — {n} eligible questions with these filters.",
   'quiz.blitzLives': "Lives left: {n}",
+  'quiz.blitzChoice': "Choice {n}",
   'quiz.blitzTimer': "Time left for this question",
   'start.play': 'Start the quiz',
 

@@ -24,6 +24,7 @@ export const fr = {
   'prompt.matching': 'Associez chaque {noun} à : {label}.',
   'prompt.imageYear': 'Ce {imageLabel} représente un {noun}. En quelle année : {label} ?',
   'prompt.silhouette': 'Quel {noun} a cette silhouette ?',
+  'prompt.silhouetteInverse': 'Silhouette {ofSubject} ?',
 
   // — explications —
   'explanation.fact': '{Label} {ofSubject} : {value}.',

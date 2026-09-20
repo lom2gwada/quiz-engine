@@ -38,6 +38,7 @@ export const nl: Record<MessageKey, string> = {
   'start.noMistakeHint': 'Onbeperkte tijd, {n} vragen beschikbaar — het spel stopt bij de eerste fout.',
   'start.blitzHint': "Tot {count} vragen met 4 keuzes, {seconds} seconden per vraag, het spel stopt bij fout nummer {lives} — {n} geschikte vragen met deze filters.",
   'quiz.blitzLives': "Resterende levens: {n}",
+  'quiz.blitzChoice': "Keuze {n}",
   'quiz.blitzTimer': "Resterende tijd voor deze vraag",
   'start.play': 'Start de quiz',
 

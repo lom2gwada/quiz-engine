@@ -5,6 +5,7 @@ import { useT } from '../i18n'
 import { formatDuration } from '../utils/time'
 import { shuffle } from '../utils/shuffle'
 import { BLITZ_MAX_ERRORS, BLITZ_SECONDS } from '../utils/blitz'
+import { preloadAnswerImages } from '../utils/preload'
 import { rateColor } from '../utils/rateColor'
 import { BlitzQuestion } from './BlitzQuestion'
 import { isCorrect } from './ResultPage'
@@ -95,18 +96,27 @@ export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, 
   }
   useEffect(() => {
     if (!blitz) return
-    deadline.current = Date.now() + BLITZ_SECONDS * 1000
+    let cancelled = false
+    let interval: ReturnType<typeof setInterval> | undefined
+    // Le chrono ne part qu'une fois les images des 4 cases chargées (un drapeau lent à venir ne doit pas coûter de temps) ;
+    // en attendant, `Infinity` verrouille les clics. Les questions suivantes sont préchargées d'avance.
+    deadline.current = Infinity
     setQuestionMs(BLITZ_SECONDS * 1000)
-    const interval = setInterval(() => {
-      const left = deadline.current - Date.now()
-      if (left <= 0) {
-        if (deadline.current !== Infinity) advanceBlitz(answers, true)
-        setQuestionMs(0)
-      } else {
-        setQuestionMs(left)
-      }
-    }, 100)
-    return () => clearInterval(interval)
+    void preloadAnswerImages(shuffledQuestions[current]).then(() => {
+      if (cancelled) return
+      deadline.current = Date.now() + BLITZ_SECONDS * 1000
+      interval = setInterval(() => {
+        const left = deadline.current - Date.now()
+        if (left <= 0) {
+          if (deadline.current !== Infinity) advanceBlitz(answers, true)
+          setQuestionMs(0)
+        } else {
+          setQuestionMs(left)
+        }
+      }, 100)
+    })
+    shuffledQuestions.slice(current + 1, current + 4).forEach((upcoming) => { void preloadAnswerImages(upcoming) })
+    return () => { cancelled = true; if (interval) clearInterval(interval) }
   }, [blitz, current]) // `answers`/`atEnd` de ce rendu suffisent : ils ne changent qu'en quittant la question
 
   // Contre la montre à durée fixe : fin automatique dès que le temps est écoulé.

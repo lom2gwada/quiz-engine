@@ -18,6 +18,7 @@ export const en: Record<TemplateKey, string> = {
   'prompt.matching': 'Match each {noun} to: {label}.',
   'prompt.imageYear': 'This {imageLabel} represents a {noun}. In what year: {label}?',
   'prompt.silhouette': 'Which {noun} has this outline?',
+  'prompt.silhouetteInverse': 'Outline {ofSubject}?',
 
   'explanation.fact': '{Label} {ofSubject}: {value}.',
   'explanation.image': 'This {label} belongs to {subject}.',

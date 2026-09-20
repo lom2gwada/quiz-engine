@@ -224,6 +224,9 @@ export function generateQuiz(
     author?: string
     /** Nombre de choix des QCM à réponse unique (défaut : 3). Le mode blitz en génère 4 pour ses cases 2 × 2. */
     choices?: number
+    /** Ajoute des questions « inverses » dont les réponses sont des images (« Drapeau de Cuba ? » → 4 drapeaux, idem silhouettes).
+     *  Réservé au blitz : les autres modes affichent les réponses en texte et ne sauraient pas les montrer. */
+    inverse?: boolean
   },
 ): Quiz {
   const locale = opts.locale ?? DEFAULT_LOCALE
@@ -358,6 +361,21 @@ export function generateQuiz(
             answers: shuffle([correct, ...distractors]).map<AnswerOption>((label, i) => ({ id: 'abcd'[i], label, isCorrect: label === correct })),
           },
         })
+        if (opts.inverse) {
+          const others = sample(rowsWith.filter((r) => r !== row), (opts.choices ?? CFG.image.choices) - 1)
+          if (others.length >= (opts.choices ?? CFG.image.choices) - 1) {
+            questions.push({
+              id: qid([col, 'image-inverse', nameOf(row)]), type: 'qcm', category: categoryId, difficulty: CFG.image.difficulty, points: CFG.image.points, tags: [col],
+              question: T('prompt.qcm', ctx(row)),
+              topic: T('topic.labelSubject', ctx(row)), ...subj(row),
+              explanation: T('explanation.image', { label, ofSubject: de(row), subject: correct }),
+              content: {
+                multiple: false,
+                answers: shuffle([row, ...others]).map<AnswerOption>((r, i) => ({ id: 'abcd'[i], label: displayName(r), isCorrect: r === row, imageUrl: r[col] })),
+              },
+            })
+          }
+        }
       }
     }
 
@@ -676,6 +694,21 @@ export function generateQuiz(
           answers: shuffle([correct, ...distractors]).map<AnswerOption>((label, i) => ({ id: 'abcd'[i], label, isCorrect: label === correct })),
         },
       })
+      if (opts.inverse) {
+        const others = sample(withShape.filter((r) => r !== row), (opts.choices ?? CFG.image.choices) - 1)
+        if (others.length >= (opts.choices ?? CFG.image.choices) - 1) {
+          questions.push({
+            id: qid(['silhouette-inverse', key]), type: 'qcm', category: 'silhouette', difficulty: CFG.image.difficulty, points: CFG.image.points, tags: ['silhouette'],
+            question: T('prompt.silhouetteInverse', { ofSubject: de(row) }),
+            topic: T('topic.silhouette', { ofSubject: de(row) }), ...subj(row),
+            explanation: T('explanation.silhouette', { ofSubject: de(row), subject: correct }),
+            content: {
+              multiple: false,
+              answers: shuffle([row, ...others]).map<AnswerOption>((r, i) => ({ id: 'abcd'[i], label: displayName(r), isCorrect: r === row, shapeSvg: opts.shapes![nameOf(r)] })),
+            },
+          })
+        }
+      }
     }
   }
 

@@ -8,8 +8,13 @@ export interface Category {
 
 export interface AnswerOption {
   id: string
+  /** Toujours renseigné (bilan, corrections) : pour une réponse-image, le nom de ce qu'elle représente. */
   label: string
   isCorrect: boolean
+  /** Réponse affichée comme une image (drapeau…) plutôt que comme un texte — questions « inverses » du blitz. */
+  imageUrl?: string
+  /** Réponse affichée comme une silhouette (SVG inline, contenu de confiance généré par l'appli). */
+  shapeSvg?: string
 }
 
 export interface QCMContent {
