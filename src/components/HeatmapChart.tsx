@@ -1,4 +1,4 @@
-import { rateColor } from '../utils/rateColor'
+import { heatColor } from '../utils/rateColor'
 
 interface HeatmapChartProps {
   points: { key: string; label: string; percent: number }[]
@@ -17,7 +17,7 @@ export function HeatmapChart({ points }: HeatmapChartProps) {
       return <div
         key={p.key}
         className="heatmap-tile"
-        style={{ background: rateColor(percent) }}
+        style={{ background: heatColor(percent) }}
       >
         <span className="heatmap-tile-label">{p.label}</span>
         <span className="heatmap-tile-value">{percent}%</span>

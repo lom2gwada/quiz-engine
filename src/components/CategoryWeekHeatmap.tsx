@@ -1,6 +1,6 @@
 import type { CategoryWeekHeatmap as Heatmap } from '../types/history'
 import { useLocale, useT } from '../i18n'
-import { rateColor } from '../utils/rateColor'
+import { heatColor } from '../utils/rateColor'
 
 /** Réussite par catégorie (lignes) et par semaine (colonnes) : montre la progression dans le temps. */
 export function CategoryWeekHeatmap({ heatmap, title, labelOf, note }: { heatmap: Heatmap; title: string; labelOf: (key: string) => string; note?: string }) {
@@ -24,7 +24,7 @@ export function CategoryWeekHeatmap({ heatmap, title, labelOf, note }: { heatmap
             {category.cells.map((cell, index) => {
               if (!cell || !cell.total) return <td key={heatmap.weeks[index]} className="week-heatmap-empty" aria-label={t('history.heatmapNoData')}>·</td>
               const rate = Math.round((cell.correct / cell.total) * 100)
-              return <td key={heatmap.weeks[index]} style={{ background: rateColor(rate) }} title={t('history.heatmapCellTitle', { correct: cell.correct, total: cell.total })}>{rate}%</td>
+              return <td key={heatmap.weeks[index]} style={{ background: heatColor(rate) }} title={t('history.heatmapCellTitle', { correct: cell.correct, total: cell.total })}>{rate}%</td>
             })}
           </tr>)}
         </tbody>
