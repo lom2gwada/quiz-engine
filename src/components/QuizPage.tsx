@@ -4,7 +4,7 @@ import type { MessageKey, TFunction } from '../i18n'
 import { useT } from '../i18n'
 import { formatDuration } from '../utils/time'
 import { shuffle } from '../utils/shuffle'
-import { BLITZ_SECONDS } from '../utils/blitz'
+import { BLITZ_MAX_ERRORS, BLITZ_SECONDS } from '../utils/blitz'
 import { rateColor } from '../utils/rateColor'
 import { BlitzQuestion } from './BlitzQuestion'
 import { isCorrect } from './ResultPage'
@@ -21,7 +21,8 @@ export const difficultyLabel = (difficulty: Difficulty, t: TFunction): string =>
 /** 'classic' : nombre de questions fixé à l'avance, on les parcourt toutes.
  * 'timeAttack' : contre la montre — on avance dans un grand pool tant que le temps le permet.
  * 'noMistake' : sans-faute — temps illimité, la partie s'arrête à la première erreur.
- * 'blitz' : questions à 4 choix (cases 2 × 2), chacune limitée à quelques secondes ; un clic valide et passe à la suivante. */
+ * 'blitz' : questions à 4 choix (cases 2 × 2), chacune limitée à quelques secondes ; un clic valide et passe à la suivante ;
+ * la partie s'arrête à la 3e erreur (mauvaise réponse ou temps écoulé). */
 export type GameMode = 'classic' | 'timeAttack' | 'noMistake' | 'blitz'
 
 /** Mélange les options de réponse une fois par question, pour que la bonne réponse ne soit pas toujours au même endroit. */
@@ -77,16 +78,20 @@ export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, 
   const deadline = useRef(Infinity)
   const elapsedRef = useRef(0)
   elapsedRef.current = elapsed
-  const advanceBlitz = (nextAnswers: AnswersByQuestion) => {
+  const [errors, setErrors] = useState(0)
+  const advanceBlitz = (nextAnswers: AnswersByQuestion, wrong: boolean) => {
     deadline.current = Infinity
-    if (atEnd) onFinish(nextAnswers, elapsedRef.current, shuffledQuestions)
-    else setCurrent((value) => value + 1)
+    const nextErrors = errors + (wrong ? 1 : 0)
+    // Fin : 3e erreur ou plus de question. Les questions jouées = celles jusqu'à la courante incluse (une question
+    // sans réponse, temps écoulé, compte fausse).
+    if (nextErrors >= BLITZ_MAX_ERRORS || atEnd) onFinish(nextAnswers, elapsedRef.current, shuffledQuestions.slice(0, current + 1))
+    else { setErrors(nextErrors); setCurrent((value) => value + 1) }
   }
   const pickBlitz = (answerId: string) => {
     if (deadline.current === Infinity) return
     const next = { ...answers, [question.id]: [answerId] }
     setAnswers(next)
-    advanceBlitz(next)
+    advanceBlitz(next, !isCorrect(question, [answerId]))
   }
   useEffect(() => {
     if (!blitz) return
@@ -95,7 +100,7 @@ export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, 
     const interval = setInterval(() => {
       const left = deadline.current - Date.now()
       if (left <= 0) {
-        if (deadline.current !== Infinity) advanceBlitz(answers)
+        if (deadline.current !== Infinity) advanceBlitz(answers, true)
         setQuestionMs(0)
       } else {
         setQuestionMs(left)
@@ -116,7 +121,8 @@ export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, 
     const fraction = Math.max(0, Math.min(1, questionMs / (BLITZ_SECONDS * 1000)))
     return <section className="quiz-card blitz-card">
       <div className="question-meta">
-        <span>⚡ {t('start.mode.blitz')}</span><span>{category}</span><span>{t('quiz.points', { n: question.points })}</span>
+        <span>⚡ {t('start.mode.blitz')}</span>
+        <span role="img" aria-label={t('quiz.blitzLives', { n: BLITZ_MAX_ERRORS - errors })}>{'❤️'.repeat(BLITZ_MAX_ERRORS - errors)}{'🖤'.repeat(errors)}</span><span>{category}</span><span>{t('quiz.points', { n: question.points })}</span>
         <span>⏱ {formatDuration(Math.ceil(questionMs / 1000))}</span>
       </div>
       <div className="quiz-progress" role="timer" aria-label={t('quiz.blitzTimer')}>

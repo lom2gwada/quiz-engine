@@ -36,7 +36,8 @@ export const nl: Record<MessageKey, string> = {
   'start.duration.infinite': 'Onbeperkt',
   'start.timeAttackHint': '{n} vragen beschikbaar om vol te houden.',
   'start.noMistakeHint': 'Onbeperkte tijd, {n} vragen beschikbaar — het spel stopt bij de eerste fout.',
-  'start.blitzHint': "{count} vragen met 4 keuzes, {seconds} seconden per vraag, niet terug te gaan — {n} geschikte vragen met deze filters.",
+  'start.blitzHint': "Tot {count} vragen met 4 keuzes, {seconds} seconden per vraag, het spel stopt bij fout nummer {lives} — {n} geschikte vragen met deze filters.",
+  'quiz.blitzLives': "Resterende levens: {n}",
   'quiz.blitzTimer': "Resterende tijd voor deze vraag",
   'start.play': 'Start de quiz',
 

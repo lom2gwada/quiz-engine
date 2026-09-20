@@ -39,7 +39,8 @@ export const fr = {
   'start.duration.infinite': 'Illimitée',
   'start.timeAttackHint': '{n} questions disponibles pour tenir la distance.',
   'start.noMistakeHint': "Temps illimité, {n} questions disponibles — la partie s'arrête à la première erreur.",
-  'start.blitzHint': "{count} questions à 4 choix, {seconds} secondes chacune, sans retour en arrière — {n} questions éligibles avec ces filtres.",
+  'start.blitzHint': "Jusqu'à {count} questions à 4 choix, {seconds} secondes chacune, la partie s'arrête à la {lives}e erreur — {n} questions éligibles avec ces filtres.",
+  'quiz.blitzLives': "Vies restantes : {n}",
   'quiz.blitzTimer': "Temps restant pour cette question",
   'start.play': 'Démarrer le quiz',
 

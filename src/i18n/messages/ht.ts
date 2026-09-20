@@ -37,7 +37,8 @@ export const ht: Record<MessageKey, string> = {
   'start.duration.infinite': 'Ilimite',
   'start.timeAttackHint': '{n} kesyon disponib pou kenbe pi lontan posib.',
   'start.noMistakeHint': 'Tan ilimite, {n} kesyon disponib — jwèt la fini nan premye erè.',
-  'start.blitzHint': "{count} kesyon ak 4 chwa, {seconds} segonn pou chak, pa gen tounen — {n} kesyon disponib ak filt sa yo.",
+  'start.blitzHint': "Jiska {count} kesyon ak 4 chwa, {seconds} segonn pou chak, jwèt la fini nan erè nimewo {lives} — {n} kesyon disponib ak filt sa yo.",
+  'quiz.blitzLives': "Lavi ki rete: {n}",
   'quiz.blitzTimer': "Tan ki rete pou kesyon sa a",
   'start.play': 'Kòmanse quiz la',
 

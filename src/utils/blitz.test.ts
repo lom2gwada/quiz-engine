@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Question } from '../types/quiz'
-import { BLITZ_QUESTION_COUNT, BLITZ_SECONDS, blitzPool, isBlitzEligible } from './blitz'
+import { BLITZ_MAX_ERRORS, BLITZ_QUESTION_COUNT, BLITZ_SECONDS, blitzPool, isBlitzEligible } from './blitz'
 
 const base = { category: 'c', difficulty: 'easy' as const, tags: [], explanation: '', points: 1 }
 const options = (count: number, correct: number) =>
@@ -35,8 +35,9 @@ describe('blitzPool', () => {
     expect(pool.map((q) => q.id)).toEqual(['a', 'c'])
   })
 
-  it('a game is at most 100 questions of 10 seconds', () => {
+  it('a game is at most 100 questions of 10 seconds, over after 3 errors', () => {
     expect(BLITZ_QUESTION_COUNT).toBe(100)
     expect(BLITZ_SECONDS).toBe(10)
+    expect(BLITZ_MAX_ERRORS).toBe(3)
   })
 })

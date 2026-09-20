@@ -1,8 +1,11 @@
 import type { Question } from '../types/quiz'
 
-/** Une partie blitz : au plus ce nombre de questions (moins si la sélection de catégories en offre moins), chacune limitée à ce nombre de secondes. */
+/** Une partie blitz : au plus ce nombre de questions (moins si la sélection de catégories en offre moins, ou si les erreurs
+ *  la terminent avant), chacune limitée à ce nombre de secondes. */
 export const BLITZ_QUESTION_COUNT = 100
 export const BLITZ_SECONDS = 10
+/** Erreurs (mauvaise réponse ou temps écoulé) qui terminent la partie : à la 3e, on passe au bilan. Fixe pour tous. */
+export const BLITZ_MAX_ERRORS = 3
 
 /** Le blitz ne joue que des questions à 4 choix dont une seule bonne réponse (les 4 cases carrées) : un classement,
  *  une saisie ou une estimation ne se répondent pas en quelques secondes d'un clic. */

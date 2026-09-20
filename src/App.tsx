@@ -23,7 +23,7 @@ import { formatNumber } from './utils/number'
 import { generateQuiz, inferSchema, parseCsv, randomSeed } from './utils/quizGenerator'
 import type { GenSchema, Row } from './utils/quizGenerator'
 import { isSoundMuted, playClick, setSoundMuted } from './utils/sound'
-import { BLITZ_QUESTION_COUNT, BLITZ_SECONDS, blitzPool } from './utils/blitz'
+import { BLITZ_MAX_ERRORS, BLITZ_QUESTION_COUNT, BLITZ_SECONDS, blitzPool } from './utils/blitz'
 import { shuffle } from './utils/shuffle'
 
 type BuiltinView = 'start' | 'quiz' | 'results' | 'content' | 'history' | 'profile' | 'atlas'
@@ -342,7 +342,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
         <p>{t('start.timeAttackHint', { n: formatNumber(filteredQuestions.length) })}</p>
       </>}
       {gameMode === 'noMistake' && <p>{t('start.noMistakeHint', { n: formatNumber(filteredQuestions.length) })}</p>}
-      {gameMode === 'blitz' && <p>{t('start.blitzHint', { count: Math.min(BLITZ_QUESTION_COUNT, blitzAvailable), seconds: BLITZ_SECONDS, n: formatNumber(blitzAvailable) })}</p>}
+      {gameMode === 'blitz' && <p>{t('start.blitzHint', { count: Math.min(BLITZ_QUESTION_COUNT, blitzAvailable), seconds: BLITZ_SECONDS, lives: BLITZ_MAX_ERRORS, n: formatNumber(blitzAvailable) })}</p>}
       <div className="quiz-actions"><button type="button" onClick={startQuiz} disabled={gameMode === 'blitz' ? !blitzAvailable : !filteredQuestions.length}>{t('start.play')}</button></div>
     </section>}
     {view === 'quiz' && <QuizPage quiz={quiz} questions={sessionQuestions} mode={activeMode} timeLimitSeconds={activeTimeLimit} onFinish={(nextAnswers, duration, shown) => {
