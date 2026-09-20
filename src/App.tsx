@@ -48,7 +48,7 @@ function historyKeyOf(dataset: Dataset | null, quiz: Quiz): string {
   return dataset ? dataset.schema.title : quiz.metadata.title
 }
 
-function safeGenerate(spec: QuizAppSpec, dataset: Dataset, seed: string, locale: Locale = DEFAULT_LOCALE): { quiz: Quiz; error: string } {
+function safeGenerate(spec: QuizAppSpec, dataset: Dataset, seed: string, locale: Locale = DEFAULT_LOCALE, choices?: number): { quiz: Quiz; error: string } {
   const schema = {
     ...dataset.schema,
     ...(dataset.nouns?.[locale] ? { noun: dataset.nouns[locale] } : {}),
@@ -57,7 +57,7 @@ function safeGenerate(spec: QuizAppSpec, dataset: Dataset, seed: string, locale:
   try {
     return {
       quiz: parseQuiz(generateQuiz(dataset.rows, schema, {
-        seed, locale, i18n: dataset.i18n, aliases: dataset.aliases, shapes: dataset.shapes, author: engineConfig().appName,
+        seed, locale, i18n: dataset.i18n, aliases: dataset.aliases, shapes: dataset.shapes, author: engineConfig().appName, choices,
       })),
       error: '',
     }
@@ -167,8 +167,17 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
   const filteredQuestions = useMemo(() => quiz.questions.filter((question) =>
     (!selectedCategories.length || selectedCategories.includes(question.category)) && (!difficulty || question.difficulty === difficulty)), [quiz, selectedCategories, difficulty])
 
-  // Questions jouables en blitz avec les filtres courants (à 4 choix, une seule bonne réponse).
-  const blitzAvailable = useMemo(() => blitzPool(filteredQuestions).length, [filteredQuestions])
+  // Réserve du blitz : les mêmes questions (mêmes identifiants) régénérées avec 4 choix au lieu de 3, pour les 4 cases.
+  // Calculée seulement quand le mode blitz est sélectionné. Quiz sans jeu de données (JSON importé) : ses propres
+  // questions à 4 choix, s'il y en a.
+  const blitzSelected = gameMode === 'blitz'
+  const blitzCandidates = useMemo(() => {
+    if (!blitzSelected) return []
+    const source = dataset ? safeGenerate(spec, dataset, genRef.current.seed, locale, 4).quiz.questions : quiz.questions
+    return blitzPool(source).filter((question) =>
+      (!selectedCategories.length || selectedCategories.includes(question.category)) && (!difficulty || question.difficulty === difficulty))
+  }, [blitzSelected, dataset, quiz, locale, selectedCategories, difficulty]) // eslint-disable-line react-hooks/exhaustive-deps
+  const blitzAvailable = blitzCandidates.length
 
   const toggleCategory = (categoryId: string) => setSelectedCategories((previous) =>
     previous.includes(categoryId) ? previous.filter((id) => id !== categoryId) : [...previous, categoryId])
@@ -261,7 +270,9 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     const ordered = [...shuffle(filteredQuestions.filter((q) => !seen.has(q.id))), ...shuffle(filteredQuestions.filter((q) => seen.has(q.id)))]
     if (gameMode === 'blitz') {
       setActiveTimeLimit(undefined)
-      setSessionQuestions(blitzPool(ordered).slice(0, BLITZ_QUESTION_COUNT))
+      const fresh = shuffle(blitzCandidates.filter((question) => !seen.has(question.id)))
+      const again = shuffle(blitzCandidates.filter((question) => seen.has(question.id)))
+      setSessionQuestions([...fresh, ...again].slice(0, BLITZ_QUESTION_COUNT))
     } else if (gameMode === 'classic') {
       setActiveTimeLimit(undefined)
       setSessionQuestions(ordered.slice(0, Math.min(questionCount, ordered.length)))

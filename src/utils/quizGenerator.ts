@@ -222,6 +222,8 @@ export function generateQuiz(
     aliases?: Record<string, string[]>
     /** Auteur affiché sous le titre du quiz (défaut : « Quiz »). */
     author?: string
+    /** Nombre de choix des QCM à réponse unique (défaut : 3). Le mode blitz en génère 4 pour ses cases 2 × 2. */
+    choices?: number
   },
 ): Quiz {
   const locale = opts.locale ?? DEFAULT_LOCALE
@@ -342,8 +344,8 @@ export function generateQuiz(
     if (spec.isImage && spec.unique) {
       for (const row of rowsWith) {
         const correct = displayName(row)
-        const distractors = sample(rows.filter((r) => r !== row).map(displayName), CFG.image.choices - 1)
-        if (distractors.length < CFG.image.choices - 1) continue
+        const distractors = sample(rows.filter((r) => r !== row).map(displayName), (opts.choices ?? CFG.image.choices) - 1)
+        if (distractors.length < (opts.choices ?? CFG.image.choices) - 1) continue
         questions.push({
           id: qid([col, 'image', nameOf(row)]), type: 'qcm', category: categoryId, difficulty: CFG.image.difficulty, points: CFG.image.points, tags: [col],
           question: T('prompt.image', { noun, label }),
@@ -386,8 +388,8 @@ export function generateQuiz(
           }
         } else {
           const correct = corrects[0]
-          const distractors = sample(domain.filter((v) => v !== correct), CFG.qcm.choices - 1)
-          if (distractors.length >= CFG.qcm.choices - 1) {
+          const distractors = sample(domain.filter((v) => v !== correct), (opts.choices ?? CFG.qcm.choices) - 1)
+          if (distractors.length >= (opts.choices ?? CFG.qcm.choices) - 1) {
             questions.push({
               id: qid([col, 'qcm', nameOf(row)]), type: 'qcm', category: categoryId, difficulty: CFG.qcm.difficulty, points: CFG.qcm.points, tags: [col],
               question: T('prompt.qcm', ctx(row)),
@@ -438,10 +440,10 @@ export function generateQuiz(
     }
 
     // ---- QCM inversé (colonnes uniques) : une question par ligne ----
-    if (spec.kind === 'string' && !spec.isImage && spec.unique && rows.length > CFG.qcmBackward.choices) {
+    if (spec.kind === 'string' && !spec.isImage && spec.unique && rows.length > (opts.choices ?? CFG.qcmBackward.choices)) {
       for (const row of rowsWith) {
         const correct = displayName(row)
-        const distractors = sample(rows.filter((r) => r !== row).map(displayName), CFG.qcmBackward.choices - 1)
+        const distractors = sample(rows.filter((r) => r !== row).map(displayName), (opts.choices ?? CFG.qcmBackward.choices) - 1)
         questions.push({
           id: qid([col, 'qcm-inverse', nameOf(row)]), type: 'qcm', category: categoryId, difficulty: CFG.qcmBackward.difficulty, points: CFG.qcmBackward.points, tags: [col],
           question: T('prompt.inverse', { noun, label, value: tr(row[col]) }),
@@ -523,8 +525,8 @@ export function generateQuiz(
         const about = T('topic.labelSubject', ctx(row))
         const fact = T('explanation.fact', { ...ctx(row), value: `${shown}${unitSuffix}` })
 
-        const dist = numericDistractors(target, CFG.qcm.choices - 1)
-        if (dist.length >= CFG.qcm.choices - 1) {
+        const dist = numericDistractors(target, (opts.choices ?? CFG.qcm.choices) - 1)
+        if (dist.length >= (opts.choices ?? CFG.qcm.choices) - 1) {
           questions.push({
             id: qid([col, 'num-qcm', nameOf(row)]), type: 'qcm', category: categoryId, difficulty: CFG.qcm.difficulty, points: CFG.qcm.points, tags: [col],
             question: spec.isYear
@@ -566,11 +568,11 @@ export function generateQuiz(
     }
 
     // ---- QCM inversé sur un nombre (colonnes uniques : une seule bonne réponse possible) ----
-    if (spec.kind === 'number' && spec.unique && rows.length > CFG.qcmBackward.choices) {
+    if (spec.kind === 'number' && spec.unique && rows.length > (opts.choices ?? CFG.qcmBackward.choices)) {
       for (const row of numRowsWith) {
         const shown = `${formatNumericValue(asNumber(row[col]), spec.isYear, undefined, unit)}${unit && !spec.isYear ? ` ${unit}` : ''}`
         const correct = displayName(row)
-        const distractors = sample(rows.filter((r) => r !== row).map(displayName), CFG.qcmBackward.choices - 1)
+        const distractors = sample(rows.filter((r) => r !== row).map(displayName), (opts.choices ?? CFG.qcmBackward.choices) - 1)
         questions.push({
           id: qid([col, 'num-inverse', nameOf(row)]), type: 'qcm', category: categoryId, difficulty: CFG.qcmBackward.difficulty, points: CFG.qcmBackward.points, tags: [col],
           question: T('prompt.inverse', { noun, label, value: shown }),
@@ -615,8 +617,8 @@ export function generateQuiz(
         if (!hasValue(row[imageCol])) continue
         const target = asNumber(row[col])
         const shown = formatNumericValue(target, true)
-        const dist = numericDistractors(target, CFG.image.choices - 1)
-        if (dist.length < CFG.image.choices - 1) continue
+        const dist = numericDistractors(target, (opts.choices ?? CFG.image.choices) - 1)
+        if (dist.length < (opts.choices ?? CFG.image.choices) - 1) continue
         questions.push({
           id: qid([col, 'image-year', nameOf(row)]), type: 'qcm', category: categoryId, difficulty: CFG.order.difficulty, points: CFG.order.points, tags: [col],
           question: T('prompt.imageYear', { imageLabel: imgLabel, noun, label }),
@@ -660,8 +662,8 @@ export function generateQuiz(
     for (const row of withShape) {
       const key = nameOf(row) // nom FR : id de question + clé de `shapes`
       const correct = displayName(row)
-      const distractors = sample(withShape.filter((r) => r !== row).map(displayName), CFG.image.choices - 1)
-      if (distractors.length < CFG.image.choices - 1) continue
+      const distractors = sample(withShape.filter((r) => r !== row).map(displayName), (opts.choices ?? CFG.image.choices) - 1)
+      if (distractors.length < (opts.choices ?? CFG.image.choices) - 1) continue
       questions.push({
         id: qid(['silhouette', key]), type: 'qcm', category: 'silhouette', difficulty: CFG.image.difficulty, points: CFG.image.points, tags: ['silhouette'],
         question: T('prompt.silhouette', { noun }),
