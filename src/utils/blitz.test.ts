@@ -35,8 +35,8 @@ describe('blitzPool', () => {
     expect(pool.map((q) => q.id)).toEqual(['a', 'c'])
   })
 
-  it('a game is 10 questions of 10 seconds', () => {
-    expect(BLITZ_QUESTION_COUNT).toBe(10)
+  it('a game is at most 100 questions of 10 seconds', () => {
+    expect(BLITZ_QUESTION_COUNT).toBe(100)
     expect(BLITZ_SECONDS).toBe(10)
   })
 })

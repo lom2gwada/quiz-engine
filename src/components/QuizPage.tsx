@@ -21,7 +21,7 @@ export const difficultyLabel = (difficulty: Difficulty, t: TFunction): string =>
 /** 'classic' : nombre de questions fixé à l'avance, on les parcourt toutes.
  * 'timeAttack' : contre la montre — on avance dans un grand pool tant que le temps le permet.
  * 'noMistake' : sans-faute — temps illimité, la partie s'arrête à la première erreur.
- * 'blitz' : peu de questions à 4 choix (cases 2 × 2), chacune limitée à quelques secondes ; un clic valide et passe à la suivante. */
+ * 'blitz' : questions à 4 choix (cases 2 × 2), chacune limitée à quelques secondes ; un clic valide et passe à la suivante. */
 export type GameMode = 'classic' | 'timeAttack' | 'noMistake' | 'blitz'
 
 /** Mélange les options de réponse une fois par question, pour que la bonne réponse ne soit pas toujours au même endroit. */

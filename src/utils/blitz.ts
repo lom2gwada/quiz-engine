@@ -1,7 +1,7 @@
 import type { Question } from '../types/quiz'
 
-/** Une partie blitz : ce nombre de questions, chacune limitée à ce nombre de secondes. */
-export const BLITZ_QUESTION_COUNT = 10
+/** Une partie blitz : au plus ce nombre de questions (moins si la sélection de catégories en offre moins), chacune limitée à ce nombre de secondes. */
+export const BLITZ_QUESTION_COUNT = 100
 export const BLITZ_SECONDS = 10
 
 /** Le blitz ne joue que des questions à 4 choix dont une seule bonne réponse (les 4 cases carrées) : un classement,
