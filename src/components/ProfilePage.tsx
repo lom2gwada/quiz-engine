@@ -7,7 +7,9 @@ import { peekEngineConfig } from '../config'
 import { useT } from '../i18n'
 import { playClick } from '../utils/sound'
 import { applyTheme } from '../utils/theme'
+import type { OwnedBadges } from '../utils/badges'
 import { AuthPanel } from './AuthPanel'
+import { BadgesPanel } from './BadgesPanel'
 import { GuestPassPanel } from './GuestPassPanel'
 
 // Grille par défaut, orientée Caraïbes / voyage et groupée par thème (une ligne visuelle ≈ un groupe) :
@@ -74,9 +76,11 @@ interface ProfilePageProps {
   onBack: () => void
   onSave: (profile: Profile) => Promise<void>
   onViewHistory: () => void
+  /** Badges obtenus ; absent : pas de section badges. */
+  badges?: OwnedBadges
 }
 
-export function ProfilePage({ profile, session, onBack, onSave, onViewHistory }: ProfilePageProps) {
+export function ProfilePage({ profile, session, onBack, onSave, onViewHistory, badges }: ProfilePageProps) {
   const t = useT()
   const [pseudo, setPseudo] = useState(profile?.pseudo ?? '')
   const options = avatarOptions()
@@ -124,6 +128,7 @@ export function ProfilePage({ profile, session, onBack, onSave, onViewHistory }:
     <div className="nav-links">
       <button type="button" className="secondary" onClick={onViewHistory}>🕓 {t('nav.history')}</button>
     </div>
+    {badges && <BadgesPanel owned={badges} />}
     <AuthPanel session={session} />
     {session && <GuestPassPanel userId={session.user.id} />}
     <form className="profile-form" onSubmit={submit}>

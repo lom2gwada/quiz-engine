@@ -280,3 +280,20 @@ pre { padding: 1rem; overflow: auto; background: var(--code-bg); border: 1px sol
 @keyframes blitz-hit { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-4px); } 40% { transform: translateX(4px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(2px); } }
 @keyframes blitz-urgent { from { opacity: 1; } to { opacity: .55; } }
 @media (prefers-reduced-motion: reduce) { .blitz-streak, .blitz-lives.is-hit, .quiz-progress-fill.is-urgent { animation: none; } }
+.daily-panel { margin-bottom: 1.5rem; padding: 1rem 1.2rem; background: var(--surface-alt); border: 1px solid var(--border); border-radius: 1rem; }
+.daily-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .6rem; }
+.daily-head h3 { margin: 0; }
+.daily-streak { font-size: .85rem; font-weight: 700; color: var(--accent-text); }
+.daily-note { color: var(--text-muted); font-size: .85rem; }
+.daily-panel .stats-group-title { margin-top: 1.2rem; }
+.badges-panel { margin-bottom: 1.5rem; }
+.badges-count { font-size: .8rem; font-weight: 500; color: var(--text-muted); }
+.badge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: .7rem; list-style: none; margin: 0; padding: 0; }
+.badge { display: grid; gap: .15rem; justify-items: center; text-align: center; padding: .8rem .6rem; border: 1px solid var(--border); border-radius: .8rem; background: var(--surface-alt); }
+.badge-icon { font-size: 1.8rem; line-height: 1; }
+.badge-name { font-weight: 700; font-size: .9rem; }
+.badge-hint { font-size: .75rem; color: var(--text-muted); }
+.badge.is-locked { opacity: .55; }
+.badge.is-locked .badge-icon { filter: grayscale(1); }
+.badge.is-earned { border-color: var(--accent); }
+.new-badges { margin-top: .8rem; }

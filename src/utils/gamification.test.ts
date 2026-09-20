@@ -1,0 +1,83 @@
+import { describe, expect, it, vi } from 'vitest'
+import type { Question } from '../types/quiz'
+import type { QuizResultRow } from '../types/history'
+import { addBadges, earnedBadges, type BadgeContext } from './badges'
+import { DAILY_QUESTION_COUNT, dailyKey, dailyRank, dailySeed, dailyStreak, pickDailyIds, selectDaily, type DailyRow } from './dailyChallenge'
+
+vi.mock('./supabase', () => ({ supabase: {} }))
+
+const base = { category: 'c', difficulty: 'easy' as const, tags: [], explanation: '', points: 1 }
+const qcm = (id: string, answers = 4): Question => ({
+  ...base, id, type: 'qcm', question: 'Q ?',
+  content: { multiple: false, answers: Array.from({ length: answers }, (_, i) => ({ id: String(i), label: `O${i}`, isCorrect: i === 0 })) },
+})
+
+describe('daily challenge', () => {
+  it('uses the UTC date as the day key and the seed', () => {
+    expect(dailyKey(new Date('2026-09-20T23:59:59Z'))).toBe('2026-09-20')
+    expect(dailyKey(new Date('2026-09-21T00:00:00Z'))).toBe('2026-09-21')
+    expect(dailySeed('2026-09-20')).toBe('daily-2026-09-20')
+  })
+
+  it('picks the first eligible questions, capped, and finds them again by id', () => {
+    const many = Array.from({ length: 30 }, (_, i) => qcm(`q${i}`))
+    const withNoise = [qcm('three', 3), ...many]
+    const ids = pickDailyIds(withNoise)
+    expect(ids).toHaveLength(DAILY_QUESTION_COUNT)
+    expect(ids[0]).toBe('q0')
+    expect(ids).not.toContain('three')
+    const otherOrder = [...many].reverse()
+    expect(selectDaily(otherOrder, ids).map((q) => q.id)).toEqual(ids)
+    expect(selectDaily(many.slice(0, 5), ids)).toHaveLength(5)
+  })
+
+  it('counts consecutive played days back from today, or from yesterday if today is not played', () => {
+    expect(dailyStreak(['2026-09-20', '2026-09-19', '2026-09-18', '2026-09-15'], '2026-09-20')).toBe(3)
+    expect(dailyStreak(['2026-09-19', '2026-09-18'], '2026-09-20')).toBe(2)
+    expect(dailyStreak(['2026-09-17'], '2026-09-20')).toBe(0)
+    expect(dailyStreak(['2026-08-31', '2026-09-01'], '2026-09-01')).toBe(2)
+    expect(dailyStreak([], '2026-09-20')).toBe(0)
+  })
+
+  it('finds a player in the sorted ranking', () => {
+    const row = (user_id: string): DailyRow => ({ user_id, pseudo: user_id, avatar: '🙂', correct_count: 1, played: 1, best_streak: 1, elapsed_seconds: 1 })
+    const rows = [row('a'), row('b'), row('c')]
+    expect(dailyRank(rows, 'b')).toEqual({ rank: 2, total: 3 })
+    expect(dailyRank(rows, 'zzz')).toBeNull()
+  })
+})
+
+describe('badges', () => {
+  const blank: BadgeContext = { stats: null, freeBlitz: false, brokeRecord: false, history: [], currentByCategory: {}, categoryIds: ['a', 'b'] }
+  const row = (over: Partial<QuizResultRow>): QuizResultRow => ({
+    id: 'x', created_at: '2026-09-21T10:00:00Z', quiz_title: 'Q', mode: 'classic', score: 0, earned_points: 0, total_points: 0, correct_count: 0,
+    elapsed_seconds: 0, question_count: 0, categories: [], by_category: {}, by_type: {}, by_difficulty: {}, ...over,
+  })
+
+  it('awards the streak and flawless badges from the blitz result', () => {
+    expect(earnedBadges({ ...blank, stats: { played: 12, correct: 11, bestStreak: 10 } })).toEqual(['streak10'])
+    expect(earnedBadges({ ...blank, stats: { played: 20, correct: 20, bestStreak: 20 } })).toEqual(['streak10', 'flawless20'])
+    expect(earnedBadges({ ...blank, stats: { played: 19, correct: 19, bestStreak: 19 } })).toEqual(['streak10'])
+    expect(earnedBadges({ ...blank, stats: { played: 20, correct: 19, bestStreak: 9 } })).toEqual([])
+  })
+
+  it('awards the globetrotter badge once every category has 10 correct answers, counting history and this game', () => {
+    const history = [row({ by_category: { a: { correct: 6, total: 8 }, b: { correct: 10, total: 10 } } })]
+    expect(earnedBadges({ ...blank, history })).toEqual([])
+    expect(earnedBadges({ ...blank, history, currentByCategory: { a: { correct: 4, total: 4 } } })).toEqual(['globe10'])
+    expect(earnedBadges({ ...blank, categoryIds: [], history })).toEqual([])
+  })
+
+  it('awards blitz addict at 50 blitz games (this one included) and the record badge on a broken record', () => {
+    const history = Array.from({ length: 49 }, () => row({ mode: 'blitz' }))
+    expect(earnedBadges({ ...blank, history })).toEqual([])
+    expect(earnedBadges({ ...blank, history, freeBlitz: true })).toEqual(['blitz50'])
+    expect(earnedBadges({ ...blank, brokeRecord: true })).toEqual(['record1'])
+  })
+
+  it('only adds badges that are not owned yet, keeping the original date', () => {
+    const owned = { streak10: '2026-09-01T00:00:00Z' }
+    const next = addBadges(owned, ['streak10', 'record1'], '2026-09-20T00:00:00Z')
+    expect(next).toEqual({ streak10: '2026-09-01T00:00:00Z', record1: '2026-09-20T00:00:00Z' })
+  })
+})

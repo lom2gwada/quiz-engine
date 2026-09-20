@@ -24,7 +24,11 @@ import { generateQuiz, inferSchema, parseCsv, randomSeed } from './utils/quizGen
 import type { GenSchema, Row } from './utils/quizGenerator'
 import { isSoundMuted, playClick, setSoundMuted } from './utils/sound'
 import { BLITZ_MAX_ERRORS, BLITZ_QUESTION_COUNT, BLITZ_SECONDS, blitzPool, blitzStats, previousBestBlitz } from './utils/blitz'
-import { BlitzSummary, type BlitzSummaryData } from './components/BlitzSummary'
+import type { BlitzSummaryData } from './components/BlitzSummary'
+import { GameExtras, type DailySummaryData } from './components/GameExtras'
+import { DailyChallengePanel } from './components/DailyChallengePanel'
+import { earnedBadges, addBadges, pushBadges, readBadges, syncBadges, writeBadges, type BadgeContext, type BadgeId, type OwnedBadges } from './utils/badges'
+import { DAILY_QUESTION_COUNT, claimDaily, dailyKey, dailyRank, dailySeed, fetchDailyLeaderboard, finishDaily, markDailyFinished, markDailyStarted, pickDailyIds, readDailyLocal, selectDaily } from './utils/dailyChallenge'
 import { shuffle } from './utils/shuffle'
 
 type BuiltinView = 'start' | 'quiz' | 'results' | 'content' | 'history' | 'profile' | 'atlas'
@@ -113,6 +117,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
   const locale = useLocale()
   const tRef = useRef(t)
   tRef.current = t
+  const userId = session?.user.id ?? null
   const initial = initialStateOf(spec)
   const [quiz, setQuiz] = useState<Quiz>(initial.quiz)
   const [dataset, setDataset] = useState<Dataset | null>(initial.dataset)
@@ -135,6 +140,13 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
   // Vrai pour une reprise ciblée de ses erreurs : « rejouer avec les mêmes paramètres » n'a alors pas de sens.
   const [isReplay, setIsReplay] = useState(false)
   const [blitzSummary, setBlitzSummary] = useState<BlitzSummaryData | null>(null)
+  // Défi du jour en cours (jour joué), son bilan, badges tout juste obtenus, badges possédés.
+  const [dailyRun, setDailyRun] = useState<{ day: string } | null>(null)
+  const [dailySummary, setDailySummary] = useState<DailySummaryData | null>(null)
+  const [newBadges, setNewBadges] = useState<BadgeId[]>([])
+  const [badges, setBadges] = useState<OwnedBadges>(() => readBadges())
+  const [dailyRefresh, setDailyRefresh] = useState(0)
+  const [dailyError, setDailyError] = useState(false)
   const [sessionQuestions, setSessionQuestions] = useState<Quiz['questions']>([])
   const [resultQuestions, setResultQuestions] = useState<Quiz['questions']>([])
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
@@ -271,6 +283,9 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     setAnswers({})
     setIsReplay(false)
     setBlitzSummary(null)
+    setDailyRun(null)
+    setDailySummary(null)
+    setNewBadges([])
     setActiveMode(gameMode)
     const seen = new Set(avoid.map((question) => question.id))
     const ordered = [...shuffle(filteredQuestions.filter((q) => !seen.has(q.id))), ...shuffle(filteredQuestions.filter((q) => seen.has(q.id)))]
@@ -296,6 +311,9 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     setAnswers({})
     setIsReplay(true)
     setBlitzSummary(null)
+    setDailyRun(null)
+    setDailySummary(null)
+    setNewBadges([])
     setActiveMode('classic')
     setActiveTimeLimit(undefined)
     setSessionQuestions(questions)
@@ -307,6 +325,9 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     setSessionQuestions([])
     setResultQuestions([])
     setBlitzSummary(null)
+    setDailyRun(null)
+    setDailySummary(null)
+    setNewBadges([])
     setElapsedSeconds(0)
     replace('start')
   }
@@ -316,12 +337,76 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     setMuted(!muted)
   }
 
+  // Badges : possédés en local (affichage), fusionnés avec le cloud à la connexion.
+  useEffect(() => {
+    setBadges(readBadges())
+    if (userId) syncBadges(userId).then(setBadges).catch(() => {})
+  }, [userId])
+
+  /** Attribue ceux que la partie vient de faire gagner, sans redonner ceux déjà obtenus. */
+  const awardNewBadges = (context: BadgeContext) => {
+    const owned = readBadges()
+    const fresh = earnedBadges(context).filter((id) => !owned[id])
+    if (!fresh.length) return
+    const now = new Date().toISOString()
+    const next = addBadges(owned, fresh, now)
+    writeBadges(next)
+    setBadges(next)
+    setNewBadges(fresh)
+    if (userId) pushBadges(userId, fresh, now).catch(() => {})
+  }
+
+  /** Les 20 questions du jour : identifiées sur un tirage français seedé par la date, retrouvées dans la langue du joueur. */
+  const dailyQuestionsFor = (day: string): Question[] => {
+    if (!dataset) return []
+    const seed = dailySeed(day)
+    const french = safeGenerate(spec, dataset, seed, 'fr', true).quiz.questions
+    const ids = pickDailyIds(french).slice(0, DAILY_QUESTION_COUNT)
+    return selectDaily(locale === 'fr' ? french : safeGenerate(spec, dataset, seed, locale, true).quiz.questions, ids)
+  }
+
+  const startDaily = async () => {
+    // Seulement sur le jeu de données intégré : un CSV importé n'a pas la même série pour tous.
+    if (!dataset?.editable) return
+    const day = dailyKey()
+    setDailyError(false)
+    if (!userId && readDailyLocal(day)) return
+    const questions = dailyQuestionsFor(day)
+    if (!questions.length) { setDailyError(true); return }
+    if (userId) {
+      const claim = await claimDaily(userId, day) // la tentative est réservée AVANT de voir les questions
+      if (claim === 'error') { setDailyError(true); return }
+      if (claim === 'already') { setDailyRefresh((value) => value + 1); return }
+    }
+    markDailyStarted(day)
+    playClick()
+    setAnswers({}); setIsReplay(false); setBlitzSummary(null); setDailySummary(null); setNewBadges([])
+    setDailyRun({ day }); setActiveMode('blitz'); setActiveTimeLimit(undefined)
+    setSessionQuestions(questions)
+    navigate('quiz')
+  }
+
+  const finishDailyRun = (day: string, stats: BlitzSummaryData, duration: number) => {
+    markDailyFinished(day, stats, duration)
+    setDailySummary({ played: stats.played, correct: stats.correct, bestStreak: stats.bestStreak, guest: !userId })
+    setDailyRefresh((value) => value + 1)
+    if (!userId) return
+    finishDaily(userId, day, stats, duration)
+      .then(() => fetchDailyLeaderboard(day))
+      .then((rows) => {
+        setDailySummary((previous) => (previous ? { ...previous, rank: dailyRank(rows, userId) } : previous))
+        setDailyRefresh((value) => value + 1)
+      })
+      .catch(() => {})
+  }
+
   const viewButton = (v: DatasetView) => <button key={v.id} type="button" className="secondary" onClick={() => navigate(v.id)}>{v.icon} {t(v.labelKey)}</button>
 
   return <main className="app-shell">
     {spec.Background && <spec.Background />}
     <header><div><p className="eyebrow">{engineConfig().appName.toUpperCase()}</p><h1>{quiz.metadata.title}</h1><p>{t('header.by', { author: quiz.metadata.author })}</p>{view === 'start' && quiz.metadata.description && <p className="quiz-description-preview">{quiz.metadata.description}</p>}</div><div className="header-actions"><button type="button" className="secondary" onClick={toggleSound} aria-label={muted ? t('header.soundOn') : t('header.soundOff')}>{muted ? '🔇' : '🔊'}</button>{view === 'start' && <button type="button" className="secondary" onClick={() => navigate('profile')}>{profile ? `${profile.avatar} ${profile.pseudo}` : `👤 ${t('nav.profile')}`}</button>}{view === 'start' && dataset?.views?.filter((v) => v.entry === 'start').map(viewButton)}{view === 'start' && dataset && <button type="button" className="secondary" onClick={() => navigate('atlas')}>🗂️ {t('nav.fiches')}</button>}{view === 'start' && <button type="button" className="secondary" onClick={() => navigate('content')}>⚙️ {t('nav.quiz')}</button>}</div></header>
     {view === 'start' && <section className="start-page">
+      {dataset?.editable && <DailyChallengePanel userId={userId} day={dailyKey()} onPlay={startDaily} refreshKey={dailyRefresh} error={dailyError} />}
       <FilterPanel categories={quiz.categories} selectedCategories={selectedCategories} difficulty={difficulty} onCategoryToggle={toggleCategory} onDifficultyChange={setDifficulty} />
       <div className="mode-toggle" role="radiogroup" aria-label={t('start.mode.aria')}>
         <label className={gameMode === 'classic' ? 'mode-chip is-active' : 'mode-chip'}>
@@ -356,21 +441,34 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     {view === 'quiz' && <QuizPage quiz={quiz} questions={sessionQuestions} mode={activeMode} timeLimitSeconds={activeTimeLimit} onFinish={(nextAnswers, duration, shown) => {
       setAnswers(nextAnswers); setResultQuestions(shown); setElapsedSeconds(duration); replace('results')
       const historyKey = historyKeyOf(dataset, quiz)
+      const payload = buildQuizResultPayload(shown, nextAnswers, quiz.categories, duration, historyKey, activeMode)
+      const daily = dailyRun
+      const stats = activeMode === 'blitz' ? blitzStats(shown, nextAnswers) : null
+      // Un défi du jour n'entre pas dans l'historique blitz (ni records, ni classement blitz) : son résultat a sa propre table.
       const persist = () => {
-        saveQuizResult(buildQuizResultPayload(shown, nextAnswers, quiz.categories, duration, historyKey, activeMode), session?.user.id)
+        if (!daily) saveQuizResult(payload, session?.user.id)
         saveQuestionResults(buildQuestionResultPayloads(shown, nextAnswers, historyKey), session?.user.id)
       }
-      if (activeMode === 'blitz') {
-        // Bilan blitz : le record se compare à l'historique AVANT d'y enregistrer cette partie.
-        const stats = blitzStats(shown, nextAnswers)
-        setBlitzSummary(stats)
-        fetchQuizHistory(session?.user.id)
-          .then((rows) => setBlitzSummary({ ...stats, previousBest: previousBestBlitz(rows, historyKey) }))
-          .catch(() => {})
-          .finally(persist)
-      } else persist()
+      if (daily && stats) finishDailyRun(daily.day, stats, duration)
+      if (stats && !daily) setBlitzSummary(stats)
+      // L'historique est lu AVANT d'y enregistrer cette partie : record et badges se calculent par rapport à l'existant.
+      fetchQuizHistory(session?.user.id)
+        .then((rows) => {
+          const previousBest = stats && !daily ? previousBestBlitz(rows, historyKey) : undefined
+          if (stats && !daily) setBlitzSummary({ ...stats, previousBest })
+          awardNewBadges({
+            stats,
+            freeBlitz: Boolean(stats && !daily),
+            brokeRecord: Boolean(stats && !daily && typeof previousBest === 'number' && stats.correct > previousBest),
+            history: rows,
+            currentByCategory: payload.by_category,
+            categoryIds: quiz.categories.map((category) => category.id),
+          })
+        })
+        .catch(() => {})
+        .finally(persist)
     }} onCancel={backToStart} />}
-    {view === 'results' && <ResultPage questions={resultQuestions} answers={answers} categories={quiz.categories} elapsedSeconds={elapsedSeconds} onRestartSame={isReplay ? undefined : restartQuiz} onBackToSettings={backToStart} onViewHistory={() => viewHistory('results')} onViewFiche={dataset ? setFicheSubject : undefined} summary={activeMode === 'blitz' && blitzSummary ? <BlitzSummary data={blitzSummary} /> : undefined} />}
+    {view === 'results' && <ResultPage questions={resultQuestions} answers={answers} categories={quiz.categories} elapsedSeconds={elapsedSeconds} onRestartSame={isReplay || dailyRun ? undefined : restartQuiz} onBackToSettings={backToStart} onViewHistory={() => viewHistory('results')} onViewFiche={dataset ? setFicheSubject : undefined} summary={<GameExtras blitz={activeMode === 'blitz' ? blitzSummary : null} daily={dailySummary} newBadges={newBadges} />} />}
     {view === 'content' && <QuizContentPage quiz={quiz} dataset={dataset} onBack={() => navigate('start')} onCsvChange={loadCsv} onGenerate={generateFromPanel} onRegenerate={regenerateQuestions} fileError={fileError} genError={genError} />}
     {view === 'atlas' && dataset && <AtlasPage rows={dataset.rows} schema={dataset.schema} decor={dataset.ficheDecor} i18n={dataset.i18n} actions={dataset.views?.filter((v) => v.entry === 'atlas').map(viewButton)} onOpenFiche={setFicheSubject} onBack={() => navigate('start')} />}
     {dataset && (() => {
@@ -382,7 +480,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
       return row ? <FicheModal row={row} schema={dataset.schema} decor={dataset.ficheDecor} speech={dataset.speech} i18n={dataset.i18n} canEdit={isAdmin && Boolean(dataset.editable && spec.remote)} updateRow={spec.remote?.updateRow} onRowUpdated={handleDatasetRowUpdated} onClose={() => setFicheSubject(null)} /> : null
     })()}
     {view === 'history' && <HistoryPage onBack={() => navigate(historyBack)} quiz={quiz} historyKey={historyKeyOf(dataset, quiz)} userId={session?.user.id} onReplayMissed={replayMissed} />}
-    {view === 'profile' && <ProfilePage profile={profile} session={session} onBack={() => navigate('start')} onSave={async (next) => { await saveProfile(next, session?.user.id); onProfileChange(next) }} onViewHistory={() => viewHistory('profile')} />}
+    {view === 'profile' && <ProfilePage profile={profile} session={session} badges={badges} onBack={() => navigate('start')} onSave={async (next) => { await saveProfile(next, session?.user.id); onProfileChange(next) }} onViewHistory={() => viewHistory('profile')} />}
     <footer className="app-footer">{t('footer.version', { hash: __COMMIT_HASH__ })}</footer>
   </main>
 }
