@@ -172,17 +172,20 @@ export async function fetchQuestionResults(userId?: string | null): Promise<Ques
   }
 }
 
-/** Regroupe les résultats par question pour un quiz donné, ne garde que celles ratées au moins une fois, triées de la plus problématique à la moins. */
+/** Questions « à retravailler » d'un quiz : celles dont la DERNIÈRE réponse est fausse (une bonne réponse la fait sortir de la liste),
+ *  avec le nombre de fois où elles ont été ratées ; la plus ratée d'abord. */
 export function computeMissedQuestions(rows: QuestionResultRow[], quizTitle: string): MissedQuestion[] {
-  const byQuestion = new Map<string, MissedQuestion>()
+  const byQuestion = new Map<string, MissedQuestion & { lastAt: string; lastCorrect: boolean }>()
   rows.filter((row) => row.quiz_title === quizTitle).forEach((row) => {
-    const entry = byQuestion.get(row.question_id) ?? { questionId: row.question_id, questionText: row.question_text, attempts: 0, wrongCount: 0 }
-    entry.attempts += 1
+    const entry = byQuestion.get(row.question_id) ?? { questionId: row.question_id, questionText: row.question_text, wrongCount: 0, lastAt: '', lastCorrect: true }
     if (!row.correct) entry.wrongCount += 1
-    entry.questionText = row.question_text
+    if (row.created_at >= entry.lastAt) { entry.lastAt = row.created_at; entry.lastCorrect = row.correct; entry.questionText = row.question_text }
     byQuestion.set(row.question_id, entry)
   })
-  return Array.from(byQuestion.values()).filter((entry) => entry.wrongCount > 0).sort((a, b) => b.wrongCount - a.wrongCount)
+  return Array.from(byQuestion.values())
+    .filter((entry) => !entry.lastCorrect)
+    .sort((a, b) => b.wrongCount - a.wrongCount)
+    .map(({ questionId, questionText, wrongCount }) => ({ questionId, questionText, wrongCount }))
 }
 
 /** `rows` peut être dans n'importe quel ordre — seuls les agrégats comptent ici.

@@ -263,14 +263,40 @@ function questionRow(overrides: Partial<QuestionResultRow>): QuestionResultRow {
 }
 
 describe('computeMissedQuestions', () => {
-  it('counts wrong attempts per question', () => {
+  it('counts how many times a question was missed, for questions whose last answer is wrong', () => {
     const rows = [
-      questionRow({ correct: false }),
-      questionRow({ correct: true }),
-      questionRow({ correct: false }),
+      questionRow({ id: '1', created_at: '2026-01-01T00:00:00Z', correct: true }),
+      questionRow({ id: '2', created_at: '2026-01-02T00:00:00Z', correct: false }),
+      questionRow({ id: '3', created_at: '2026-01-03T00:00:00Z', correct: false }),
     ]
     const [missed] = computeMissedQuestions(rows, 'Culture générale')
-    expect(missed).toEqual({ questionId: 'q1', questionText: 'Q ?', attempts: 3, wrongCount: 2 })
+    expect(missed).toEqual({ questionId: 'q1', questionText: 'Q ?', wrongCount: 2 })
+  })
+
+  it('drops a question from the list once it is answered correctly', () => {
+    const rows = [
+      questionRow({ id: '1', created_at: '2026-01-01T00:00:00Z', correct: false }),
+      questionRow({ id: '2', created_at: '2026-01-02T00:00:00Z', correct: false }),
+      questionRow({ id: '3', created_at: '2026-01-03T00:00:00Z', correct: true }),
+    ]
+    expect(computeMissedQuestions(rows, 'Culture générale')).toEqual([])
+  })
+
+  it('brings a question back if it is missed again after being answered correctly', () => {
+    const rows = [
+      questionRow({ id: '1', created_at: '2026-01-01T00:00:00Z', correct: false }),
+      questionRow({ id: '2', created_at: '2026-01-02T00:00:00Z', correct: true }),
+      questionRow({ id: '3', created_at: '2026-01-03T00:00:00Z', correct: false }),
+    ]
+    expect(computeMissedQuestions(rows, 'Culture générale').map((entry) => entry.wrongCount)).toEqual([2])
+  })
+
+  it('does not depend on the order of the rows', () => {
+    const rows = [
+      questionRow({ id: '3', created_at: '2026-01-03T00:00:00Z', correct: true }),
+      questionRow({ id: '1', created_at: '2026-01-01T00:00:00Z', correct: false }),
+    ]
+    expect(computeMissedQuestions(rows, 'Culture générale')).toEqual([])
   })
 
   it('excludes questions that were always answered correctly', () => {
@@ -278,7 +304,7 @@ describe('computeMissedQuestions', () => {
     expect(computeMissedQuestions(rows, 'Culture générale')).toEqual([])
   })
 
-  it('sorts by wrong count, most missed first', () => {
+  it('sorts by number of misses, most missed first', () => {
     const rows = [
       questionRow({ question_id: 'q1', correct: false }),
       questionRow({ question_id: 'q2', correct: false }),
