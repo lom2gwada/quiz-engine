@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Question, Quiz } from '../types/quiz'
 import type { QuestionResultRow, QuizResultRow } from '../types/history'
-import { useLocale, useT } from '../i18n'
+import { plural, useLocale, useT } from '../i18n'
 import { bucketsToRadarPoints, computeCategoryWeekHeatmap, computeMissedQuestions, computeRecords, fetchQuestionResults, fetchQuizHistory, sumBuckets } from '../utils/quizHistory'
 import { formatDuration } from '../utils/time'
 import { CategoryWeekHeatmap } from './CategoryWeekHeatmap'
@@ -100,7 +100,7 @@ export function HistoryPage({ onBack, quiz, historyKey, userId, onReplayMissed }
     </>}
     {missedQuestions.length > 0 && <div className="missed-questions">
       <div className="stats-group-header">
-        <h3 className="stats-group-title">{t('history.toReview')}</h3>
+        <h3 className="stats-group-title">{t(plural('history.toReview', missedQuestions.length), { n: missedQuestions.length })}</h3>
         {replayQuestions.length > 0 && <button type="button" onClick={() => onReplayMissed(replayQuestions)}>{t('history.replayMistakes')}</button>}
       </div>
       <ul className="missed-list">
