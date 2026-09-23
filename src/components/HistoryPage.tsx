@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { Question, Quiz } from '../types/quiz'
 import type { QuestionResultRow, QuizResultRow } from '../types/history'
 import { plural, useLocale, useT } from '../i18n'
-import { bucketsToRadarPoints, computeCategoryWeekHeatmap, computeMissedQuestions, computeRecords, fetchQuestionResults, fetchQuizHistory, sumBuckets } from '../utils/quizHistory'
+import { bucketsToRadarPoints, computeCategoryWeekHeatmap, computeMissedQuestions, computeRecords, fetchQuestionResults, fetchQuizHistory, resolveMissedQuestions, sumBuckets, REVIEW_BATCH_SIZE } from '../utils/quizHistory'
 import { formatDuration } from '../utils/time'
 import { CategoryWeekHeatmap } from './CategoryWeekHeatmap'
 import { HeatmapChart } from './HeatmapChart'
@@ -49,9 +49,7 @@ export function HistoryPage({ onBack, quiz, historyKey, userId, onReplayMissed }
 
   const missedQuestions = activeQuiz ? computeMissedQuestions(questionRows, activeQuiz) : []
   const canReplay = activeQuiz === historyKey
-  const replayQuestions = canReplay
-    ? missedQuestions.map((missed) => quiz.questions.find((question) => question.id === missed.questionId)).filter((question): question is Question => Boolean(question))
-    : []
+  const replayQuestions = canReplay ? resolveMissedQuestions(missedQuestions.slice(0, REVIEW_BATCH_SIZE), quiz.questions) : []
 
   return <section className="stats-page">
     <div className="stats-header">
@@ -101,7 +99,7 @@ export function HistoryPage({ onBack, quiz, historyKey, userId, onReplayMissed }
     {missedQuestions.length > 0 && <div className="missed-questions">
       <div className="stats-group-header">
         <h3 className="stats-group-title">{t(plural('history.toReview', missedQuestions.length), { n: missedQuestions.length })}</h3>
-        {replayQuestions.length > 0 && <button type="button" onClick={() => onReplayMissed(replayQuestions)}>{t('history.replayMistakes')}</button>}
+        {replayQuestions.length > 0 && <button type="button" onClick={() => onReplayMissed(replayQuestions)}>{t(plural('review.play', replayQuestions.length), { n: replayQuestions.length })}</button>}
       </div>
       <ul className="missed-list">
         {missedQuestions.map((missed) => <li className="missed-item" key={missed.questionId}>

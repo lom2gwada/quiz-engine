@@ -189,6 +189,17 @@ export function computeMissedQuestions(rows: QuestionResultRow[], quizTitle: str
     .map(({ questionId, questionText, attempts, wrongCount }) => ({ questionId, questionText, attempts, wrongCount }))
 }
 
+/** Taille d'un lot de révision (accueil, historique) : on ne propose pas d'un coup toutes les questions à
+ *  retravailler si elles sont nombreuses, seulement les plus problématiques (`computeMissedQuestions` les
+ *  trie déjà de la plus ratée à la moins ratée). */
+export const REVIEW_BATCH_SIZE = 20
+
+/** Retrouve les questions correspondant à une liste de « à retravailler » (mêmes ids), dans l'ordre donné ;
+ *  celles introuvables (catégorie décochée, autre tirage…) sont simplement ignorées. */
+export function resolveMissedQuestions(missed: MissedQuestion[], questions: Question[]): Question[] {
+  return missed.map((entry) => questions.find((question) => question.id === entry.questionId)).filter((question): question is Question => Boolean(question))
+}
+
 /** `rows` peut être dans n'importe quel ordre — seuls les agrégats comptent ici.
  * `bestScore`/`averageScore` ne portent que sur le mode classique (le `%` n'est pas comparable
  * entre modes : `correct_count` est la métrique pertinente pour contre-la-montre et sans-faute). */

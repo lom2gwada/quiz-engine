@@ -2,7 +2,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { BooleanQuestion, Category, QCMQuestion } from '../types/quiz'
 import type { QuestionResultRow, QuizResultRow } from '../types/history'
-import { bucketsToChartGroups, bucketsToRadarPoints, buildQuestionResultPayloads, buildQuizResultPayload, computeCategoryWeekHeatmap, computeMissedQuestions, computeRecords, sumBuckets, weekStartKey } from './quizHistory'
+import { bucketsToChartGroups, bucketsToRadarPoints, buildQuestionResultPayloads, buildQuizResultPayload, computeCategoryWeekHeatmap, computeMissedQuestions, computeRecords, resolveMissedQuestions, sumBuckets, weekStartKey } from './quizHistory'
 
 vi.mock('./supabase', () => ({ supabase: { from: vi.fn() } }))
 
@@ -321,6 +321,18 @@ describe('computeMissedQuestions', () => {
 
   it('returns an empty array for no history', () => {
     expect(computeMissedQuestions([], 'Culture générale')).toEqual([])
+  })
+})
+
+describe('resolveMissedQuestions', () => {
+  const missed = (questionId: string) => ({ questionId, questionText: questionId, attempts: 1, wrongCount: 1 })
+
+  it('finds the matching questions, in the given order', () => {
+    expect(resolveMissedQuestions([missed('q2'), missed('q1')], [qcm, bool])).toEqual([bool, qcm])
+  })
+
+  it('drops entries whose question no longer exists (different draw, unchecked category…)', () => {
+    expect(resolveMissedQuestions([missed('gone'), missed('q1')], [qcm])).toEqual([qcm])
   })
 })
 

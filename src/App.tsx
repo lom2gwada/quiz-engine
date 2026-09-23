@@ -28,6 +28,7 @@ import type { BlitzSummaryData } from './components/BlitzSummary'
 import { GameExtras, type DailySummaryData } from './components/GameExtras'
 import type { RecordSummaryData } from './components/RecordSummary'
 import { DailyChallengePanel } from './components/DailyChallengePanel'
+import { ReviewPanel } from './components/ReviewPanel'
 import { earnedBadges, addBadges, playedAllModesToday, pushBadges, readBadges, syncBadges, writeBadges, type BadgeContext, type BadgeId, type OwnedBadges } from './utils/badges'
 import { DAILY_QUESTION_COUNT, claimDaily, dailyKey, dailyRank, dailySeed, dailyStreak, fetchDailyLeaderboard, fetchMyDaily, finishDaily, finishedLocalDays, markDailyFinished, markDailyStarted, pickDailyIds, readDailyLocal, selectDaily } from './utils/dailyChallenge'
 import { shuffle } from './utils/shuffle'
@@ -421,6 +422,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     <header><div><p className="eyebrow">{engineConfig().appName.toUpperCase()}</p><h1>{quiz.metadata.title}</h1><p>{t('header.by', { author: quiz.metadata.author })}</p>{view === 'start' && quiz.metadata.description && <p className="quiz-description-preview">{quiz.metadata.description}</p>}</div><div className="header-actions"><button type="button" className="secondary" onClick={toggleSound} aria-label={muted ? t('header.soundOn') : t('header.soundOff')}>{muted ? '🔇' : '🔊'}</button>{view === 'start' && <button type="button" className="secondary" onClick={() => navigate('profile')}>{profile ? `${profile.avatar} ${profile.pseudo}` : `👤 ${t('nav.profile')}`}</button>}{view === 'start' && dataset?.views?.filter((v) => v.entry === 'start').map(viewButton)}{view === 'start' && dataset && <button type="button" className="secondary" onClick={() => navigate('atlas')}>🗂️ {t('nav.fiches')}</button>}{view === 'start' && <button type="button" className="secondary" onClick={() => navigate('content')}>⚙️ {t('nav.quiz')}</button>}</div></header>
     {view === 'start' && <section className="start-page">
       {dataset?.editable && <DailyChallengePanel userId={userId} day={dailyKey()} onPlay={startDaily} refreshKey={dailyRefresh} error={dailyError} />}
+      <ReviewPanel quiz={quiz} historyKey={historyKeyOf(dataset, quiz)} userId={userId} onReview={replayMissed} />
       <FilterPanel categories={quiz.categories} selectedCategories={selectedCategories} difficulty={difficulty} onCategoryToggle={toggleCategory} onDifficultyChange={setDifficulty} />
       <div className="mode-toggle" role="radiogroup" aria-label={t('start.mode.aria')}>
         <label className={gameMode === 'classic' ? 'mode-chip is-active' : 'mode-chip'}>
