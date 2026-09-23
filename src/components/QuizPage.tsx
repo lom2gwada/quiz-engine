@@ -74,6 +74,9 @@ export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, 
       setCurrent(streakSoFar)
     }
   }
+  // Même action que le bouton principal (Valider en sans-faute, Suivante/Voir ma correction sinon) —
+  // déclenchée par la touche Entrée depuis un champ de saisie libre (question de type « texte »).
+  const advance = () => noMistake ? validate() : atEnd ? finish() : setCurrent((value) => value + 1)
 
   useEffect(() => {
     const interval = setInterval(() => setElapsed((value) => value + 1), 1000)
@@ -201,7 +204,7 @@ export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, 
       {question.imageUrl && <QuestionImage src={question.imageUrl} alt={question.imageAlt} />}
       {question.shapeSvg && <QuestionShape svg={question.shapeSvg} alt={question.imageAlt} />}
       {question.type !== 'cloze' && <h2>{question.question}</h2>}
-      <QuestionRenderer question={question} answer={answers[question.id]} onChange={updateAnswer} />
+      <QuestionRenderer question={question} answer={answers[question.id]} onChange={updateAnswer} onSubmit={advance} />
     </div>
     {(timeAttack || noMistake) && atEnd && <p className="hint-banner">{t('quiz.poolExhausted')}</p>}
     <div className="quiz-actions">
