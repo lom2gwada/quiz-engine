@@ -26,8 +26,9 @@ import { isSoundMuted, playClick, setSoundMuted } from './utils/sound'
 import { BLITZ_MAX_ERRORS, BLITZ_QUESTION_COUNT, BLITZ_SECONDS, blitzPool, blitzStats, previousBestBlitz, previousBestBlitzScore } from './utils/blitz'
 import type { BlitzSummaryData } from './components/BlitzSummary'
 import { GameExtras, type DailySummaryData } from './components/GameExtras'
+import type { RecordSummaryData } from './components/RecordSummary'
 import { DailyChallengePanel } from './components/DailyChallengePanel'
-import { earnedBadges, addBadges, pushBadges, readBadges, syncBadges, writeBadges, type BadgeContext, type BadgeId, type OwnedBadges } from './utils/badges'
+import { earnedBadges, addBadges, playedAllModesToday, pushBadges, readBadges, syncBadges, writeBadges, type BadgeContext, type BadgeId, type OwnedBadges } from './utils/badges'
 import { DAILY_QUESTION_COUNT, claimDaily, dailyKey, dailyRank, dailySeed, dailyStreak, fetchDailyLeaderboard, fetchMyDaily, finishDaily, finishedLocalDays, markDailyFinished, markDailyStarted, pickDailyIds, readDailyLocal, selectDaily } from './utils/dailyChallenge'
 import { shuffle } from './utils/shuffle'
 
@@ -140,6 +141,8 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
   // Vrai pour une reprise ciblée de ses erreurs : « rejouer avec les mêmes paramètres » n'a alors pas de sens.
   const [isReplay, setIsReplay] = useState(false)
   const [blitzSummary, setBlitzSummary] = useState<BlitzSummaryData | null>(null)
+  // Bilan « record personnel » des 3 autres modes (classique / contre-la-montre / sans-faute) : équivalent de `blitzSummary`.
+  const [modeRecordSummary, setModeRecordSummary] = useState<RecordSummaryData | null>(null)
   // Défi du jour en cours (jour joué), son bilan, badges tout juste obtenus, badges possédés.
   const [dailyRun, setDailyRun] = useState<{ day: string } | null>(null)
   const [dailySummary, setDailySummary] = useState<DailySummaryData | null>(null)
@@ -283,6 +286,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     setAnswers({})
     setIsReplay(false)
     setBlitzSummary(null)
+    setModeRecordSummary(null)
     setDailyRun(null)
     setDailySummary(null)
     setNewBadges([])
@@ -311,6 +315,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     setAnswers({})
     setIsReplay(true)
     setBlitzSummary(null)
+    setModeRecordSummary(null)
     setDailyRun(null)
     setDailySummary(null)
     setNewBadges([])
@@ -325,6 +330,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     setSessionQuestions([])
     setResultQuestions([])
     setBlitzSummary(null)
+    setModeRecordSummary(null)
     setDailyRun(null)
     setDailySummary(null)
     setNewBadges([])
@@ -380,7 +386,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     }
     markDailyStarted(day)
     playClick()
-    setAnswers({}); setIsReplay(false); setBlitzSummary(null); setDailySummary(null); setNewBadges([])
+    setAnswers({}); setIsReplay(false); setBlitzSummary(null); setModeRecordSummary(null); setDailySummary(null); setNewBadges([])
     setDailyRun({ day }); setActiveMode('blitz'); setActiveTimeLimit(undefined)
     setSessionQuestions(questions)
     navigate('quiz')
@@ -465,19 +471,54 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
         .then((rows) => {
           const previousBest = stats && !daily ? previousBestBlitz(rows, historyKey) : undefined
           if (stats && !daily) setBlitzSummary({ ...stats, bonus, previousBest, previousBestScore: previousBestBlitzScore(rows, historyKey) })
+
+          // Record personnel des 3 autres modes (classique : score % ; contre-la-montre/sans-faute : bonnes réponses),
+          // même principe que `previousBest` ci-dessus. `stats` est `null` hors blitz, donc hors défi du jour aussi.
+          let modeBrokeRecord = false
+          let classicFlawless = false
+          let noMistakeStreak: number | undefined
+          if (!stats) {
+            const metricOf = (row: typeof payload) => activeMode === 'classic' ? row.score : row.correct_count
+            const current = metricOf(payload)
+            const modeRows = rows.filter((row) => row.quiz_title === historyKey && row.mode === activeMode)
+            const prevBest = modeRows.length ? Math.max(...modeRows.map(metricOf)) : null
+            const formatValue = (n: number) => activeMode === 'classic'
+              ? `${n}%`
+              : activeMode === 'noMistake'
+                ? t(n === 1 ? 'quiz.streak.one' : 'quiz.streak.other', { n })
+                : t(n === 1 ? 'unit.correctAnswers.one' : 'unit.correctAnswers.other', { n })
+            modeBrokeRecord = prevBest !== null && current > prevBest
+            setModeRecordSummary({
+              value: formatValue(current),
+              previousBest: prevBest === null ? null : formatValue(prevBest),
+              isRecord: modeBrokeRecord,
+              isTie: prevBest !== null && current === prevBest,
+            })
+            if (activeMode === 'classic') classicFlawless = payload.question_count >= 20 && payload.correct_count === payload.question_count
+            if (activeMode === 'noMistake') noMistakeStreak = payload.correct_count
+          }
+
+          // Jours consécutifs en classique (indépendant du défi du jour), aujourd'hui compris.
+          const classicDays = rows.filter((row) => row.mode === 'classic').map((row) => row.created_at.slice(0, 10))
+          if (activeMode === 'classic' && !daily) classicDays.push(dailyKey())
+
           awardNewBadges({
             stats,
             freeBlitz: Boolean(stats && !daily),
-            brokeRecord: Boolean(stats && !daily && typeof previousBest === 'number' && stats.correct > previousBest),
+            brokeRecord: Boolean((stats && !daily && typeof previousBest === 'number' && stats.correct > previousBest) || modeBrokeRecord),
             history: rows,
             currentByCategory: payload.by_category,
             categoryIds: quiz.categories.map((category) => category.id),
+            noMistakeStreak,
+            classicFlawless,
+            classicStreakDays: activeMode === 'classic' && !daily ? dailyStreak(classicDays, dailyKey()) : undefined,
+            allModesToday: playedAllModesToday(rows, activeMode, dailyKey()),
           })
         })
         .catch(() => {})
         .finally(persist)
     }} onCancel={backToStart} />}
-    {view === 'results' && <ResultPage questions={resultQuestions} answers={answers} categories={quiz.categories} elapsedSeconds={elapsedSeconds} onRestartSame={isReplay || dailyRun ? undefined : restartQuiz} onBackToSettings={backToStart} onViewHistory={() => viewHistory('results')} onViewFiche={dataset ? setFicheSubject : undefined} summary={<GameExtras blitz={activeMode === 'blitz' ? blitzSummary : null} daily={dailySummary} newBadges={newBadges} />} />}
+    {view === 'results' && <ResultPage questions={resultQuestions} answers={answers} categories={quiz.categories} elapsedSeconds={elapsedSeconds} onRestartSame={isReplay || dailyRun ? undefined : restartQuiz} onBackToSettings={backToStart} onViewHistory={() => viewHistory('results')} onViewFiche={dataset ? setFicheSubject : undefined} summary={<GameExtras blitz={activeMode === 'blitz' ? blitzSummary : null} daily={dailySummary} modeRecord={activeMode === 'blitz' ? null : modeRecordSummary} newBadges={newBadges} />} />}
     {view === 'content' && <QuizContentPage quiz={quiz} dataset={dataset} onBack={() => navigate('start')} onCsvChange={loadCsv} onGenerate={generateFromPanel} onRegenerate={regenerateQuestions} fileError={fileError} genError={genError} />}
     {view === 'atlas' && dataset && <AtlasPage rows={dataset.rows} schema={dataset.schema} decor={dataset.ficheDecor} i18n={dataset.i18n} actions={dataset.views?.filter((v) => v.entry === 'atlas').map(viewButton)} onOpenFiche={setFicheSubject} onBack={() => navigate('start')} />}
     {dataset && (() => {

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { Question } from '../types/quiz'
 import type { QuizResultRow } from '../types/history'
-import { addBadges, earnedBadges, type BadgeContext } from './badges'
+import { addBadges, earnedBadges, playedAllModesToday, type BadgeContext } from './badges'
 import { DAILY_QUESTION_COUNT, dailyKey, dailyRank, dailySeed, dailyStreak, pickDailyIds, selectDaily, type DailyRow } from './dailyChallenge'
 
 vi.mock('./supabase', () => ({ supabase: {} }))
@@ -61,24 +61,45 @@ describe('badges', () => {
     expect(earnedBadges({ ...blank, stats: { played: 20, correct: 19, bestStreak: 9, points: 0 } })).toEqual([])
   })
 
-  it('awards the globetrotter badge once every category has 10 correct answers, counting history and this game', () => {
+  it('also awards the streak badge from a no-mistake streak, and the flawless badge from a flawless classic game', () => {
+    expect(earnedBadges({ ...blank, noMistakeStreak: 9 })).toEqual([])
+    expect(earnedBadges({ ...blank, noMistakeStreak: 10 })).toEqual(['streak10'])
+    expect(earnedBadges({ ...blank, classicFlawless: false })).toEqual([])
+    expect(earnedBadges({ ...blank, classicFlawless: true })).toEqual(['flawless20'])
+  })
+
+  it('awards the globetrotter tiers (bronze/silver/gold) once every category reaches the threshold, counting history and this game', () => {
     const history = [row({ by_category: { a: { correct: 6, total: 8 }, b: { correct: 10, total: 10 } } })]
     expect(earnedBadges({ ...blank, history })).toEqual([])
     expect(earnedBadges({ ...blank, history, currentByCategory: { a: { correct: 4, total: 4 } } })).toEqual(['globe10'])
+    expect(earnedBadges({ ...blank, history, currentByCategory: { a: { correct: 19, total: 19 }, b: { correct: 15, total: 15 } } })).toEqual(['globe10', 'globe25'])
+    expect(earnedBadges({ ...blank, history, currentByCategory: { a: { correct: 44, total: 44 }, b: { correct: 40, total: 40 } } })).toEqual(['globe10', 'globe25', 'globe50'])
     expect(earnedBadges({ ...blank, categoryIds: [], history })).toEqual([])
   })
 
-  it('awards blitz addict at 50 blitz games (this one included) and the record badge on a broken record', () => {
+  it('awards blitz addict at 50 blitz games (this one included) and the record badge on a broken record, in any mode', () => {
     const history = Array.from({ length: 49 }, () => row({ mode: 'blitz' }))
     expect(earnedBadges({ ...blank, history })).toEqual([])
     expect(earnedBadges({ ...blank, history, freeBlitz: true })).toEqual(['blitz50'])
     expect(earnedBadges({ ...blank, brokeRecord: true })).toEqual(['record1'])
   })
 
-  it('awards the full-week badge from 7 consecutive daily-challenge days', () => {
+  it('awards the full-week badge from 7 consecutive daily-challenge days, and its classic-mode equivalent', () => {
     expect(earnedBadges({ ...blank, dailyStreakDays: 6 })).toEqual([])
     expect(earnedBadges({ ...blank, dailyStreakDays: 7 })).toEqual(['daily7'])
     expect(earnedBadges({ ...blank, dailyStreakDays: 12 })).toEqual(['daily7'])
+    expect(earnedBadges({ ...blank, classicStreakDays: 6 })).toEqual([])
+    expect(earnedBadges({ ...blank, classicStreakDays: 7 })).toEqual(['classic7'])
+  })
+
+  it('awards the variety badge once the 4 modes are played the same day', () => {
+    const today = '2026-09-22'
+    const history = [row({ mode: 'classic', created_at: `${today}T08:00:00Z` }), row({ mode: 'timeAttack', created_at: `${today}T09:00:00Z` }), row({ mode: 'noMistake', created_at: `${today}T10:00:00Z` })]
+    expect(playedAllModesToday(history, 'classic', today)).toBe(false) // manque blitz
+    expect(playedAllModesToday(history, 'blitz', today)).toBe(true)
+    expect(playedAllModesToday(history, 'blitz', '2026-09-21')).toBe(false) // l'historique est d'hier
+    expect(earnedBadges({ ...blank, allModesToday: true })).toEqual(['allModes'])
+    expect(earnedBadges({ ...blank, allModesToday: false })).toEqual([])
   })
 
   it('only adds badges that are not owned yet, keeping the original date', () => {

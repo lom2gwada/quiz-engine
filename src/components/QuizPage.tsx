@@ -68,7 +68,11 @@ export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, 
   const bank = () => onFinish(answers, elapsed, shuffledQuestions.slice(0, current))
   const validate = () => {
     if (!isCorrect(question, answers[question.id]) || atEnd) finish()
-    else setCurrent((value) => value + 1)
+    else {
+      const streakSoFar = current + 1 // nombre de bonnes réponses banquées après celle-ci
+      if (streakSoFar % 5 === 0) playStreak() // même palier que le 🔥 du blitz
+      setCurrent(streakSoFar)
+    }
   }
 
   useEffect(() => {
@@ -148,6 +152,11 @@ export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, 
   // Contre la montre à durée fixe : fin automatique dès que le temps est écoulé.
   useEffect(() => {
     if (timeAttack && timeLimitSeconds !== undefined && elapsed >= timeLimitSeconds) finish()
+  }, [elapsed])
+
+  // Contre la montre à durée fixe : petit tic dans les 3 dernières secondes, comme le compte à rebours du blitz.
+  useEffect(() => {
+    if (timeAttack && remaining !== undefined && remaining > 0 && remaining <= 3) playTick()
   }, [elapsed])
 
   if (!question) return <section className="empty"><h2>{t('quiz.noQuestion')}</h2><p>{t('quiz.noQuestionHint')}</p><button type="button" className="secondary" onClick={onCancel}>{t('common.back')}</button></section>
