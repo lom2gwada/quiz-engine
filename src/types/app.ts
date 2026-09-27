@@ -57,6 +57,10 @@ export interface Dataset {
   ficheDecor?: FicheDecorator
   /** Absent : pas de bouton « Écouter » sur les fiches. */
   speech?: SpeechTemplates
+  /** Présentation générale du jeu de données (l'ensemble, pas une fiche), lue par un bouton « Écouter »
+   *  sur la page d'accueil. Mêmes phrases fixes par locale que `speech`, sans marqueurs de gabarit
+   *  puisqu'il n'y a pas de ligne à interpoler — juste `SpeechTemplates` pour la locale de repli (français). */
+  intro?: SpeechTemplates
   views?: DatasetView[]
 }
 

@@ -116,6 +116,7 @@ pre { padding: 1rem; overflow: auto; background: var(--code-bg); border: 1px sol
 .generator-sep input { width: 2.5rem; text-align: center; }
 .generator-actions { display: flex; flex-wrap: wrap; align-items: end; gap: .8rem; }
 .quiz-description-preview { max-width: 60ch; margin: .4rem 0 0; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.header-intro { margin-top: .7rem; }
 .quiz-description { max-width: 65ch; margin: 0 0 2rem; color: var(--text-soft); }
 .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.2rem; }
 .question-list-group { margin-bottom: .8rem; border: 1px solid var(--border); border-radius: .6rem; background: var(--surface); overflow: hidden; }
