@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { Question, Quiz } from '../types/quiz'
 import type { QuestionResultRow, QuizResultRow } from '../types/history'
 import { plural, useLocale, useT } from '../i18n'
-import { bucketsToRadarPoints, computeCategoryWeekHeatmap, computeRecords, computeReviewQueue, fetchQuestionResults, fetchQuizHistory, resolveReviewQuestions, sumBuckets, LEITNER_BOX_COUNT, REVIEW_BATCH_SIZE } from '../utils/quizHistory'
+import { bucketsToRadarPoints, computeCategoryWeekHeatmap, computeRecords, computeReviewQueue, fetchQuestionResults, fetchQuizHistory, resolveReviewQuestions, sumBuckets, REVIEW_BATCH_SIZE } from '../utils/quizHistory'
 import { formatDuration } from '../utils/time'
 import { CategoryWeekHeatmap } from './CategoryWeekHeatmap'
 import { HeatmapChart } from './HeatmapChart'
@@ -104,10 +104,7 @@ export function HistoryPage({ onBack, quiz, historyKey, userId, onReplayMissed }
       <ul className="missed-list">
         {missedQuestions.map((missed) => <li className="missed-item" key={missed.questionId}>
           <span>{missed.questionText}</span>
-          <span className="missed-ratio">
-            {missed.wrongCount > 0 && `${t('history.missedRatio', { wrong: missed.wrongCount, attempts: missed.attempts })} · `}
-            {t('history.leitnerBox', { box: missed.box, max: LEITNER_BOX_COUNT })}
-          </span>
+          {missed.wrongCount > 0 && <span className="missed-ratio">{t('history.missedRatio', { wrong: missed.wrongCount, attempts: missed.attempts })}</span>}
         </li>)}
       </ul>
     </div>}

@@ -78,7 +78,8 @@ export interface ReviewQuestion {
   questionText: string
   attempts: number
   wrongCount: number
-  /** Boîte actuelle (1 = à revoir en priorité, `LEITNER_BOX_COUNT` = maîtrisée). */
+  /** Boîte actuelle (1 = à revoir en priorité, la dernière = maîtrisée). Interne à l'algorithme,
+   *  pas affiché à l'utilisateur. */
   box: number
   /** Date/heure (ISO) à partir de laquelle la question redevient due pour révision. */
   dueAt: string

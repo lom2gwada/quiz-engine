@@ -172,9 +172,10 @@ export async function fetchQuestionResults(userId?: string | null): Promise<Ques
   }
 }
 
-/** Nombre de boîtes du système de révision espacée (Leitner) : 1 = à revoir en priorité, la
- *  dernière = maîtrisée — jamais totalement retirée, juste revue très espacée. */
-export const LEITNER_BOX_COUNT = 5
+// Nombre de boîtes du système de révision espacée (Leitner) : 1 = à revoir en priorité, la
+// dernière = maîtrisée — jamais totalement retirée, juste revue très espacée. Interne à l'algo
+// (pas affiché à l'utilisateur, le numéro de boîte n'aide pas grand-chose côté UI).
+const LEITNER_BOX_COUNT = 5
 
 // Jours avant qu'une question redevienne due, par boîte (index 0 = boîte 1). Boîte 1 : due
 // immédiatement (on vient de la rater, ou jamais vue) ; l'écart grandit ensuite — on ne revoit

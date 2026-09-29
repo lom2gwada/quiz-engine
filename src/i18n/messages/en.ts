@@ -181,7 +181,6 @@ export const en: Record<MessageKey, string> = {
   'review.play.one': 'Review 1 question',
   'review.play.other': 'Review {n} questions',
   'history.missedRatio': "Missed {wrong} of {attempts}",
-  'history.leitnerBox': 'box {box}/{max}',
   'history.pointsPair': '{earned} / {total} pts',
   'history.leaderboard': 'Leaderboard',
   'history.leaderboardEmpty': "Nobody has played this mode on this quiz yet.",

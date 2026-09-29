@@ -191,7 +191,6 @@ export const fr = {
   'review.play.one': 'Réviser 1 question',
   'review.play.other': 'Réviser {n} questions',
   'history.missedRatio': "Ratée {wrong} fois sur {attempts}",
-  'history.leitnerBox': 'boîte {box}/{max}',
   'history.pointsPair': '{earned} / {total} pts',
   'history.leaderboard': 'Classement',
   'history.leaderboardEmpty': "Personne n'a encore joué ce mode sur ce quiz.",
