@@ -2,7 +2,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { BooleanQuestion, Category, QCMQuestion } from '../types/quiz'
 import type { QuestionResultRow, QuizResultRow } from '../types/history'
-import { bucketsToChartGroups, bucketsToRadarPoints, buildQuestionResultPayloads, buildQuizResultPayload, computeCategoryWeekHeatmap, computeMissedQuestions, computeRecords, resolveMissedQuestions, sumBuckets, weekStartKey } from './quizHistory'
+import { bucketsToChartGroups, bucketsToRadarPoints, buildQuestionResultPayloads, buildQuizResultPayload, computeCategoryWeekHeatmap, computeRecords, computeReviewQueue, resolveReviewQuestions, sumBuckets, weekStartKey } from './quizHistory'
 
 vi.mock('./supabase', () => ({ supabase: { from: vi.fn() } }))
 
@@ -262,77 +262,93 @@ function questionRow(overrides: Partial<QuestionResultRow>): QuestionResultRow {
   }
 }
 
-describe('computeMissedQuestions', () => {
-  it('counts how many times a question was missed, for questions whose last answer is wrong', () => {
+// Boîtes de Leitner (voir computeReviewQueue) : 1 -> due immédiatement, 2 -> +1 jour, 3 -> +3 jours,
+// 4 -> +7 jours, 5 -> +16 jours, à partir de la dernière tentative.
+const iso = (s: string) => new Date(s).toISOString()
+
+describe('computeReviewQueue', () => {
+  it('counts how many times a question was missed, for a question currently in box 1 (last answer wrong)', () => {
     const rows = [
       questionRow({ id: '1', created_at: '2026-01-01T00:00:00Z', correct: true }),
       questionRow({ id: '2', created_at: '2026-01-02T00:00:00Z', correct: false }),
       questionRow({ id: '3', created_at: '2026-01-03T00:00:00Z', correct: false }),
     ]
-    const [missed] = computeMissedQuestions(rows, 'Culture générale')
-    expect(missed).toEqual({ questionId: 'q1', questionText: 'Q ?', attempts: 3, wrongCount: 2 })
+    const [entry] = computeReviewQueue(rows, 'Culture générale', new Date('2026-01-03T00:00:00Z'))
+    expect(entry).toEqual({ questionId: 'q1', questionText: 'Q ?', attempts: 3, wrongCount: 2, box: 1, dueAt: iso('2026-01-03T00:00:00Z') })
   })
 
-  it('drops a question from the list once it is answered correctly', () => {
+  it('moves a question to a later box instead of dropping it once answered correctly', () => {
     const rows = [
       questionRow({ id: '1', created_at: '2026-01-01T00:00:00Z', correct: false }),
       questionRow({ id: '2', created_at: '2026-01-02T00:00:00Z', correct: false }),
       questionRow({ id: '3', created_at: '2026-01-03T00:00:00Z', correct: true }),
     ]
-    expect(computeMissedQuestions(rows, 'Culture générale')).toEqual([])
+    // Boîte 2 (une bonne réponse depuis la boîte 1) : due 1 jour après la dernière tentative, pas avant.
+    expect(computeReviewQueue(rows, 'Culture générale', new Date('2026-01-03T00:00:00Z'))).toEqual([])
+    const [entry] = computeReviewQueue(rows, 'Culture générale', new Date('2026-01-04T00:00:00Z'))
+    expect(entry.box).toBe(2)
   })
 
-  it('brings a question back if it is missed again after being answered correctly', () => {
+  it('resets to box 1 if missed again after being answered correctly', () => {
     const rows = [
       questionRow({ id: '1', created_at: '2026-01-01T00:00:00Z', correct: false }),
       questionRow({ id: '2', created_at: '2026-01-02T00:00:00Z', correct: true }),
       questionRow({ id: '3', created_at: '2026-01-03T00:00:00Z', correct: false }),
     ]
-    expect(computeMissedQuestions(rows, 'Culture générale').map((entry) => entry.wrongCount)).toEqual([2])
+    const [entry] = computeReviewQueue(rows, 'Culture générale', new Date('2026-01-03T00:00:00Z'))
+    expect(entry.box).toBe(1)
+    expect(entry.wrongCount).toBe(2)
   })
 
-  it('does not depend on the order of the rows', () => {
+  it('replays the rows in chronological order, regardless of the order given', () => {
     const rows = [
-      questionRow({ id: '3', created_at: '2026-01-03T00:00:00Z', correct: true }),
-      questionRow({ id: '1', created_at: '2026-01-01T00:00:00Z', correct: false }),
+      questionRow({ id: '3', created_at: '2026-01-03T00:00:00Z', correct: false }),
+      questionRow({ id: '1', created_at: '2026-01-01T00:00:00Z', correct: true }),
     ]
-    expect(computeMissedQuestions(rows, 'Culture générale')).toEqual([])
+    const [entry] = computeReviewQueue(rows, 'Culture générale', new Date('2026-01-03T00:00:00Z'))
+    expect(entry.box).toBe(1) // la dernière tentative CHRONOLOGIQUE est fausse, peu importe l'ordre des lignes
   })
 
-  it('excludes questions that were always answered correctly', () => {
-    const rows = [questionRow({ correct: true }), questionRow({ correct: true })]
-    expect(computeMissedQuestions(rows, 'Culture générale')).toEqual([])
-  })
-
-  it('sorts by number of misses, most missed first', () => {
+  it('excludes questions not yet due (interval of their current box not elapsed)', () => {
     const rows = [
-      questionRow({ question_id: 'q1', correct: false }),
-      questionRow({ question_id: 'q2', correct: false }),
-      questionRow({ question_id: 'q2', correct: false }),
+      questionRow({ id: '1', created_at: '2026-01-01T00:00:00Z', correct: true }),
+      questionRow({ id: '2', created_at: '2026-01-02T00:00:00Z', correct: true }),
     ]
-    const missed = computeMissedQuestions(rows, 'Culture générale')
-    expect(missed.map((entry) => entry.questionId)).toEqual(['q2', 'q1'])
+    // Boîte 3 après 2 bonnes réponses : due seulement 3 jours après le 02/01.
+    expect(computeReviewQueue(rows, 'Culture générale', new Date('2026-01-03T00:00:00Z'))).toEqual([])
+    expect(computeReviewQueue(rows, 'Culture générale', new Date('2026-01-05T00:00:00Z'))).toHaveLength(1)
+  })
+
+  it('sorts by box first (lowest = most urgent), then by number of misses', () => {
+    const rows = [
+      questionRow({ question_id: 'q1', created_at: '2026-01-01T00:00:00Z', correct: false }),
+      questionRow({ question_id: 'q2', created_at: '2026-01-01T00:00:00Z', correct: false }),
+      questionRow({ question_id: 'q2', created_at: '2026-01-01T00:00:00Z', correct: false }),
+      questionRow({ question_id: 'q3', created_at: '2026-01-01T00:00:00Z', correct: true }),
+    ]
+    const due = computeReviewQueue(rows, 'Culture générale', new Date('2026-01-10T00:00:00Z'))
+    expect(due.map((entry) => entry.questionId)).toEqual(['q2', 'q1', 'q3'])
   })
 
   it('ignores rows from other quizzes', () => {
     const rows = [questionRow({ quiz_title: 'Autre quiz', correct: false })]
-    expect(computeMissedQuestions(rows, 'Culture générale')).toEqual([])
+    expect(computeReviewQueue(rows, 'Culture générale', new Date('2026-01-10T00:00:00Z'))).toEqual([])
   })
 
   it('returns an empty array for no history', () => {
-    expect(computeMissedQuestions([], 'Culture générale')).toEqual([])
+    expect(computeReviewQueue([], 'Culture générale', new Date('2026-01-10T00:00:00Z'))).toEqual([])
   })
 })
 
-describe('resolveMissedQuestions', () => {
-  const missed = (questionId: string) => ({ questionId, questionText: questionId, attempts: 1, wrongCount: 1 })
+describe('resolveReviewQuestions', () => {
+  const due = (questionId: string) => ({ questionId, questionText: questionId, attempts: 1, wrongCount: 1, box: 1, dueAt: iso('2026-01-01T00:00:00Z') })
 
   it('finds the matching questions, in the given order', () => {
-    expect(resolveMissedQuestions([missed('q2'), missed('q1')], [qcm, bool])).toEqual([bool, qcm])
+    expect(resolveReviewQuestions([due('q2'), due('q1')], [qcm, bool])).toEqual([bool, qcm])
   })
 
   it('drops entries whose question no longer exists (different draw, unchecked category…)', () => {
-    expect(resolveMissedQuestions([missed('gone'), missed('q1')], [qcm])).toEqual([qcm])
+    expect(resolveReviewQuestions([due('gone'), due('q1')], [qcm])).toEqual([qcm])
   })
 })
 

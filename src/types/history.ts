@@ -71,9 +71,15 @@ export interface QuestionResultRow extends QuestionResultPayload {
   created_at: string
 }
 
-export interface MissedQuestion {
+/** Question du système de révision espacée (boîtes de Leitner) : `box` monte d'un cran à chaque
+ *  bonne réponse, retombe à 1 à la moindre erreur — voir `computeReviewQueue`. */
+export interface ReviewQuestion {
   questionId: string
   questionText: string
   attempts: number
   wrongCount: number
+  /** Boîte actuelle (1 = à revoir en priorité, `LEITNER_BOX_COUNT` = maîtrisée). */
+  box: number
+  /** Date/heure (ISO) à partir de laquelle la question redevient due pour révision. */
+  dueAt: string
 }

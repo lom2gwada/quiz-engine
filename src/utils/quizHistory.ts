@@ -1,5 +1,5 @@
 import type { AnswersByQuestion, Category, Question } from '../types/quiz'
-import type { CategoryWeekHeatmap, ChartGroup, MissedQuestion, QuestionResultPayload, QuestionResultRow, QuizRecords, QuizResultPayload, QuizResultRow, RadarPoint, StatBucket } from '../types/history'
+import type { CategoryWeekHeatmap, ChartGroup, QuestionResultPayload, QuestionResultRow, QuizRecords, QuizResultPayload, QuizResultRow, RadarPoint, ReviewQuestion, StatBucket } from '../types/history'
 import { isCorrect } from '../components/ResultPage'
 import type { GameMode } from '../components/QuizPage'
 import { storageKey, table } from '../config'
@@ -172,32 +172,70 @@ export async function fetchQuestionResults(userId?: string | null): Promise<Ques
   }
 }
 
-/** Questions « à retravailler » d'un quiz : celles dont la DERNIÈRE réponse est fausse (une bonne réponse la fait sortir de la liste),
- *  avec le nombre de ratés sur le nombre de tentatives ; la plus ratée d'abord. */
-export function computeMissedQuestions(rows: QuestionResultRow[], quizTitle: string): MissedQuestion[] {
-  const byQuestion = new Map<string, MissedQuestion & { lastAt: string; lastCorrect: boolean }>()
-  rows.filter((row) => row.quiz_title === quizTitle).forEach((row) => {
-    const entry = byQuestion.get(row.question_id) ?? { questionId: row.question_id, questionText: row.question_text, attempts: 0, wrongCount: 0, lastAt: '', lastCorrect: true }
-    entry.attempts += 1
-    if (!row.correct) entry.wrongCount += 1
-    if (row.created_at >= entry.lastAt) { entry.lastAt = row.created_at; entry.lastCorrect = row.correct; entry.questionText = row.question_text }
-    byQuestion.set(row.question_id, entry)
-  })
-  return Array.from(byQuestion.values())
-    .filter((entry) => !entry.lastCorrect)
-    .sort((a, b) => b.wrongCount - a.wrongCount)
-    .map(({ questionId, questionText, attempts, wrongCount }) => ({ questionId, questionText, attempts, wrongCount }))
+/** Nombre de boîtes du système de révision espacée (Leitner) : 1 = à revoir en priorité, la
+ *  dernière = maîtrisée — jamais totalement retirée, juste revue très espacée. */
+export const LEITNER_BOX_COUNT = 5
+
+// Jours avant qu'une question redevienne due, par boîte (index 0 = boîte 1). Boîte 1 : due
+// immédiatement (on vient de la rater, ou jamais vue) ; l'écart grandit ensuite — on ne revoit
+// pas ce qu'on maîtrise aussi souvent que ce qu'on vient de manquer.
+const LEITNER_INTERVAL_DAYS = [0, 1, 3, 7, 16]
+
+function addDays(iso: string, days: number): string {
+  const date = new Date(iso)
+  date.setDate(date.getDate() + days)
+  return date.toISOString()
 }
 
-/** Taille d'un lot de révision (accueil, historique) : on ne propose pas d'un coup toutes les questions à
- *  retravailler si elles sont nombreuses, seulement les plus problématiques (`computeMissedQuestions` les
- *  trie déjà de la plus ratée à la moins ratée). */
+/** Rejoue l'historique d'une question, dans l'ordre chronologique, pour retrouver sa boîte Leitner
+ *  actuelle : chaque bonne réponse fait monter d'une boîte, chaque mauvaise renvoie en boîte 1. Pas
+ *  de colonne dédiée en base — tout se recalcule depuis `question_results`, comme le reste de
+ *  l'historique (et ça fusionne donc naturellement entre appareils via `fetchQuestionResults`). */
+function computeReviewState(rows: QuestionResultRow[], quizTitle: string) {
+  const byQuestion = new Map<string, { questionText: string; box: number; lastAt: string; attempts: number; wrongCount: number }>()
+  rows.filter((row) => row.quiz_title === quizTitle)
+    .slice()
+    .sort((a, b) => a.created_at.localeCompare(b.created_at))
+    .forEach((row) => {
+      const entry = byQuestion.get(row.question_id) ?? { questionText: row.question_text, box: 1, lastAt: '', attempts: 0, wrongCount: 0 }
+      entry.attempts += 1
+      if (row.correct) entry.box = Math.min(entry.box + 1, LEITNER_BOX_COUNT)
+      else { entry.box = 1; entry.wrongCount += 1 }
+      entry.lastAt = row.created_at
+      entry.questionText = row.question_text
+      byQuestion.set(row.question_id, entry)
+    })
+  return byQuestion
+}
+
+/** Questions dues pour révision (boîtes de Leitner) : une bonne réponse espace la prochaine
+ *  apparition au lieu de retirer la question pour de bon (contrairement à l'ancien système « juste
+ *  une fois » ) — une question maîtrisée revient périodiquement pour lutter contre l'oubli, une
+ *  question ratée à nouveau revient immédiatement. La plus urgente d'abord (boîte la plus basse,
+ *  puis la plus ratée). `now` est un paramètre (pas `Date.now()` en dur) pour rester testable. */
+export function computeReviewQueue(rows: QuestionResultRow[], quizTitle: string, now: Date = new Date()): ReviewQuestion[] {
+  const nowIso = now.toISOString()
+  return Array.from(computeReviewState(rows, quizTitle).entries())
+    .map(([questionId, entry]) => ({
+      questionId,
+      questionText: entry.questionText,
+      attempts: entry.attempts,
+      wrongCount: entry.wrongCount,
+      box: entry.box,
+      dueAt: addDays(entry.lastAt, LEITNER_INTERVAL_DAYS[entry.box - 1]),
+    }))
+    .filter((entry) => entry.dueAt <= nowIso)
+    .sort((a, b) => a.box - b.box || b.wrongCount - a.wrongCount || a.dueAt.localeCompare(b.dueAt))
+}
+
+/** Taille d'un lot de révision (accueil, historique) : on ne propose pas d'un coup toutes les questions
+ *  dues si elles sont nombreuses, seulement les plus urgentes (`computeReviewQueue` les trie déjà). */
 export const REVIEW_BATCH_SIZE = 20
 
-/** Retrouve les questions correspondant à une liste de « à retravailler » (mêmes ids), dans l'ordre donné ;
+/** Retrouve les questions correspondant à une file de révision (mêmes ids), dans l'ordre donné ;
  *  celles introuvables (catégorie décochée, autre tirage…) sont simplement ignorées. */
-export function resolveMissedQuestions(missed: MissedQuestion[], questions: Question[]): Question[] {
-  return missed.map((entry) => questions.find((question) => question.id === entry.questionId)).filter((question): question is Question => Boolean(question))
+export function resolveReviewQuestions(due: ReviewQuestion[], questions: Question[]): Question[] {
+  return due.map((entry) => questions.find((question) => question.id === entry.questionId)).filter((question): question is Question => Boolean(question))
 }
 
 /** `rows` peut être dans n'importe quel ordre — seuls les agrégats comptent ici.
