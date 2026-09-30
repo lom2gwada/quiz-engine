@@ -15,7 +15,7 @@ export function QuestionRenderer({ question, answer, onChange, onSubmit }: { que
     case 'code': return <CodeQuestion question={question} answer={answer} onChange={onChange} />
     case 'ordering': return <OrderingQuestion question={question} answer={answer} onChange={onChange} />
     case 'boolean': return <BooleanQuestion question={question} answer={answer} onChange={onChange} />
-    case 'cloze': return <ClozeQuestion question={question} answer={answer} onChange={onChange} />
+    case 'cloze': return <ClozeQuestion question={question} answer={answer} onChange={onChange} onSubmit={onSubmit} />
     case 'matching': return <MatchingQuestion question={question} answer={answer} onChange={onChange} />
     case 'numeric': return <NumericQuestion question={question} answer={answer} onChange={onChange} />
   }
