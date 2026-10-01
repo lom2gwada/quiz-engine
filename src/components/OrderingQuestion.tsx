@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { OrderingQuestion as Question, UserAnswer } from '../types/quiz'
 import { useT } from '../i18n'
 import { playClick } from '../utils/sound'
@@ -8,6 +8,14 @@ export function OrderingQuestion({ question, answer, onChange }: { question: Que
   const order = Array.isArray(answer) && answer.length ? answer : question.content.items.map((item) => item.id)
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const itemRefs = useRef(new Map<string, HTMLLIElement>())
+
+  // Sans ça, un ordre jamais touché (déjà le bon à l'affichage, ou on passe directement à la
+  // question suivante) laisse `answer` à `undefined` : compté faux alors que l'écran montre le bon
+  // ordre. `question-body` est remonté à chaque question (`key={question.id}` dans QuizPage), donc
+  // un effet sans dépendances suffit — pas besoin de surveiller `question.id`.
+  useEffect(() => {
+    if (!Array.isArray(answer) || !answer.length) onChange(order)
+  }, [])
 
   const move = (index: number, direction: -1 | 1) => {
     const next = [...order]
