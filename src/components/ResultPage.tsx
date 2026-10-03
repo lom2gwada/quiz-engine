@@ -4,6 +4,7 @@ import type { AnswersByQuestion, Category, Question } from '../types/quiz'
 import type { MessageKey, TFunction } from '../i18n'
 import { getT, useT } from '../i18n'
 import { difficultyLabel } from './QuizPage'
+import { matchesExpected } from '../utils/answerMatch'
 import { formatNumericValue } from '../utils/number'
 import { formatDuration } from '../utils/time'
 import { playFinish, playVictory } from '../utils/sound'
@@ -20,19 +21,7 @@ const sameIds = (left: string[], right: string[]) => left.length === right.lengt
 export function isCorrect(question: Question, answer: AnswersByQuestion[string] | undefined): boolean {
   if (question.type === 'text' || question.type === 'cloze') {
     if (typeof answer !== 'string') return false
-    // Sauf en mode sensible : on tolère casse, accents, traits d'union / apostrophes / espaces
-    // et l'article de tête (« Port-d'Espagne » ≈ « port d'espagne » ; « le peso » ≈ « peso »).
-    const normalize = (value: string) => {
-      const trimmed = value.trim()
-      if (question.content.caseSensitive) return trimmed
-      return trimmed
-        .toLocaleLowerCase('fr')
-        .normalize('NFD').replace(/[̀-ͯ]/g, '') // enlève les accents (diacritiques U+0300–U+036F)
-        .replace(/[-'‘’`\s]+/g, ' ') // traits d'union / apostrophes / espaces → une espace
-        .replace(/^(le|la|les|l|the) /, '')
-        .trim()
-    }
-    return question.content.expectedAnswers.map(normalize).includes(normalize(answer))
+    return matchesExpected(answer, question.content.expectedAnswers, question.content.caseSensitive)
   }
   if (question.type === 'numeric') {
     if (typeof answer !== 'string' || answer === '') return false
