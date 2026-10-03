@@ -134,6 +134,11 @@ export const en: Record<MessageKey, string> = {
   'bool.false': 'False',
   'cloze.answerAria': 'Answer',
   'text.placeholder': 'Your answer…',
+  'dictation.start': "Dictate the answer",
+  'dictation.stop': "Stop dictation",
+  'dictation.denied': "Microphone blocked: allow it in the browser.",
+  'dictation.noSpeech': "Nothing heard, try again.",
+  'dictation.failed': "Dictation did not work.",
   'ordering.up': 'Move up',
   'ordering.down': 'Move down',
 

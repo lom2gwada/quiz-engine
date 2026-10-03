@@ -135,6 +135,11 @@ export const nl: Record<MessageKey, string> = {
   'bool.false': 'Onwaar',
   'cloze.answerAria': 'Antwoord',
   'text.placeholder': 'Jouw antwoord…',
+  'dictation.start': "Antwoord inspreken",
+  'dictation.stop': "Inspreken stoppen",
+  'dictation.denied': "Microfoon geblokkeerd: sta hem toe in de browser.",
+  'dictation.noSpeech': "Niets gehoord, probeer opnieuw.",
+  'dictation.failed': "Inspreken is niet gelukt.",
   'ordering.up': 'Omhoog',
   'ordering.down': 'Omlaag',
 

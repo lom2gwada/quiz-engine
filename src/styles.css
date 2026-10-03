@@ -314,3 +314,5 @@ pre { padding: 1rem; overflow: auto; background: var(--code-bg); border: 1px sol
 .blitz-gain { display: inline-block; font-weight: 700; color: var(--success, #34d399); animation: blitz-gain .9s ease-out both; }
 @keyframes blitz-gain { 0% { opacity: 0; transform: translateY(6px); } 20% { opacity: 1; transform: translateY(0); } 100% { opacity: .35; transform: translateY(-3px); } }
 @media (prefers-reduced-motion: reduce) { .blitz-gain { animation: none; } }
+.text-answer-row { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }.text-answer-row .text-answer { flex: 1; min-width: 12rem; width: auto; }
+.dictation-button { padding: .5rem .75rem; font-size: 1.1rem; line-height: 1; flex: none; }.dictation-button[aria-pressed="true"] { outline: 2px solid var(--error); }.dictation-hint { color: var(--text-muted); font-size: .8rem; }

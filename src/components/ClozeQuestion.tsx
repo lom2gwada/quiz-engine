@@ -1,5 +1,6 @@
 import type { ClozeQuestion as Question, UserAnswer } from '../types/quiz'
 import { useT } from '../i18n'
+import { DictationButton } from './DictationButton'
 
 const BLANK = /_{3,}/
 
@@ -19,6 +20,7 @@ export function ClozeQuestion({ question, answer, onChange, onSubmit }: { questi
       onKeyDown={(event) => { if (event.key === 'Enter') onSubmit?.() }}
       aria-label={t('cloze.answerAria')}
     />
+    <DictationButton onText={onChange} />
     {after}
   </h2>
 }

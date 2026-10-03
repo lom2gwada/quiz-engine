@@ -136,6 +136,11 @@ export const ht: Record<MessageKey, string> = {
   'bool.false': 'Fo',
   'cloze.answerAria': 'Repons',
   'text.placeholder': 'Repons ou…',
+  'dictation.start': "Dikte repons lan",
+  'dictation.stop': "Sispann dikte a",
+  'dictation.denied': "Mikwo a bloke : otorize l nan navigatè a.",
+  'dictation.noSpeech': "Pa tande anyen, eseye ankò.",
+  'dictation.failed': "Dikte a pa mache.",
   'ordering.up': 'Monte',
   'ordering.down': 'Desann',
 

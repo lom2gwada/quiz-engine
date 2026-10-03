@@ -142,6 +142,11 @@ export const fr = {
   'bool.false': 'Faux',
   'cloze.answerAria': 'Réponse',
   'text.placeholder': 'Votre réponse…',
+  'dictation.start': "Dicter la réponse",
+  'dictation.stop': "Arrêter la dictée",
+  'dictation.denied': "Micro refusé : autorisez-le dans le navigateur.",
+  'dictation.noSpeech': "Rien entendu, réessayez.",
+  'dictation.failed': "La dictée n’a pas fonctionné.",
   'ordering.up': 'Monter',
   'ordering.down': 'Descendre',
 
