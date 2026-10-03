@@ -180,7 +180,6 @@ export const en: Record<MessageKey, string> = {
   'review.title': 'To review',
   'review.play.one': 'Review 1 question',
   'review.play.other': 'Review {n} questions',
-  'history.missedRatio': "Missed {wrong} of {attempts}",
   'history.pointsPair': '{earned} / {total} pts',
   'history.leaderboard': 'Leaderboard',
   'history.leaderboardEmpty': "Nobody has played this mode on this quiz yet.",

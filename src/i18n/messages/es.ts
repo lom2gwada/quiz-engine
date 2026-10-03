@@ -181,7 +181,6 @@ export const es: Record<MessageKey, string> = {
   'review.title': 'Para repasar',
   'review.play.one': 'Repasar 1 pregunta',
   'review.play.other': 'Repasar {n} preguntas',
-  'history.missedRatio': "Fallada {wrong} de {attempts}",
   'history.pointsPair': '{earned} / {total} pts',
   'history.leaderboard': 'Clasificación',
   'history.leaderboardEmpty': 'Nadie ha jugado todavía este modo en este quiz.',

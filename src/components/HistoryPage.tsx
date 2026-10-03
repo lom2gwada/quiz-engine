@@ -101,12 +101,6 @@ export function HistoryPage({ onBack, quiz, historyKey, userId, onReplayMissed }
         <h3 className="stats-group-title">{t(plural('history.toReview', missedQuestions.length), { n: missedQuestions.length })}</h3>
         {replayQuestions.length > 0 && <button type="button" onClick={() => onReplayMissed(replayQuestions)}>{t(plural('review.play', replayQuestions.length), { n: replayQuestions.length })}</button>}
       </div>
-      <ul className="missed-list">
-        {missedQuestions.map((missed) => <li className="missed-item" key={missed.questionId}>
-          <span>{missed.questionText}</span>
-          {missed.wrongCount > 0 && <span className="missed-ratio">{t('history.missedRatio', { wrong: missed.wrongCount, attempts: missed.attempts })}</span>}
-        </li>)}
-      </ul>
     </div>}
     {quizRows && quizRows.length > 0 && <ul className="history-list">
       {quizRows.map((row) => <li className="history-item" key={row.id}>

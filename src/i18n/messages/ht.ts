@@ -182,7 +182,6 @@ export const ht: Record<MessageKey, string> = {
   'review.title': 'Pou retravay',
   'review.play.one': 'Retravay 1 kesyon',
   'review.play.other': 'Retravay {n} kesyon',
-  'history.missedRatio': "Rate {wrong} sou {attempts}",
   'history.pointsPair': '{earned} / {total} pwen',
   'history.leaderboard': 'Klasman',
   'history.leaderboardEmpty': 'Pèsonn poko jwe mòd sa a sou kiz sa a.',

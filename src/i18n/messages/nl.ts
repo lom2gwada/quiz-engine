@@ -181,7 +181,6 @@ export const nl: Record<MessageKey, string> = {
   'review.title': 'Te herhalen',
   'review.play.one': '1 vraag herhalen',
   'review.play.other': '{n} vragen herhalen',
-  'history.missedRatio': "{wrong} van {attempts} keer fout",
   'history.pointsPair': '{earned} / {total} ptn',
   'history.leaderboard': 'Klassement',
   'history.leaderboardEmpty': 'Nog niemand heeft deze modus op deze quiz gespeeld.',
