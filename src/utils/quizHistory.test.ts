@@ -352,12 +352,15 @@ describe('resolveReviewQuestions', () => {
   })
 })
 
-// Table mock reproduisant la forme utilisée par quizHistory.ts : `.select().eq()` et `.upsert()`
+// Table mock reproduisant la forme utilisée par quizHistory.ts : `.select().eq().order().order().range()` et `.upsert()`
 // renvoient chacun une promesse `{ data, error }`, comme le client Supabase réel.
 function mockTable({ selectResult = { data: [] as unknown, error: null as unknown }, upsertResult = { data: null as unknown, error: null as unknown } } = {}) {
+  // `.select().eq().order().order().range()` (lecture paginée) : `range` renvoie la promesse `{ data, error }`.
+  const selectChain: { order: ReturnType<typeof vi.fn>; range: ReturnType<typeof vi.fn> } = { order: vi.fn(() => selectChain), range: vi.fn().mockResolvedValue(selectResult) }
   return {
-    select: vi.fn(() => ({ eq: vi.fn().mockResolvedValue(selectResult) })),
+    select: vi.fn(() => ({ eq: vi.fn(() => selectChain) })),
     upsert: vi.fn().mockResolvedValue(upsertResult),
+    selectChain,
   }
 }
 
@@ -440,5 +443,17 @@ describe('saveQuestionResults / fetchQuestionResults (sync cloud)', () => {
     const { fetchQuestionResults } = await import('./quizHistory')
     const rows = await fetchQuestionResults('user-1')
     expect(rows.map((r) => r.id).sort()).toEqual(['cloud-1', 'local-1'])
+  })
+
+  it('lit tout l’historique cloud page par page (plafond de 1000 lignes par réponse)', async () => {
+    const page = (start: number, n: number) => Array.from({ length: n }, (_, i) => questionRow({ id: `cloud-${start + i}` }))
+    const table = mockTable()
+    table.selectChain.range.mockResolvedValueOnce({ data: page(0, 1000), error: null }).mockResolvedValueOnce({ data: page(1000, 5), error: null })
+    const { supabase } = await import('./supabase')
+    vi.mocked(supabase.from).mockReturnValue(table as never)
+    const { fetchQuestionResults } = await import('./quizHistory')
+    const rows = await fetchQuestionResults('user-1')
+    expect(rows).toHaveLength(1005)
+    expect(table.selectChain.range.mock.calls).toEqual([[0, 999], [1000, 1999]])
   })
 })

@@ -15,9 +15,11 @@ export function ReviewPanel({ quiz, historyKey, userId, onReview }: { quiz: Quiz
     let cancelled = false
     fetchQuestionResults(userId).then((rows) => {
       if (cancelled) return
-      const due = computeReviewQueue(rows, historyKey)
-      setDueCount(due.length)
-      setBatch(resolveReviewQuestions(due.slice(0, REVIEW_BATCH_SIZE), quiz.questions))
+      // On ne garde que les questions rejouables dans le tirage courant AVANT de plafonner le lot : des
+      // identifiants anciens (autre générateur, autre tirage) en tête de file videraient sinon tout le lot.
+      const playable = resolveReviewQuestions(computeReviewQueue(rows, historyKey), quiz.questions)
+      setDueCount(playable.length)
+      setBatch(playable.slice(0, REVIEW_BATCH_SIZE))
     }).catch(() => {})
     return () => { cancelled = true }
   }, [quiz, historyKey, userId])

@@ -25,6 +25,21 @@ function writeRows<T>(key: string, rows: T[]): void {
   }
 }
 
+// PostgREST plafonne chaque réponse (1000 lignes par défaut) : sans pagination, un historique plus long est
+// tronqué en silence — et ce sont les plus anciennes lignes qu'on récupère, donc la file de révision se vide.
+// Tri stable (created_at, id) pour que les pages ne se chevauchent ni ne sautent de ligne.
+const PAGE_SIZE = 1000
+async function fetchAllPages<T>(page: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>): Promise<T[]> {
+  const all: T[] = []
+  for (let from = 0; ; from += PAGE_SIZE) {
+    const { data, error } = await page(from, from + PAGE_SIZE - 1)
+    if (error) throw error
+    const chunk = data ?? []
+    all.push(...chunk)
+    if (chunk.length < PAGE_SIZE) return all
+  }
+}
+
 const newId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`
 
 function aggregate(questions: Question[], answers: AnswersByQuestion, keyOf: (question: Question) => string): Record<string, StatBucket> {
@@ -71,12 +86,13 @@ async function pushQuizRowsToCloud(userId: string, rows: QuizResultRow[]): Promi
 }
 
 async function fetchCloudQuizRows(userId: string): Promise<QuizResultRow[]> {
-  const { data, error } = await supabase
+  return fetchAllPages<QuizResultRow>((from, to) => supabase
     .from(table('quiz_results'))
     .select('id,quiz_title,mode,score,earned_points,total_points,correct_count,elapsed_seconds,question_count,categories,by_category,by_type,by_difficulty,bonus_points,created_at')
     .eq('user_id', userId)
-  if (error) throw error
-  return data ?? []
+    .order('created_at', { ascending: true })
+    .order('id')
+    .range(from, to))
 }
 
 /** Best-effort : une partie non enregistrée ne doit jamais empêcher l'utilisateur de voir son résultat.
@@ -136,12 +152,13 @@ async function pushQuestionRowsToCloud(userId: string, rows: QuestionResultRow[]
 }
 
 async function fetchCloudQuestionRows(userId: string): Promise<QuestionResultRow[]> {
-  const { data, error } = await supabase
+  return fetchAllPages<QuestionResultRow>((from, to) => supabase
     .from(table('question_results'))
     .select('id,quiz_title,question_id,question_text,correct,created_at')
     .eq('user_id', userId)
-  if (error) throw error
-  return data ?? []
+    .order('created_at', { ascending: true })
+    .order('id')
+    .range(from, to))
 }
 
 /** Best-effort, comme `saveQuizResult`. */

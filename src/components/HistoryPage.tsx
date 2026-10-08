@@ -47,9 +47,12 @@ export function HistoryPage({ onBack, quiz, historyKey, userId, onReplayMissed }
 
   const weekHeatmap = quizRows ? computeCategoryWeekHeatmap(quizRows) : null
 
-  const missedQuestions = activeQuiz ? computeReviewQueue(questionRows, activeQuiz) : []
+  const dueQuestions = activeQuiz ? computeReviewQueue(questionRows, activeQuiz) : []
   const canReplay = activeQuiz === historyKey
-  const replayQuestions = canReplay ? resolveReviewQuestions(missedQuestions.slice(0, REVIEW_BATCH_SIZE), quiz.questions) : []
+  // Rejouables d'abord (identifiants anciens ou d'un autre tirage écartés), puis plafond du lot.
+  const playable = canReplay ? resolveReviewQuestions(dueQuestions, quiz.questions) : []
+  const dueCount = canReplay ? playable.length : dueQuestions.length
+  const replayQuestions = playable.slice(0, REVIEW_BATCH_SIZE)
 
   return <section className="stats-page">
     <div className="stats-header">
@@ -96,9 +99,9 @@ export function HistoryPage({ onBack, quiz, historyKey, userId, onReplayMissed }
         note={weekHeatmap.truncated ? t('history.weekHeatmapNote', { count: weekHeatmap.categories.length }) : undefined}
       />}
     </>}
-    {missedQuestions.length > 0 && <div className="missed-questions">
+    {dueCount > 0 && <div className="missed-questions">
       <div className="stats-group-header">
-        <h3 className="stats-group-title">{t(plural('history.toReview', missedQuestions.length), { n: missedQuestions.length })}</h3>
+        <h3 className="stats-group-title">{t(plural('history.toReview', dueCount), { n: dueCount })}</h3>
         {replayQuestions.length > 0 && <button type="button" onClick={() => onReplayMissed(replayQuestions)}>{t(plural('review.play', replayQuestions.length), { n: replayQuestions.length })}</button>}
       </div>
     </div>}
