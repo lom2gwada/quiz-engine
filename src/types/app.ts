@@ -50,6 +50,8 @@ export interface MapQuestionProps {
 
 /** Questions « Cliquez sur X » : `targets` = valeurs canoniques désignables, `render` affiche la carte cliquable (propre à l'appli). */
 export interface DatasetMap {
+  /** Formulation des questions : « sur la carte » (défaut) ou « sur le tableau » (tableau périodique). */
+  kind?: 'map' | 'table'
   targets: string[]
   render: (props: MapQuestionProps) => ReactNode
 }

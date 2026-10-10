@@ -230,6 +230,8 @@ export function generateQuiz(
     inverse?: boolean
     /** Valeurs FR canoniques des sujets désignables sur la carte de l'appli (`Dataset.map`) : ajoute les questions « Cliquez sur X ». */
     mapTargets?: string[]
+    /** Formulation des questions de carte : « sur la carte » (défaut) ou « sur le tableau ». */
+    mapKind?: 'map' | 'table'
   },
 ): Quiz {
   const locale = opts.locale ?? DEFAULT_LOCALE
@@ -718,6 +720,7 @@ export function generateQuiz(
   // ---- Localisation : « Cliquez sur X » sur la carte de l'appli. Aucun tirage aléatoire, et ajoutée APRÈS le mélange final
   // (`mapQuestions`) : l'ordre des autres questions — donc le défi du jour, tiré dans ce même ordre — ne bouge pas. ----
   const mapQuestions: Question[] = []
+  const onTable = opts.mapKind === 'table'
   if (opts.mapTargets?.length) {
     const targets = new Set(opts.mapTargets)
     const onMap = rows.filter((r) => targets.has(nameOf(r)))
@@ -726,9 +729,9 @@ export function generateQuiz(
       const named = data.subject(nameOf(row), csvArticle(row))
       mapQuestions.push({
         id: qid(['map', nameOf(row)]), type: 'map', category: 'map', difficulty: CFG.map.difficulty, points: CFG.map.points, tags: ['map'],
-        question: T('prompt.map', { name: named }),
-        topic: T('topic.map', { ofSubject: de(row) }), ...subj(row),
-        explanation: T('explanation.map', { name: named }),
+        question: T(onTable ? 'prompt.mapTable' : 'prompt.map', { name: named }),
+        topic: T(onTable ? 'topic.mapTable' : 'topic.map', { ofSubject: de(row) }), ...subj(row),
+        explanation: T(onTable ? 'explanation.mapTable' : 'explanation.map', { name: named }),
         content: { target: nameOf(row), labels },
       })
     }
@@ -740,7 +743,7 @@ export function generateQuiz(
   const categories = [
     ...Object.entries(schema.columns).filter(([col]) => used.has(col)).map(([col, spec]) => ({ id: col, label: grammar.cap(labelFor(spec.label)) })),
     ...(used.has('silhouette') ? [{ id: 'silhouette', label: tpl['word.silhouetteCategory'] }] : []),
-    ...(used.has('map') ? [{ id: 'map', label: tpl['word.mapCategory'] }] : []),
+    ...(used.has('map') ? [{ id: 'map', label: onTable ? tpl['word.mapTableCategory'] : tpl['word.mapCategory'] }] : []),
   ]
 
   return {

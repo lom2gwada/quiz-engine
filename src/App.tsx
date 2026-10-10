@@ -69,7 +69,7 @@ function safeGenerate(spec: QuizAppSpec, dataset: Dataset, seed: string, locale:
         seed, locale, i18n: dataset.i18n, aliases: dataset.aliases, shapes: dataset.shapes, author: engineConfig().appName,
         // Réserve du blitz : QCM à 4 choix (les 4 cases) et questions « inverses » à réponses-images.
         ...(blitz ? { choices: 4, inverse: true } : {}),
-        ...(dataset.map ? { mapTargets: dataset.map.targets } : {}),
+        ...(dataset.map ? { mapTargets: dataset.map.targets, mapKind: dataset.map.kind } : {}),
       })),
       error: '',
     }

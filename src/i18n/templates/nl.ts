@@ -20,6 +20,7 @@ export const nl: Record<TemplateKey, string> = {
   'prompt.silhouette': 'Welk {noun} heeft deze omtrek?',
   'prompt.silhouetteInverse': 'Omtrek {ofSubject}?',
   'prompt.map': 'Klik op {name} op de kaart.',
+  'prompt.mapTable': 'Klik op {name} in het periodiek systeem.',
 
   'explanation.fact': '{Label} {ofSubject}: {value}.',
   'explanation.image': 'Deze {label} hoort bij {subject}.',
@@ -27,11 +28,13 @@ export const nl: Record<TemplateKey, string> = {
   'explanation.imageYear': 'Deze {imageLabel} hoort bij {subject} — {label}: {value}.',
   'explanation.silhouette': 'Deze omtrek hoort bij {subject}.',
   'explanation.map': 'Dit is {name} op de kaart.',
+  'explanation.mapTable': 'Dit is {name} in het periodiek systeem.',
 
   'topic.labelSubject': '{Label} {ofSubject}',
   'topic.labelList': '{Label}: {list}',
   'topic.silhouette': 'Omtrek {ofSubject}',
   'topic.map': 'Ligging {ofSubject}',
+  'topic.mapTable': 'Plaats {ofSubject}',
 
   'alt.image': 'Een {label}.',
   'alt.silhouette': 'De omtrek van een {noun}.',
@@ -41,4 +44,5 @@ export const nl: Record<TemplateKey, string> = {
   'word.false': 'Onwaar',
   'word.silhouetteCategory': 'Omtrek',
   'word.mapCategory': 'Ligging',
+  'word.mapTableCategory': 'Plaats',
 }

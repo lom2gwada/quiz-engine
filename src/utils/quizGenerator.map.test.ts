@@ -31,6 +31,12 @@ describe('« Cliquez sur X » (questions de carte)', () => {
     expect(jamaica.category).toBe('map')
   })
 
+  it('can be worded for a table (periodic table) instead of a map', () => {
+    const quiz = generateQuiz(rows, schema, { seed: 's', mapTargets: ['Cuba'], mapKind: 'table' })
+    expect(mapQuestions(quiz)[0].question).toBe('Cliquez sur Cuba sur le tableau.')
+    expect(quiz.categories.find((c) => c.id === 'map')?.label).toBe('Position')
+  })
+
   it('does not change the other questions (same ids, same order — the daily challenge is drawn in that order)', () => {
     const plain = generateQuiz(rows, schema, { seed: 's' }).questions.map((q) => q.id)
     const withMap = generateQuiz(rows, schema, { seed: 's', mapTargets: ['Cuba'] }).questions.filter((q) => q.type !== 'map').map((q) => q.id)

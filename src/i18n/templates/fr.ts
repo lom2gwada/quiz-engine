@@ -26,6 +26,7 @@ export const fr = {
   'prompt.silhouette': 'Quel {noun} a cette silhouette ?',
   'prompt.silhouetteInverse': 'Silhouette {ofSubject} ?',
   'prompt.map': 'Cliquez sur {name} sur la carte.',
+  'prompt.mapTable': 'Cliquez sur {name} sur le tableau.',
 
   // — explications —
   'explanation.fact': '{Label} {ofSubject} : {value}.',
@@ -34,12 +35,14 @@ export const fr = {
   'explanation.imageYear': 'Ce {imageLabel} est celui {ofSubject} — {label} : {value}.',
   'explanation.silhouette': 'Cette silhouette est celle {ofSubject}.',
   'explanation.map': 'Voici {name} sur la carte.',
+  'explanation.mapTable': 'Voici {name} sur le tableau.',
 
   // — libellés neutres (historique « à retravailler ») —
   'topic.labelSubject': '{Label} {ofSubject}',
   'topic.labelList': '{Label} : {list}',
   'topic.silhouette': 'Silhouette {ofSubject}',
   'topic.map': 'Localisation {ofSubject}',
+  'topic.mapTable': 'Position {ofSubject}',
 
   // — textes alternatifs d'image —
   'alt.image': 'Un {label}.',
@@ -51,4 +54,5 @@ export const fr = {
   'word.false': 'Faux',
   'word.silhouetteCategory': 'Silhouette',
   'word.mapCategory': 'Localisation',
+  'word.mapTableCategory': 'Position',
 } satisfies Record<string, string>

@@ -20,6 +20,7 @@ export const en: Record<TemplateKey, string> = {
   'prompt.silhouette': 'Which {noun} has this outline?',
   'prompt.silhouetteInverse': 'Outline {ofSubject}?',
   'prompt.map': 'Click on {name} on the map.',
+  'prompt.mapTable': 'Click on {name} on the table.',
 
   'explanation.fact': '{Label} {ofSubject}: {value}.',
   'explanation.image': 'This {label} belongs to {subject}.',
@@ -27,11 +28,13 @@ export const en: Record<TemplateKey, string> = {
   'explanation.imageYear': 'This {imageLabel} belongs to {subject} — {label}: {value}.',
   'explanation.silhouette': 'This outline belongs to {subject}.',
   'explanation.map': 'This is {name} on the map.',
+  'explanation.mapTable': 'This is {name} on the table.',
 
   'topic.labelSubject': '{Label} {ofSubject}',
   'topic.labelList': '{Label}: {list}',
   'topic.silhouette': 'Outline {ofSubject}',
   'topic.map': 'Location {ofSubject}',
+  'topic.mapTable': 'Position {ofSubject}',
 
   'alt.image': 'A {label}.',
   'alt.silhouette': 'The outline of a {noun}.',
@@ -41,4 +44,5 @@ export const en: Record<TemplateKey, string> = {
   'word.false': 'False',
   'word.silhouetteCategory': 'Outline',
   'word.mapCategory': 'Location',
+  'word.mapTableCategory': 'Position',
 }
