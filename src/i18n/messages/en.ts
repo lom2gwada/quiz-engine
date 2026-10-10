@@ -106,6 +106,7 @@ export const en: Record<MessageKey, string> = {
   'type.cloze': 'Fill in the blank',
   'type.matching': 'Matching',
   'type.numeric': 'Estimate',
+  'type.map': 'Location',
 
   'quiz.noQuestion': 'No question',
   'quiz.noQuestionHint': 'Change the filters to start the quiz.',

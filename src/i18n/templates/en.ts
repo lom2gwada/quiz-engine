@@ -19,16 +19,19 @@ export const en: Record<TemplateKey, string> = {
   'prompt.imageYear': 'This {imageLabel} represents a {noun}. In what year: {label}?',
   'prompt.silhouette': 'Which {noun} has this outline?',
   'prompt.silhouetteInverse': 'Outline {ofSubject}?',
+  'prompt.map': 'Click on {name} on the map.',
 
   'explanation.fact': '{Label} {ofSubject}: {value}.',
   'explanation.image': 'This {label} belongs to {subject}.',
   'explanation.boolean': '{verdict}. {fact}',
   'explanation.imageYear': 'This {imageLabel} belongs to {subject} — {label}: {value}.',
   'explanation.silhouette': 'This outline belongs to {subject}.',
+  'explanation.map': 'This is {name} on the map.',
 
   'topic.labelSubject': '{Label} {ofSubject}',
   'topic.labelList': '{Label}: {list}',
   'topic.silhouette': 'Outline {ofSubject}',
+  'topic.map': 'Location {ofSubject}',
 
   'alt.image': 'A {label}.',
   'alt.silhouette': 'The outline of a {noun}.',
@@ -37,4 +40,5 @@ export const en: Record<TemplateKey, string> = {
   'word.true': 'True',
   'word.false': 'False',
   'word.silhouetteCategory': 'Outline',
+  'word.mapCategory': 'Location',
 }

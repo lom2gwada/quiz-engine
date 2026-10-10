@@ -107,6 +107,7 @@ export const es: Record<MessageKey, string> = {
   'type.cloze': 'Rellenar el hueco',
   'type.matching': 'Emparejar',
   'type.numeric': 'Estimación',
+  'type.map': 'Ubicación',
 
   'quiz.noQuestion': 'Ninguna pregunta',
   'quiz.noQuestionHint': 'Cambia los filtros para empezar el quiz.',

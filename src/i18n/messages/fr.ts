@@ -112,6 +112,7 @@ export const fr = {
   'type.cloze': 'Texte à trous',
   'type.matching': 'Association',
   'type.numeric': 'Estimation',
+  'type.map': 'Localisation',
 
   // — page quiz —
   'quiz.noQuestion': 'Aucune question',

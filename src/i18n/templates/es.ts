@@ -21,16 +21,19 @@ export const es: Record<TemplateKey, string> = {
   'prompt.imageYear': 'Esta {imageLabel} representa un {noun}. ¿En qué año: {label}?',
   'prompt.silhouette': '¿Qué {noun} tiene esta silueta?',
   'prompt.silhouetteInverse': '¿Silueta {ofSubject}?',
+  'prompt.map': 'Haz clic en {name} en el mapa.',
 
   'explanation.fact': '{Label} {ofSubject}: {value}.',
   'explanation.image': 'Esta {label} pertenece a {subject}.',
   'explanation.boolean': '{verdict}. {fact}',
   'explanation.imageYear': 'Esta {imageLabel} pertenece a {subject} — {label}: {value}.',
   'explanation.silhouette': 'Esta silueta pertenece a {subject}.',
+  'explanation.map': 'Aquí está {name} en el mapa.',
 
   'topic.labelSubject': '{Label} {ofSubject}',
   'topic.labelList': '{Label}: {list}',
   'topic.silhouette': 'Silueta {ofSubject}',
+  'topic.map': 'Ubicación {ofSubject}',
 
   'alt.image': 'Una {label}.',
   'alt.silhouette': 'Silueta de un {noun}.',
@@ -39,4 +42,5 @@ export const es: Record<TemplateKey, string> = {
   'word.true': 'Verdadero',
   'word.false': 'Falso',
   'word.silhouetteCategory': 'Silueta',
+  'word.mapCategory': 'Ubicación',
 }

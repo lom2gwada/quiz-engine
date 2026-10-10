@@ -209,6 +209,7 @@ const CFG = {
   estimate: { points: 2, difficulty: 'medium' as const },
   order: { groupSize: 4, points: 3, difficulty: 'hard' as const },
   matching: { groupSize: 4, points: 2, difficulty: 'medium' as const },
+  map: { points: 2, difficulty: 'medium' as const },
 }
 
 export function generateQuiz(
@@ -227,6 +228,8 @@ export function generateQuiz(
     /** Ajoute des questions « inverses » dont les réponses sont des images (« Drapeau de Cuba ? » → 4 drapeaux, idem silhouettes).
      *  Réservé au blitz : les autres modes affichent les réponses en texte et ne sauraient pas les montrer. */
     inverse?: boolean
+    /** Valeurs FR canoniques des sujets désignables sur la carte de l'appli (`Dataset.map`) : ajoute les questions « Cliquez sur X ». */
+    mapTargets?: string[]
   },
 ): Quiz {
   const locale = opts.locale ?? DEFAULT_LOCALE
@@ -712,12 +715,32 @@ export function generateQuiz(
     }
   }
 
+  // ---- Localisation : « Cliquez sur X » sur la carte de l'appli. Aucun tirage aléatoire, et ajoutée APRÈS le mélange final
+  // (`mapQuestions`) : l'ordre des autres questions — donc le défi du jour, tiré dans ce même ordre — ne bouge pas. ----
+  const mapQuestions: Question[] = []
+  if (opts.mapTargets?.length) {
+    const targets = new Set(opts.mapTargets)
+    const onMap = rows.filter((r) => targets.has(nameOf(r)))
+    const labels = Object.fromEntries(onMap.map((r) => [nameOf(r), displayName(r)]))
+    for (const row of onMap) {
+      const named = data.subject(nameOf(row), csvArticle(row))
+      mapQuestions.push({
+        id: qid(['map', nameOf(row)]), type: 'map', category: 'map', difficulty: CFG.map.difficulty, points: CFG.map.points, tags: ['map'],
+        question: T('prompt.map', { name: named }),
+        topic: T('topic.map', { ofSubject: de(row) }), ...subj(row),
+        explanation: T('explanation.map', { name: named }),
+        content: { target: nameOf(row), labels },
+      })
+    }
+  }
+
   // Les catégories proposées au joueur = les colonnes qui ont effectivement produit des questions
   // (dans l'ordre du tableau source), plus « Silhouette » si des contours ont été fournis.
-  const used = new Set(questions.map((q) => q.category))
+  const used = new Set([...questions, ...mapQuestions].map((q) => q.category))
   const categories = [
     ...Object.entries(schema.columns).filter(([col]) => used.has(col)).map(([col, spec]) => ({ id: col, label: grammar.cap(labelFor(spec.label)) })),
     ...(used.has('silhouette') ? [{ id: 'silhouette', label: tpl['word.silhouetteCategory'] }] : []),
+    ...(used.has('map') ? [{ id: 'map', label: tpl['word.mapCategory'] }] : []),
   ]
 
   return {
@@ -726,10 +749,10 @@ export function generateQuiz(
       title: schema.title,
       author: opts.author ?? 'Quiz',
       createdAt: new Date().toISOString().slice(0, 10),
-      description: T('meta.description', { count: formatNumber(questions.length), rows: formatNumber(rows.length), nouns, seed: opts.seed }),
+      description: T('meta.description', { count: formatNumber(questions.length + mapQuestions.length), rows: formatNumber(rows.length), nouns, seed: opts.seed }),
     },
     categories,
-    questions: shuffle(questions),
+    questions: [...shuffle(questions), ...mapQuestions],
   }
 }
 

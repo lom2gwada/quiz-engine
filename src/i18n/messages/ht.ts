@@ -108,6 +108,7 @@ export const ht: Record<MessageKey, string> = {
   'type.cloze': 'Tèks pou konplete',
   'type.matching': 'Asosye',
   'type.numeric': 'Estimasyon',
+  'type.map': 'Pozisyon',
 
   'quiz.noQuestion': 'Pa gen kesyon',
   'quiz.noQuestionHint': 'Chanje filtè yo pou kòmanse quiz la.',

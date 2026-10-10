@@ -69,6 +69,7 @@ function safeGenerate(spec: QuizAppSpec, dataset: Dataset, seed: string, locale:
         seed, locale, i18n: dataset.i18n, aliases: dataset.aliases, shapes: dataset.shapes, author: engineConfig().appName,
         // Réserve du blitz : QCM à 4 choix (les 4 cases) et questions « inverses » à réponses-images.
         ...(blitz ? { choices: 4, inverse: true } : {}),
+        ...(dataset.map ? { mapTargets: dataset.map.targets } : {}),
       })),
       error: '',
     }
@@ -456,7 +457,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
       {gameMode === 'blitz' && <p>{t('start.blitzHint', { count: Math.min(BLITZ_QUESTION_COUNT, blitzAvailable), seconds: BLITZ_SECONDS, lives: BLITZ_MAX_ERRORS, n: formatNumber(blitzAvailable) })}</p>}
       <div className="quiz-actions"><button type="button" onClick={startQuiz} disabled={gameMode === 'blitz' ? !blitzAvailable : !filteredQuestions.length}>{t('start.play')}</button></div>
     </section>}
-    {view === 'quiz' && <QuizPage quiz={quiz} questions={sessionQuestions} mode={activeMode} timeLimitSeconds={activeTimeLimit} onFinish={(nextAnswers, duration, shown, extra) => {
+    {view === 'quiz' && <QuizPage quiz={quiz} questions={sessionQuestions} renderMap={dataset?.map?.render} mode={activeMode} timeLimitSeconds={activeTimeLimit} onFinish={(nextAnswers, duration, shown, extra) => {
       setAnswers(nextAnswers); setResultQuestions(shown); setElapsedSeconds(duration); replace('results')
       const historyKey = historyKeyOf(dataset, quiz)
       const daily = dailyRun

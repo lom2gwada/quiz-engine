@@ -23,6 +23,7 @@ export function isCorrect(question: Question, answer: AnswersByQuestion[string] 
     if (typeof answer !== 'string') return false
     return matchesExpected(answer, question.content.expectedAnswers, question.content.caseSensitive)
   }
+  if (question.type === 'map') return typeof answer === 'string' && answer === question.content.target
   if (question.type === 'numeric') {
     if (typeof answer !== 'string' || answer === '') return false
     const value = Number(answer)
@@ -159,6 +160,7 @@ export function ResultPage({ questions, answers, categories, elapsedSeconds, onR
 export function userAnswer(question: Question, answer: AnswersByQuestion[string] | undefined, t: TFunction = frT): string {
   const none = t('result.noAnswer')
   if (question.type === 'text' || question.type === 'cloze') return typeof answer === 'string' && answer.trim() ? answer : none
+  if (question.type === 'map') return typeof answer === 'string' && answer ? (question.content.labels[answer] ?? answer) : none
   if (question.type === 'numeric') {
     if (typeof answer !== 'string' || answer === '') return none
     const suffix = question.content.unit ? ` ${question.content.unit}` : ''
@@ -181,6 +183,7 @@ export function userAnswer(question: Question, answer: AnswersByQuestion[string]
 
 export function correctAnswer(question: Question, t: TFunction = frT): string {
   if (question.type === 'text' || question.type === 'cloze') return question.content.expectedAnswers.join(t('common.or'))
+  if (question.type === 'map') return question.content.labels[question.content.target] ?? question.content.target
   if (question.type === 'numeric') {
     const { target, tolerance, unit, isYear } = question.content
     const suffix = unit ? ` ${unit}` : ''

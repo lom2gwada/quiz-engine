@@ -107,6 +107,7 @@ export const nl: Record<MessageKey, string> = {
   'type.cloze': 'Invuloefening',
   'type.matching': 'Koppelen',
   'type.numeric': 'Schatting',
+  'type.map': 'Ligging',
 
   'quiz.noQuestion': 'Geen vraag',
   'quiz.noQuestionHint': 'Pas de filters aan om de quiz te starten.',

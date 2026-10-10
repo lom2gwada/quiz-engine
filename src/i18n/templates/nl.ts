@@ -19,16 +19,19 @@ export const nl: Record<TemplateKey, string> = {
   'prompt.imageYear': 'Deze {imageLabel} hoort bij een {noun}. In welk jaar: {label}?',
   'prompt.silhouette': 'Welk {noun} heeft deze omtrek?',
   'prompt.silhouetteInverse': 'Omtrek {ofSubject}?',
+  'prompt.map': 'Klik op {name} op de kaart.',
 
   'explanation.fact': '{Label} {ofSubject}: {value}.',
   'explanation.image': 'Deze {label} hoort bij {subject}.',
   'explanation.boolean': '{verdict}. {fact}',
   'explanation.imageYear': 'Deze {imageLabel} hoort bij {subject} — {label}: {value}.',
   'explanation.silhouette': 'Deze omtrek hoort bij {subject}.',
+  'explanation.map': 'Dit is {name} op de kaart.',
 
   'topic.labelSubject': '{Label} {ofSubject}',
   'topic.labelList': '{Label}: {list}',
   'topic.silhouette': 'Omtrek {ofSubject}',
+  'topic.map': 'Ligging {ofSubject}',
 
   'alt.image': 'Een {label}.',
   'alt.silhouette': 'De omtrek van een {noun}.',
@@ -37,4 +40,5 @@ export const nl: Record<TemplateKey, string> = {
   'word.true': 'Waar',
   'word.false': 'Onwaar',
   'word.silhouetteCategory': 'Omtrek',
+  'word.mapCategory': 'Ligging',
 }

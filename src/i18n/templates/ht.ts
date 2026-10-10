@@ -19,16 +19,19 @@ export const ht: Record<TemplateKey, string> = {
   'prompt.imageYear': '{imageLabel} sa a se pou yon {noun}. Nan ki ane: {label}?',
   'prompt.silhouette': 'Ki {noun} ki gen kontou sa a?',
   'prompt.silhouetteInverse': 'Kontou {ofSubject}?',
+  'prompt.map': 'Klike sou {name} sou kat la.',
 
   'explanation.fact': '{Label} {ofSubject}: {value}.',
   'explanation.image': '{label} sa a se pou {subject}.',
   'explanation.boolean': '{verdict}. {fact}',
   'explanation.imageYear': '{imageLabel} sa a se pou {subject} — {label}: {value}.',
   'explanation.silhouette': 'Kontou sa a se pou {subject}.',
+  'explanation.map': 'Men {name} sou kat la.',
 
   'topic.labelSubject': '{Label} {ofSubject}',
   'topic.labelList': '{Label}: {list}',
   'topic.silhouette': 'Kontou {ofSubject}',
+  'topic.map': 'Pozisyon {ofSubject}',
 
   'alt.image': 'Yon {label}.',
   'alt.silhouette': 'Kontou yon {noun}.',
@@ -37,4 +40,5 @@ export const ht: Record<TemplateKey, string> = {
   'word.true': 'Vre',
   'word.false': 'Fo',
   'word.silhouetteCategory': 'Kontou',
+  'word.mapCategory': 'Pozisyon',
 }

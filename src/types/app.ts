@@ -40,6 +40,20 @@ export type FicheDecorator = (row: Row, ctx: { name: string; canonical: string }
  *  Les unités s'écrivent en toutes lettres dans le gabarit (« kilomètres carrés ») : c'est ce que la voix doit dire. */
 export type SpeechTemplates = Partial<Record<Locale, string[]>>
 
+/** Ce que la carte d'une question « Localisation » reçoit : le territoire à trouver, celui actuellement désigné, et le rappel de
+ *  désignation (valeur FR canonique du territoire cliqué). */
+export interface MapQuestionProps {
+  target: string
+  selected?: string
+  onPick: (canonical: string) => void
+}
+
+/** Questions « Cliquez sur X » : `targets` = valeurs canoniques désignables, `render` affiche la carte cliquable (propre à l'appli). */
+export interface DatasetMap {
+  targets: string[]
+  render: (props: MapQuestionProps) => ReactNode
+}
+
 export interface Dataset {
   rows: Row[]
   schema: GenSchema
@@ -61,6 +75,7 @@ export interface Dataset {
    *  sur la page d'accueil. Mêmes phrases fixes par locale que `speech`, sans marqueurs de gabarit
    *  puisqu'il n'y a pas de ligne à interpoler — juste `SpeechTemplates` pour la locale de repli (français). */
   intro?: SpeechTemplates
+  map?: DatasetMap
   views?: DatasetView[]
 }
 

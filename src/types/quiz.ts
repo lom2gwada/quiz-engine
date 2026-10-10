@@ -1,5 +1,5 @@
 export type Difficulty = 'easy' | 'medium' | 'hard'
-export type QuestionType = 'qcm' | 'text' | 'code' | 'ordering' | 'boolean' | 'cloze' | 'matching' | 'numeric'
+export type QuestionType = 'qcm' | 'text' | 'code' | 'ordering' | 'boolean' | 'cloze' | 'matching' | 'numeric' | 'map'
 
 export interface Category {
   id: string
@@ -72,6 +72,15 @@ export interface NumericContent {
   isYear?: boolean
 }
 
+/** « Cliquez sur X » : le joueur désigne le bon territoire sur une carte fournie par l'appli (`Dataset.map`). La réponse
+ *  (chaîne) est la valeur FR canonique du territoire cliqué. */
+export interface MapContent {
+  /** Valeur FR canonique du territoire à trouver. */
+  target: string
+  /** Libellé affiché de chaque territoire désignable (canonique → traduit), pour la correction. */
+  labels: Record<string, string>
+}
+
 export interface BaseQuestion {
   id: string
   category: string
@@ -137,7 +146,12 @@ export interface NumericQuestion extends BaseQuestion {
   content: NumericContent
 }
 
-export type Question = QCMQuestion | TextQuestion | CodeQuestion | OrderingQuestion | BooleanQuestion | ClozeQuestion | MatchingQuestion | NumericQuestion
+export interface MapQuestion extends BaseQuestion {
+  type: 'map'
+  content: MapContent
+}
+
+export type Question = QCMQuestion | TextQuestion | CodeQuestion | OrderingQuestion | BooleanQuestion | ClozeQuestion | MatchingQuestion | NumericQuestion | MapQuestion
 
 export interface Quiz {
   version: string

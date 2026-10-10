@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { AnswersByQuestion, Difficulty, Question, Quiz } from '../types/quiz'
+import type { DatasetMap } from '../types/app'
 import type { MessageKey, TFunction } from '../i18n'
 import { useLocale, useT } from '../i18n'
 import { formatNumber } from '../utils/number'
@@ -15,8 +16,8 @@ import { QuestionImage } from './QuestionImage'
 import { QuestionRenderer } from './QuestionRenderer'
 import { QuestionShape } from './QuestionShape'
 
-export const TYPE_ICONS: Record<Question['type'], string> = { qcm: '🧩', code: '💻', text: '✍️', ordering: '🔀', boolean: '⚖️', cloze: '📝', matching: '🔗', numeric: '🎚️' }
-export const QUESTION_TYPES: Question['type'][] = ['qcm', 'code', 'text', 'ordering', 'boolean', 'cloze', 'matching', 'numeric']
+export const TYPE_ICONS: Record<Question['type'], string> = { qcm: '🧩', code: '💻', text: '✍️', ordering: '🔀', boolean: '⚖️', cloze: '📝', matching: '🔗', numeric: '🎚️', map: '🗺️' }
+export const QUESTION_TYPES: Question['type'][] = ['qcm', 'code', 'text', 'ordering', 'boolean', 'cloze', 'matching', 'numeric', 'map']
 
 export const typeLabel = (type: Question['type'], t: TFunction): string => t(`type.${type}` as MessageKey)
 export const difficultyLabel = (difficulty: Difficulty, t: TFunction): string => t(`difficulty.${difficulty}` as MessageKey)
@@ -44,9 +45,11 @@ interface QuizPageProps {
   /** `extra.speedBonus` : blitz uniquement, bonus de rapidité cumulé (en points). */
   onFinish: (answers: AnswersByQuestion, elapsedSeconds: number, shown: Question[], extra?: { speedBonus: number }) => void
   onCancel: () => void
+  /** Rendu de la carte cliquable des questions « Localisation » (fourni par l'appli, `Dataset.map`). */
+  renderMap?: DatasetMap['render']
 }
 
-export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, onFinish, onCancel }: QuizPageProps) {
+export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, onFinish, onCancel, renderMap }: QuizPageProps) {
   const t = useT()
   const locale = useLocale()
   const [current, setCurrent] = useState(0)
@@ -204,7 +207,7 @@ export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, 
       {question.imageUrl && <QuestionImage src={question.imageUrl} alt={question.imageAlt} />}
       {question.shapeSvg && <QuestionShape svg={question.shapeSvg} alt={question.imageAlt} />}
       {question.type !== 'cloze' && <h2>{question.question}</h2>}
-      <QuestionRenderer question={question} answer={answers[question.id]} onChange={updateAnswer} onSubmit={advance} />
+      <QuestionRenderer question={question} answer={answers[question.id]} onChange={updateAnswer} onSubmit={advance} renderMap={renderMap} />
     </div>
     {(timeAttack || noMistake) && atEnd && <p className="hint-banner">{t('quiz.poolExhausted')}</p>}
     <div className="quiz-actions">

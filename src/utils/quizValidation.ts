@@ -80,6 +80,9 @@ function parseQuestion(value: unknown): Question {
     if (!/_{3,}/.test(question)) throw new Error(`Question « ${id} » : le texte à trous doit contenir un marqueur "___".`)
     return { ...base, type, content: { expectedAnswers: content.expectedAnswers, caseSensitive: content.caseSensitive } }
   }
+  if (type === 'map' && typeof content.target === 'string' && isRecord(content.labels) && Object.values(content.labels).every((label) => typeof label === 'string')) {
+    return { ...base, type, content: { target: content.target, labels: content.labels as Record<string, string> } }
+  }
   if (type === 'matching' && validItems(content.left) && validItems(content.right) && isRecord(content.correctPairs)) {
     const leftIds = new Set(content.left.map((item) => item.id))
     const rightIds = new Set(content.right.map((item) => item.id))
