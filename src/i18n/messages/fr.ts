@@ -287,6 +287,7 @@ export const fr = {
   'fiche.edit': 'Modifier',
   'fiche.speak': "Écouter",
   'fiche.speakStop': "Arrêter",
+  'fiche.speakError': "La lecture vocale n'a pas démarré. Vérifiez le volume (média) et que la voix de la langue est installée sur l'appareil.",
   'fiche.editError': "Impossible d'enregistrer les modifications. Réessayez.",
 
   // — tableau de données —

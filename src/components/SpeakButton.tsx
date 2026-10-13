@@ -8,19 +8,24 @@ import { speakSentences, speechSupported, stopSpeaking } from '../utils/speech'
 export function SpeakButton({ sentences, locale }: { sentences: string[]; locale: Locale }) {
   const t = useT()
   const [speaking, setSpeaking] = useState(false)
+  const [failed, setFailed] = useState(false)
   const key = sentences.join('\n')
 
-  useEffect(() => () => { stopSpeaking(); setSpeaking(false) }, [key, locale])
+  useEffect(() => () => { stopSpeaking(); setSpeaking(false); setFailed(false) }, [key, locale])
 
   if (!speechSupported() || !sentences.length) return null
 
   const toggle = () => {
     if (speaking) { stopSpeaking(); setSpeaking(false); return }
+    setFailed(false)
     setSpeaking(true)
-    speakSentences(sentences, locale, () => setSpeaking(false))
+    speakSentences(sentences, locale, () => setSpeaking(false), () => setFailed(true))
   }
 
-  return <button type="button" className="secondary fiche-speak" onClick={toggle} aria-pressed={speaking}>
-    {speaking ? `⏹ ${t('fiche.speakStop')}` : `🔊 ${t('fiche.speak')}`}
-  </button>
+  return <>
+    <button type="button" className="secondary fiche-speak" onClick={toggle} aria-pressed={speaking}>
+      {speaking ? `⏹ ${t('fiche.speakStop')}` : `🔊 ${t('fiche.speak')}`}
+    </button>
+    {failed && <span className="dictation-hint" role="status">{t('fiche.speakError')}</span>}
+  </>
 }

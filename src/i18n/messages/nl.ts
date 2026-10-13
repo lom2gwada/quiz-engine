@@ -273,6 +273,7 @@ export const nl: Record<MessageKey, string> = {
   'fiche.edit': 'Bewerken',
   'fiche.speak': "Beluisteren",
   'fiche.speakStop': "Stop",
+  'fiche.speakError': "Het voorlezen is niet gestart. Controleer het (media)volume en of de stem van de taal op het apparaat is geïnstalleerd.",
   'fiche.editError': 'Kon de wijzigingen niet opslaan. Probeer opnieuw.',
 
   'data.title': 'Brongegevens — {rows} rijen × {cols} kolommen',

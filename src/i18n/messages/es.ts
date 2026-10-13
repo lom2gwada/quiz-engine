@@ -273,6 +273,7 @@ export const es: Record<MessageKey, string> = {
   'fiche.edit': 'Editar',
   'fiche.speak': "Escuchar",
   'fiche.speakStop': "Detener",
+  'fiche.speakError': "La lectura en voz alta no se inició. Revisa el volumen (multimedia) y que la voz del idioma esté instalada en el dispositivo.",
   'fiche.editError': 'No se pudieron guardar los cambios. Inténtalo de nuevo.',
 
   'data.title': 'Datos de origen — {rows} filas × {cols} columnas',

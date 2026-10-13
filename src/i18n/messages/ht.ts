@@ -274,6 +274,7 @@ export const ht: Record<MessageKey, string> = {
   'fiche.edit': 'Modifye',
   'fiche.speak': "Koute",
   'fiche.speakStop': "Sispann",
+  'fiche.speakError': "Lekti a pa kòmanse. Verifye volim lan (medya) ak si vwa lang lan enstale sou aparèy la.",
   'fiche.editError': 'Pa ka anrejistre chanjman yo. Eseye ankò.',
 
   'data.title': 'Done sous — {rows} liy × {cols} kolòn',

@@ -272,6 +272,7 @@ export const en: Record<MessageKey, string> = {
   'fiche.edit': 'Edit',
   'fiche.speak': "Listen",
   'fiche.speakStop': "Stop",
+  'fiche.speakError': "Speech did not start. Check the (media) volume and that the language's voice is installed on the device.",
   'fiche.editError': 'Could not save the changes. Please try again.',
 
   'data.title': 'Source data — {rows} rows × {cols} columns',
