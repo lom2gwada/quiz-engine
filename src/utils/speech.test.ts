@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { speakSentences, stopSpeaking } from './speech'
+import { speakSentences, speechDiagnostics, stopSpeaking } from './speech'
 
 class FakeUtterance {
   lang = ''
@@ -73,14 +73,37 @@ describe('speakSentences (fiabilité sur mobile)', () => {
     expect(onEnd).toHaveBeenCalled()
   })
 
-  it('déclare l’échec si rien ne démarre (file bloquée, son coupé…), et le dit à l’appelant', () => {
-    installSynth()
+  it('si rien ne démarre : un second essai APRÈS cancel(), puis l’échec est déclaré à l’appelant', () => {
+    const synth = installSynth()
     const onError = vi.fn()
     const onEnd = vi.fn()
     speakSentences(['Bonjour.'], 'fr', onEnd, onError)
-    vi.advanceTimersByTime(3100)
+    expect(synth.cancel).not.toHaveBeenCalled()
+    vi.advanceTimersByTime(2600) // fin du 1er essai : cancel + relance
+    expect(synth.cancel).toHaveBeenCalledTimes(1)
+    vi.advanceTimersByTime(100)
+    expect(synth.speak).toHaveBeenCalledTimes(2)
+    expect(onError).not.toHaveBeenCalled()
+    expect(onEnd).not.toHaveBeenCalled()
+    vi.advanceTimersByTime(2600) // fin du 2e essai
     expect(onError).toHaveBeenCalledWith('not-started')
     expect(onEnd).toHaveBeenCalledTimes(1)
+  })
+
+  it('le second essai réussit si la file bloquée est libérée par cancel()', () => {
+    const synth = installSynth()
+    const onError = vi.fn()
+    speakSentences(['Bonjour.'], 'fr', vi.fn(), onError)
+    vi.advanceTimersByTime(2600)
+    vi.advanceTimersByTime(100)
+    synth.spoken[1].onstart?.()
+    vi.advanceTimersByTime(3000)
+    expect(onError).not.toHaveBeenCalled()
+  })
+
+  it('décrit les voix disponibles pour la langue (diagnostic)', () => {
+    installSynth([{ lang: 'fr_FR', localService: true }, { lang: 'en-GB', localService: true }])
+    expect(speechDiagnostics('fr')).toBe('fr-FR · 1/2 voix')
   })
 
   it('ne déclare pas d’échec si la lecture a bien démarré', () => {
@@ -88,7 +111,7 @@ describe('speakSentences (fiabilité sur mobile)', () => {
     const onError = vi.fn()
     speakSentences(['Bonjour.'], 'fr', vi.fn(), onError)
     synth.spoken[0].onstart?.()
-    vi.advanceTimersByTime(3100)
+    vi.advanceTimersByTime(2600)
     expect(onError).not.toHaveBeenCalled()
   })
 
@@ -97,7 +120,7 @@ describe('speakSentences (fiabilité sur mobile)', () => {
     const onError = vi.fn()
     speakSentences(['Bonjour.'], 'fr', vi.fn(), onError)
     synth.speaking = true
-    vi.advanceTimersByTime(3100)
+    vi.advanceTimersByTime(2600)
     expect(onError).not.toHaveBeenCalled()
   })
 })
