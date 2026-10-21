@@ -9,6 +9,13 @@ const RESTART_DELAY_MS = 80
 /** Au-delà, une lecture qui n'a jamais démarré est considérée comme échouée (file bloquée, voix absente, son coupé…). */
 const START_TIMEOUT_MS = 2500
 
+/** Forme minimale d'un code de langue BCP 47 (« de », « pt-br »…) : une app dont le contenu n'est pas dans une des
+ *  locales de l'UI (un quiz en allemand) peut passer ce code tel quel plutôt qu'une locale. */
+const LANGUAGE_CODE = /^[a-z]{2,3}(-[a-z0-9]{2,8})*$/i
+
+/** Étiquette de langue de la synthèse : celle de la locale connue, sinon le code BCP 47 tel quel, sinon le français. */
+const langTag = (locale: Locale): string => LANG_TAG[locale] ?? (LANGUAGE_CODE.test(locale) ? locale : 'fr-FR')
+
 export const speechSupported = (): boolean => typeof window !== 'undefined' && 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined'
 
 // Chrome peut ramasser les utterances en cours de lecture (leur `onend` ne part alors jamais) : on les garde en vie.
@@ -27,7 +34,7 @@ function pickVoice(lang: string): SpeechSynthesisVoice | undefined {
 /** Diagnostic affiché avec l'erreur : langue demandée et nombre de voix du système pour cette langue (sur le total). */
 export function speechDiagnostics(locale: Locale): string {
   if (!speechSupported()) return ''
-  const lang = LANG_TAG[locale] ?? 'fr-FR'
+  const lang = langTag(locale)
   const voices = window.speechSynthesis.getVoices()
   const matching = voices.filter((voice) => voice.lang.split(/[-_]/)[0] === lang.split('-')[0])
   return `${lang} · ${matching.length}/${voices.length} voix`
@@ -42,7 +49,7 @@ export function speechDiagnostics(locale: Locale): string {
 export function speakSentences(sentences: string[], locale: Locale, onEnd: () => void, onError?: (code: string) => void): void {
   if (!speechSupported() || !sentences.length) { onEnd(); return }
   const synth = window.speechSynthesis
-  const lang = LANG_TAG[locale] ?? 'fr-FR'
+  const lang = langTag(locale)
 
   const attempt = (retry: boolean): void => {
     const busy = synth.speaking || synth.pending

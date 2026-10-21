@@ -101,6 +101,15 @@ describe('speakSentences (fiabilité sur mobile)', () => {
     expect(onError).not.toHaveBeenCalled()
   })
 
+  it('accepte un code de langue BCP 47 tel quel (quiz dans une autre langue que l’UI), le français sinon', () => {
+    const synth = installSynth()
+    speakSentences(['Hallo.'], 'de', vi.fn())
+    speakSentences(['Olá.'], 'pt-BR', vi.fn())
+    speakSentences(['???'], 'Français', vi.fn())
+    expect(synth.spoken.map((u) => u.lang)).toEqual(['de', 'pt-BR', 'fr-FR'])
+    expect(speechDiagnostics('de')).toContain('de · ')
+  })
+
   it('décrit les voix disponibles pour la langue (diagnostic)', () => {
     installSynth([{ lang: 'fr_FR', localService: true }, { lang: 'en-GB', localService: true }])
     expect(speechDiagnostics('fr')).toBe('fr-FR · 1/2 voix')
