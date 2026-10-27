@@ -17,6 +17,8 @@ export const ht: Record<MessageKey, string> = {
   'nav.fiches': 'Fich',
   'nav.quiz': 'Quiz',
   'nav.history': 'Istorik',
+  'nav.leaderboard': 'Klasman',
+  'nav.profileMenu': 'Meni pwofil',
 
   'footer.version': 'Vèsyon {hash}',
 

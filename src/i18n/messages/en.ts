@@ -15,6 +15,8 @@ export const en: Record<MessageKey, string> = {
   'nav.fiches': 'Cards',
   'nav.quiz': 'Quiz',
   'nav.history': 'History',
+  'nav.leaderboard': 'Leaderboard',
+  'nav.profileMenu': 'Profile menu',
 
   'footer.version': 'Version {hash}',
 

@@ -65,6 +65,14 @@ p { color: var(--text-muted); } .eyebrow { margin: 0; color: var(--accent-text);
 .category-group { display: grid; gap: .45rem; } .category-group + .category-group { margin-top: .35rem; }
 .category-group-head { display: flex; align-items: baseline; justify-content: space-between; gap: .8rem; }
 .category-group-title { font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-soft); }
+.profile-menu { position: relative; }
+.profile-menu-list { position: absolute; right: 0; top: calc(100% + .4rem); z-index: 30; display: grid; gap: .15rem; min-width: 13rem; margin: 0; padding: .4rem; list-style: none; border: 1px solid var(--border); border-radius: .7rem; background: var(--surface-solid); box-shadow: var(--shadow); }
+.profile-menu-item { width: 100%; padding: .55rem .7rem; background: none; color: var(--text); font-weight: 600; text-align: left; }
+.profile-menu-item:hover:not(:disabled) { background: var(--surface-alt); filter: none; }
+.profile-menu-item[aria-current="page"] { color: var(--accent-text); }
+.profile-menu-sep { height: 1px; margin: .25rem 0; background: var(--border); }
+button.secondary[aria-current="page"] { box-shadow: inset 0 0 0 1px var(--accent); color: var(--accent-text); }
+.home-shortcuts { margin-bottom: 0; } .start-page .home-shortcuts button { width: auto; }
 .start-section-title { margin: 1.4rem 0 0; font-size: 1rem; }
 .mode-help { margin: .6rem 0 0; color: var(--text-soft); }
 select, .text-answer { width: 100%; background: var(--surface-solid); color: var(--text); border: 1px solid var(--border-input); border-radius: .45rem; padding: .7rem; }

@@ -16,6 +16,8 @@ export const nl: Record<MessageKey, string> = {
   'nav.fiches': 'Kaarten',
   'nav.quiz': 'Quiz',
   'nav.history': 'Geschiedenis',
+  'nav.leaderboard': 'Klassement',
+  'nav.profileMenu': 'Profielmenu',
 
   'footer.version': 'Versie {hash}',
 

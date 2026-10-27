@@ -17,6 +17,8 @@ export const fr = {
   'nav.fiches': 'Fiches',
   'nav.quiz': 'Quiz',
   'nav.history': 'Historique',
+  'nav.leaderboard': 'Classement',
+  'nav.profileMenu': 'Menu du profil',
 
   // — pied de page —
   'footer.version': 'Version {hash}',

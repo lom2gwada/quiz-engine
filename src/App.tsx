@@ -3,6 +3,8 @@ import type { Session } from '@supabase/supabase-js'
 import { FilterPanel } from './components/FilterPanel'
 import { HistoryPage } from './components/HistoryPage'
 import { ProfilePage } from './components/ProfilePage'
+import { LeaderboardPage } from './components/LeaderboardPage'
+import { ProfileMenu, type ProfileMenuTarget } from './components/ProfileMenu'
 import { AtlasPage } from './components/AtlasPage'
 import { FicheModal } from './components/FicheModal'
 import { QuizContentPage } from './components/QuizContentPage'
@@ -14,6 +16,7 @@ import { LocaleProvider, useLocale, useT } from './i18n'
 import { applyLocale, DEFAULT_LOCALE, resolveLocale, type Locale } from './i18n/locale'
 import type { Dataset, DatasetView, QuizAppSpec, SchemaConfig } from './types/app'
 import { engineConfig } from './config'
+import { supabase } from './utils/supabase'
 import { buildQuestionResultPayloads, buildQuizResultPayload, fetchQuizHistory, saveQuestionResults, saveQuizResult } from './utils/quizHistory'
 import { fetchProfile, saveProfile } from './utils/profile'
 import { checkIsAdmin } from './utils/adminAccess'
@@ -35,7 +38,7 @@ import { earnedBadges, addBadges, playedAllModesToday, pushBadges, readBadges, s
 import { DAILY_QUESTION_COUNT, claimDaily, dailyKey, dailyRank, dailySeed, dailyStreak, fetchDailyLeaderboard, fetchMyDaily, finishDaily, finishedLocalDays, markDailyFinished, markDailyStarted, pickDailyIds, readDailyLocal, selectDaily } from './utils/dailyChallenge'
 import { shuffle } from './utils/shuffle'
 
-type BuiltinView = 'start' | 'quiz' | 'results' | 'content' | 'history' | 'profile' | 'atlas'
+type BuiltinView = 'start' | 'quiz' | 'results' | 'content' | 'history' | 'leaderboard' | 'profile' | 'atlas'
 /** Vues intégrées, ou id d'une vue propre au jeu de données (`Dataset.views`). */
 type View = BuiltinView | (string & {})
 
@@ -418,14 +421,36 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
       .catch(() => {})
   }
 
-  const viewButton = (v: DatasetView) => <button key={v.id} type="button" className="secondary" onClick={() => navigate(v.id)}>{v.icon} {t(v.labelKey)}</button>
+  // Aller à une page depuis la barre du haut ou les raccourcis : sans effet si on y est déjà (pas d'entrée d'historique en double).
+  const goTo = (next: View) => { playClick(); if (view !== next) navigate(next) }
+  const viewButton = (v: DatasetView) => <button key={v.id} type="button" className="secondary" aria-current={view === v.id ? 'page' : undefined} onClick={() => goTo(v.id)}>{v.icon} {t(v.labelKey)}</button>
+  const openFromMenu = (target: ProfileMenuTarget) => {
+    if (view === target) return
+    if (target === 'history') viewHistory(view)
+    else navigate(target)
+  }
+  const navButton = (target: View, label: string) => <button type="button" className="secondary" aria-current={view === target ? 'page' : undefined} onClick={() => goTo(target)}>{label}</button>
+  // La même barre sur toutes les pages. Pendant une partie, seul le son reste : quitter l'abandonnerait (le retour du navigateur demande confirmation).
+  const headerActions = <>
+    <button type="button" className="secondary" onClick={toggleSound} aria-label={muted ? t('header.soundOn') : t('header.soundOff')}>{muted ? '🔇' : '🔊'}</button>
+    {view !== 'quiz' && <>
+      <ProfileMenu profile={profile} session={session} current={view} onOpen={openFromMenu} onSignOut={() => { supabase.auth.signOut() }} />
+      {dataset?.views?.filter((v) => v.entry === 'start').map(viewButton)}
+      {dataset && navButton('atlas', `🗂️ ${t('nav.fiches')}`)}
+      {navButton('content', `⚙️ ${t('nav.quiz')}`)}
+    </>}
+  </>
 
   return <main className="app-shell">
     {spec.Background && <spec.Background />}
-    <header><div><p className="eyebrow">{engineConfig().appName.toUpperCase()}</p><h1>{quiz.metadata.title}</h1><p>{t('header.by', { author: quiz.metadata.author })}</p>{view === 'start' && quiz.metadata.description && <p className="quiz-description-preview">{quiz.metadata.description}</p>}{view === 'start' && dataset?.intro && <div className="header-intro"><SpeakButton sentences={dataset.intro[speechLocale(dataset.intro, locale)] ?? []} locale={speechLocale(dataset.intro, locale)} /></div>}</div><div className="header-actions"><button type="button" className="secondary" onClick={toggleSound} aria-label={muted ? t('header.soundOn') : t('header.soundOff')}>{muted ? '🔇' : '🔊'}</button>{view === 'start' && <button type="button" className="secondary" onClick={() => navigate('profile')}>{profile ? `${profile.avatar} ${profile.pseudo}` : `👤 ${t('nav.profile')}`}</button>}{view === 'start' && dataset?.views?.filter((v) => v.entry === 'start').map(viewButton)}{view === 'start' && dataset && <button type="button" className="secondary" onClick={() => navigate('atlas')}>🗂️ {t('nav.fiches')}</button>}{view === 'start' && <button type="button" className="secondary" onClick={() => navigate('content')}>⚙️ {t('nav.quiz')}</button>}</div></header>
+    <header><div><p className="eyebrow">{engineConfig().appName.toUpperCase()}</p><h1>{quiz.metadata.title}</h1><p>{t('header.by', { author: quiz.metadata.author })}</p>{view === 'start' && quiz.metadata.description && <p className="quiz-description-preview">{quiz.metadata.description}</p>}{view === 'start' && dataset?.intro && <div className="header-intro"><SpeakButton sentences={dataset.intro[speechLocale(dataset.intro, locale)] ?? []} locale={speechLocale(dataset.intro, locale)} /></div>}</div><div className="header-actions">{headerActions}</div></header>
     {view === 'start' && <section className="start-page">
       {dataset?.editable && <DailyChallengePanel userId={userId} day={dailyKey()} onPlay={startDaily} refreshKey={dailyRefresh} error={dailyError} />}
       <ReviewPanel quiz={quiz} historyKey={historyKeyOf(dataset, quiz)} userId={userId} onReview={replayMissed} />
+      <div className="nav-links home-shortcuts">
+        <button type="button" className="secondary" onClick={() => { playClick(); viewHistory('start') }}>🕓 {t('nav.history')}</button>
+        <button type="button" className="secondary" onClick={() => goTo('leaderboard')}>🏆 {t('nav.leaderboard')}</button>
+      </div>
       <h2 className="start-section-title">{t('start.section.mode')}</h2>
       <div className="mode-toggle" role="radiogroup" aria-label={t('start.mode.aria')}>
         <label className={gameMode === 'classic' ? 'mode-chip is-active' : 'mode-chip'}>
@@ -537,6 +562,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
       const row = dataset.rows.find((r) => r[dataset.schema.subjectColumn] === ficheSubject)
       return row ? <FicheModal row={row} schema={dataset.schema} decor={dataset.ficheDecor} speech={dataset.speech} i18n={dataset.i18n} canEdit={isAdmin && Boolean(dataset.editable && spec.remote)} updateRow={spec.remote?.updateRow} onRowUpdated={handleDatasetRowUpdated} onClose={() => setFicheSubject(null)} /> : null
     })()}
+    {view === 'leaderboard' && <LeaderboardPage onBack={() => navigate('start')} historyKey={historyKeyOf(dataset, quiz)} userId={session?.user.id} />}
     {view === 'history' && <HistoryPage onBack={() => navigate(historyBack)} quiz={quiz} historyKey={historyKeyOf(dataset, quiz)} userId={session?.user.id} onReplayMissed={replayMissed} />}
     {view === 'profile' && <ProfilePage profile={profile} session={session} badges={badges} onBack={() => navigate('start')} onSave={async (next) => { await saveProfile(next, session?.user.id); onProfileChange(next) }} onViewHistory={() => viewHistory('profile')} />}
     <footer className="app-footer">{t('footer.version', { hash: __COMMIT_HASH__ })}</footer>
