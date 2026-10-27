@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { FilterPanel } from './components/FilterPanel'
+import { SubjectFilterPanel } from './components/SubjectFilterPanel'
+import { matchesSubjects } from './utils/subjectFilter'
 import { HistoryPage } from './components/HistoryPage'
 import { ProfilePage } from './components/ProfilePage'
 import { LeaderboardPage } from './components/LeaderboardPage'
@@ -139,6 +141,9 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
   const [ficheSubject, setFicheSubject] = useState<string | null>(null)
   const [genError, setGenError] = useState('')
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+  // Filtre « Territoires » (sujets retenus, valeurs FR canoniques) ; vide = tous.
+  const [selectedSubjects, setSelectedSubjects] = useState<string[]>([])
+  const subjectSet = useMemo(() => new Set(selectedSubjects), [selectedSubjects])
   const [difficulty, setDifficulty] = useState<Difficulty | ''>('')
   const [view, setView] = useState<View>('start')
   const [answers, setAnswers] = useState<AnswersByQuestion>({})
@@ -199,7 +204,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
   // "quiz" (fin de partie ou abandon), qui n'est pas un état vers lequel on veut pouvoir revenir en arrière.
   const replace = (next: View) => { setView(next); window.history.replaceState({ view: next }, '') }
   const filteredQuestions = useMemo(() => quiz.questions.filter((question) =>
-    (!selectedCategories.length || selectedCategories.includes(question.category)) && (!difficulty || question.difficulty === difficulty)), [quiz, selectedCategories, difficulty])
+    (!selectedCategories.length || selectedCategories.includes(question.category)) && (!difficulty || question.difficulty === difficulty) && matchesSubjects(question, subjectSet)), [quiz, selectedCategories, difficulty, subjectSet])
 
   // Réserve du blitz : les mêmes questions (mêmes identifiants) régénérées avec 4 choix au lieu de 3, pour les 4 cases, plus
   // les questions « inverses » (réponses = drapeaux ou silhouettes) qui n'existent que là.
@@ -210,13 +215,13 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     if (!blitzSelected) return []
     const source = dataset ? safeGenerate(spec, dataset, genRef.current.seed, locale, true).quiz.questions : quiz.questions
     return blitzPool(source).filter((question) =>
-      (!selectedCategories.length || selectedCategories.includes(question.category)) && (!difficulty || question.difficulty === difficulty))
-  }, [blitzSelected, dataset, quiz, locale, selectedCategories, difficulty]) // eslint-disable-line react-hooks/exhaustive-deps
+      (!selectedCategories.length || selectedCategories.includes(question.category)) && (!difficulty || question.difficulty === difficulty) && matchesSubjects(question, subjectSet))
+  }, [blitzSelected, dataset, quiz, locale, selectedCategories, difficulty, subjectSet]) // eslint-disable-line react-hooks/exhaustive-deps
   const blitzAvailable = blitzCandidates.length
 
   const applyQuiz = (next: Quiz) => {
     setQuiz(next)
-    setSelectedCategories([]); setDifficulty(''); setSessionQuestions([])
+    setSelectedCategories([]); setSelectedSubjects([]); setDifficulty(''); setSessionQuestions([])
   }
 
   const applyGenerated = (nextDataset: Dataset, seed: string) => {
@@ -500,6 +505,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
       </>}
       <h2 className="start-section-title">{t('start.section.filters')}</h2>
       <FilterPanel categories={quiz.categories} groups={dataset?.categoryGroups} selectedCategories={selectedCategories} difficulty={difficulty} onSelectedChange={setSelectedCategories} onDifficultyChange={setDifficulty} />
+      {dataset?.subjectFilter && <SubjectFilterPanel dataset={dataset} selected={selectedSubjects} onChange={setSelectedSubjects} />}
       {gameMode === 'classic' && <p>{t('start.availability', { n: formatNumber(filteredQuestions.length), picked: Math.min(questionCount, filteredQuestions.length) })}</p>}
       {gameMode === 'timeAttack' && <p>{t('start.timeAttackHint', { n: formatNumber(filteredQuestions.length) })}</p>}
       {gameMode === 'noMistake' && <p>{t('start.noMistakeHint', { n: formatNumber(filteredQuestions.length) })}</p>}

@@ -102,6 +102,10 @@ export const fr = {
   // — filtres —
   'filter.aria': 'Filtres du quiz',
   'filter.categories': 'Catégories',
+  'subjectFilter.all': "Tous inclus",
+  'subjectFilter.some': "{n} sélectionnés sur {total}",
+  'subjectFilter.pick': "Choisir un par un",
+  'subjectFilter.reset': "Tout sélectionner",
   'filter.selected.one': '{n} catégorie sélectionnée sur {total}',
   'filter.selected.other': '{n} catégories sélectionnées sur {total}',
   'filter.allCategories': 'Toutes les catégories',

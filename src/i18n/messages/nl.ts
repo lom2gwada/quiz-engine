@@ -98,6 +98,10 @@ export const nl: Record<MessageKey, string> = {
 
   'filter.aria': 'Quizfilters',
   'filter.categories': 'Categorieën',
+  'subjectFilter.all': "Alles inbegrepen",
+  'subjectFilter.some': "{n} geselecteerd van {total}",
+  'subjectFilter.pick': "Een voor een kiezen",
+  'subjectFilter.reset': "Alles selecteren",
   'filter.selected.one': '{n} categorie geselecteerd van {total}',
   'filter.selected.other': '{n} categorieën geselecteerd van {total}',
   'filter.allCategories': 'Alle categorieën',

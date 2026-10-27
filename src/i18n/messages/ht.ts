@@ -99,6 +99,10 @@ export const ht: Record<MessageKey, string> = {
 
   'filter.aria': 'Filtè quiz la',
   'filter.categories': 'Kategori',
+  'subjectFilter.all': "Tout enkli",
+  'subjectFilter.some': "{n} chwazi sou {total}",
+  'subjectFilter.pick': "Chwazi youn pa youn",
+  'subjectFilter.reset': "Chwazi tout",
   'filter.selected.one': '{n} kategori chwazi sou {total}',
   'filter.selected.other': '{n} kategori chwazi sou {total}',
   'filter.allCategories': 'Tout kategori yo',

@@ -96,6 +96,8 @@ export interface BaseQuestion {
   subject?: string
   /** Sujet traduit pour l'affichage (« Jamaica ») ; absent s'il est identique à `subject`. */
   subjectLabel?: string
+  /** Sujets (valeurs FR canoniques) d'une question de groupe — classement, association — qui n'a pas un `subject` unique. */
+  subjects?: string[]
   tags: string[]
   explanation: string
   points: number

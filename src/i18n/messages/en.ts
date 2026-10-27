@@ -97,6 +97,10 @@ export const en: Record<MessageKey, string> = {
 
   'filter.aria': 'Quiz filters',
   'filter.categories': 'Categories',
+  'subjectFilter.all': "All included",
+  'subjectFilter.some': "{n} selected out of {total}",
+  'subjectFilter.pick': "Pick one by one",
+  'subjectFilter.reset': "Select all",
   'filter.selected.one': '{n} category selected out of {total}',
   'filter.selected.other': '{n} categories selected out of {total}',
   'filter.allCategories': 'All categories',

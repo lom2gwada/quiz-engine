@@ -66,6 +66,15 @@ export interface CategoryGroup {
   categories: string[]
 }
 
+/** Filtre « Territoires » de l'accueil : restreindre les questions à une partie des sujets (lignes du jeu de données). Des raccourcis
+ *  par valeur d'une colonne (groupe géographique, pays de rattachement…) et un choix un par un. */
+export interface SubjectFilter {
+  /** Intitulé de la section par locale (« Territoires ») ; repli sur le français. */
+  labels: Partial<Record<Locale, string>>
+  /** Colonnes dont chaque valeur est un raccourci qui (dé)sélectionne tous les sujets qui l'ont. */
+  by: { column: string; labels: Partial<Record<Locale, string>> }[]
+}
+
 export interface Dataset {
   rows: Row[]
   schema: GenSchema
@@ -89,6 +98,8 @@ export interface Dataset {
   intro?: SpeechTemplates
   /** Regroupement des catégories sur l'accueil ; absent : une seule liste à plat. */
   categoryGroups?: CategoryGroup[]
+  /** Absent : pas de filtre par sujet sur l'accueil. */
+  subjectFilter?: SubjectFilter
   map?: DatasetMap
   views?: DatasetView[]
 }
