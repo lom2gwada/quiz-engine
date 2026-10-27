@@ -11,8 +11,8 @@ export const fr = {
 
   // — en-tête / navigation —
   'header.by': 'par {author}',
-  'header.soundOn': 'Activer le son',
-  'header.soundOff': 'Couper le son',
+  'header.soundOn': "Activer les effets sonores",
+  'header.soundOff': "Couper les effets sonores",
   'nav.profile': 'Profil',
   'nav.fiches': 'Fiches',
   'nav.quiz': 'Quiz',
@@ -341,6 +341,9 @@ export const fr = {
   'fiche.close': 'Fermer',
   'fiche.edit': 'Modifier',
   'fiche.speak': "Écouter",
+  'fiche.speakTitle': "Lire le texte à voix haute",
+  'intro.speak': "Écouter la présentation",
+  'intro.read': "Lire la présentation",
   'fiche.speakStop': "Arrêter",
   'fiche.speakError': "La lecture vocale n'a pas démarré. Vérifiez le volume (média) et que la voix de la langue est installée sur l'appareil.",
   'fiche.editError': "Impossible d'enregistrer les modifications. Réessayez.",

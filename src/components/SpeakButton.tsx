@@ -3,9 +3,10 @@ import type { Locale } from '../i18n/locale'
 import { useT } from '../i18n'
 import { speakSentences, speechDiagnostics, speechSupported, stopSpeaking } from '../utils/speech'
 
-/** Bouton « Écouter » / « Arrêter » : lit la fiche à voix haute (synthèse vocale du navigateur). Caché si le
- *  navigateur n'en a pas ou s'il n'y a rien à dire. La lecture s'arrête quand les phrases changent ou au démontage. */
-export function SpeakButton({ sentences, locale }: { sentences: string[]; locale: Locale }) {
+/** Bouton « Écouter » / « Arrêter » : lit le texte à voix haute (synthèse vocale du navigateur). Caché si le
+ *  navigateur n'en a pas ou s'il n'y a rien à dire. La lecture s'arrête quand les phrases changent ou au démontage.
+ *  `label` : texte du bouton au repos (« Écouter » par défaut) ; l'icône 🗣️ le distingue du bouton des effets sonores (🔔 / 🔕). */
+export function SpeakButton({ sentences, locale, label }: { sentences: string[]; locale: Locale; label?: string }) {
   const t = useT()
   const [speaking, setSpeaking] = useState(false)
   const [failed, setFailed] = useState<string | null>(null)
@@ -23,8 +24,8 @@ export function SpeakButton({ sentences, locale }: { sentences: string[]; locale
   }
 
   return <>
-    <button type="button" className="secondary fiche-speak" onClick={toggle} aria-pressed={speaking}>
-      {speaking ? `⏹ ${t('fiche.speakStop')}` : `🔊 ${t('fiche.speak')}`}
+    <button type="button" className="secondary fiche-speak" onClick={toggle} aria-pressed={speaking} title={t('fiche.speakTitle')}>
+      {speaking ? `⏹ ${t('fiche.speakStop')}` : `🗣️ ${label ?? t('fiche.speak')}`}
     </button>
     {failed && <span className="dictation-hint" role="status">{t('fiche.speakError')} ({failed})</span>}
   </>

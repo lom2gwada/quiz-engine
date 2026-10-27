@@ -440,7 +440,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
   const navButton = (target: View, label: string) => <button type="button" className="secondary" aria-current={view === target ? 'page' : undefined} onClick={() => goTo(target)}>{label}</button>
   // La même barre sur toutes les pages. Pendant une partie, seul le son reste : quitter l'abandonnerait (le retour du navigateur demande confirmation).
   const headerActions = <>
-    <button type="button" className="secondary" onClick={toggleSound} aria-label={muted ? t('header.soundOn') : t('header.soundOff')}>{muted ? '🔇' : '🔊'}</button>
+    <button type="button" className="secondary" onClick={toggleSound} aria-label={muted ? t('header.soundOn') : t('header.soundOff')} title={muted ? t('header.soundOn') : t('header.soundOff')}>{muted ? '🔕' : '🔔'}</button>
     {view !== 'quiz' && <>
       <ProfileMenu profile={profile} session={session} current={view} onOpen={openFromMenu} onSignOut={() => { supabase.auth.signOut() }} />
       {dataset?.views?.filter((v) => v.entry === 'start').map(viewButton)}
@@ -451,7 +451,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
 
   return <main className="app-shell">
     {spec.Background && <spec.Background />}
-    <header><div><p className="eyebrow">{engineConfig().appName.toUpperCase()}</p><h1>{quiz.metadata.title}</h1><p>{t('header.by', { author: quiz.metadata.author })}</p>{view === 'start' && quiz.metadata.description && <p className="quiz-description-preview">{quiz.metadata.description}</p>}{view === 'start' && dataset?.intro && <div className="header-intro"><SpeakButton sentences={dataset.intro[speechLocale(dataset.intro, locale)] ?? []} locale={speechLocale(dataset.intro, locale)} /></div>}</div><div className="header-actions">{headerActions}</div></header>
+    <header><div><p className="eyebrow">{engineConfig().appName.toUpperCase()}</p><h1>{quiz.metadata.title}</h1><p>{t('header.by', { author: quiz.metadata.author })}</p>{view === 'start' && quiz.metadata.description && <p className="quiz-description-preview">{quiz.metadata.description}</p>}{view === 'start' && dataset?.intro && <div className="header-intro"><SpeakButton sentences={dataset.intro[speechLocale(dataset.intro, locale)] ?? []} locale={speechLocale(dataset.intro, locale)} label={t('intro.speak')} /><details className="intro-text"><summary>{t('intro.read')}</summary>{(dataset.intro[speechLocale(dataset.intro, locale)] ?? []).map((sentence) => <p key={sentence}>{sentence}</p>)}</details></div>}</div><div className="header-actions">{headerActions}</div></header>
     {view === 'start' && <section className="start-page">
       {dataset?.editable && <DailyChallengePanel userId={userId} day={dailyKey()} onPlay={startDaily} refreshKey={dailyRefresh} error={dailyError} />}
       <ReviewPanel quiz={quiz} historyKey={historyKeyOf(dataset, quiz)} userId={userId} onReview={replayMissed} />
