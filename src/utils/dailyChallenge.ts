@@ -1,6 +1,7 @@
 import { storageKey, table } from '../config'
 import type { Question } from '../types/quiz'
 import { blitzPool, type BlitzStats } from './blitz'
+import { spreadQuestions } from './spreadQuestions'
 import { supabase } from './supabase'
 
 /** Défi du jour : la même série de questions pour tout le monde, une seule tentative par jour. */
@@ -13,7 +14,8 @@ export const dailySeed = (day: string): string => `daily-${day}`
 /** Les questions du jour, par leurs identifiants : les premières éligibles au blitz d'un tirage seedé sur la date.
  *  On les retient sur un tirage français puis on les retrouve dans la langue du joueur (mêmes identifiants). */
 export function pickDailyIds(questions: Question[]): string[] {
-  return blitzPool(questions).slice(0, DAILY_QUESTION_COUNT).map((question) => question.id)
+  // Sans deux questions de suite sur le même sujet : réordonnement déterministe de la tête du tirage, donc même série pour tous.
+  return spreadQuestions(blitzPool(questions).slice(0, DAILY_QUESTION_COUNT * 4)).slice(0, DAILY_QUESTION_COUNT).map((question) => question.id)
 }
 
 export function selectDaily(questions: Question[], ids: string[]): Question[] {

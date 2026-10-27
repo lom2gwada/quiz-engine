@@ -31,6 +31,14 @@ describe('daily challenge', () => {
     expect(selectDaily(many.slice(0, 5), ids)).toHaveLength(5)
   })
 
+  it('never serves two questions on the same subject in a row, and the series is the same every time', () => {
+    const pool = Array.from({ length: 60 }, (_, i) => ({ ...qcm(`s${i}`), subject: `sujet${Math.floor(i / 2)}` }))
+    const ids = pickDailyIds(pool)
+    expect(ids).toEqual(pickDailyIds(pool))
+    const subjects = selectDaily(pool, ids).map((question) => question.subject)
+    for (let i = 1; i < subjects.length; i += 1) expect(subjects[i]).not.toBe(subjects[i - 1])
+  })
+
   it('counts consecutive played days back from today, or from yesterday if today is not played', () => {
     expect(dailyStreak(['2026-09-20', '2026-09-19', '2026-09-18', '2026-09-15'], '2026-09-20')).toBe(3)
     expect(dailyStreak(['2026-09-19', '2026-09-18'], '2026-09-20')).toBe(2)
