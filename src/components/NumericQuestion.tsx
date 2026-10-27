@@ -1,11 +1,12 @@
 import { useEffect } from 'react'
 import type { NumericQuestion as Question, UserAnswer } from '../types/quiz'
 import { formatNumericValue } from '../utils/number'
+import { initialNumericValue } from '../utils/numericRange'
 
 export function NumericQuestion({ question, answer, onChange }: { question: Question; answer?: UserAnswer; onChange: (value: string) => void }) {
   const { min, max, step, unit, isYear } = question.content
   const hasAnswer = typeof answer === 'string' && answer !== ''
-  const value = hasAnswer ? Number(answer) : Math.round((min + max) / 2)
+  const value = hasAnswer ? Number(answer) : initialNumericValue(min, max, step)
   const suffix = unit ? ` ${unit}` : ''
   const show = (n: number) => `${formatNumericValue(n, isYear, undefined, unit)}${suffix}`
 
