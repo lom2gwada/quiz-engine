@@ -4,7 +4,7 @@
   --text: #d3ece7; --ink: #f0fbf8; --text-muted: #79a9a2; --text-soft: #aed2cc; --neutral-border: #4e7c78;
   --accent: #2dd4bf; --accent-text: #4fe3cf; --accent-2: #1fb9a7; --accent-3: #34d399; --text-on-accent: #04212b;
   --surface: rgba(7, 34, 42, .78); --surface-solid: #082b35; --surface-alt: #103f49; --surface-selected: #0d3b46;
-  --border: #1d5460; --border-input: #2c6b78;
+  --border: #1d5460; --border-input: #4e7c78; --placeholder: #79a9a2; color-scheme: dark;
   --danger-bg: #45201a; --danger-text: #fecaca; --success: #34d399; --success-text: #6ee7b7; --error: #fb7185;
   --gold: #fbbf24; --info-text: #a5f3ec; --code-bg: #021015; --shadow: 0 20px 45px rgba(0, 0, 0, .28);
   --map-ink: #74e9d7;
@@ -20,7 +20,7 @@
   --text: #3a3020; --ink: #241c0e; --text-muted: #857449; --text-soft: #5b4e34; --neutral-border: #b6a274;
   --accent: #1c6a8c; --accent-text: #12506a; --accent-2: #2f8f7a; --accent-3: #3f9a83; --text-on-accent: #f5edd7;
   --surface: rgba(246, 238, 216, .8); --surface-solid: #efe4c5; --surface-alt: #e7d9b4; --surface-selected: #ddc99f;
-  --border: #c6b489; --border-input: #b6a274;
+  --border: #c6b489; --border-input: #8a7a50; --placeholder: #6f6038; color-scheme: light;
   --danger-bg: #f2ddce; --danger-text: #8a3a22; --success: #2f7d54; --success-text: #23603f; --error: #b34a34;
   --gold: #9a6a1a; --info-text: #12506a; --code-bg: #e9dcb8; --shadow: 0 20px 45px rgba(60, 45, 20, .1);
   --map-ink: #37301f;
@@ -29,6 +29,11 @@
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; background: transparent; }
 button, input, select { font: inherit; }
+/* Champs de saisie : un seul style, dans les deux thèmes (contours à 3:1 au moins, texte et indication lisibles). Zéro spécificité
+ * (:where) : les réglages propres à un composant (largeur, marges) l'emportent toujours. */
+:where(input:not([type]), input[type="text"], input[type="search"], input[type="number"], input[type="email"], input[type="password"], input[type="url"], input[type="tel"]) { background: var(--surface-solid); color: var(--text); border: 1px solid var(--border-input); border-radius: .45rem; padding: .6rem .7rem; }
+:where(input, textarea)::placeholder { color: var(--placeholder); opacity: 1; }
+:where(input, select, textarea):focus-visible { border-color: var(--accent); }
 button { border: 0; border-radius: .55rem; padding: .72rem 1rem; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: var(--text-on-accent); cursor: pointer; font-weight: 750; transition: filter .15s ease, transform .1s ease; }
 button:hover:not(:disabled) { filter: brightness(1.08); } button:active:not(:disabled) { transform: scale(.97); } button:disabled { cursor: not-allowed; opacity: .45; }
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
@@ -133,7 +138,7 @@ pre { padding: 1rem; overflow: auto; background: var(--code-bg); border: 1px sol
 .generator-column-badges { display: flex; gap: .3rem; }
 .generator-badge { padding: .05rem .45rem; border-radius: 1rem; background: var(--surface-alt); color: var(--text-muted); font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
 .generator-sep { flex-direction: row !important; align-items: center; gap: .4rem !important; margin-left: auto; }
-.generator-sep input { width: 2.5rem; text-align: center; }
+.generator-sep input { width: 2.5rem; padding: .5rem .2rem; text-align: center; }
 .generator-actions { display: flex; flex-wrap: wrap; align-items: end; gap: .8rem; }
 .quiz-description-preview { max-width: 60ch; margin: .4rem 0 0; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .header-intro { margin-top: .7rem; }
