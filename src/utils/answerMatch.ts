@@ -58,3 +58,22 @@ export function matchAnswer(categoryId: string, given: string, expected: string[
   const custom = matchers[categoryId]
   return custom ? custom(given, expected) : matchesExpected(given, expected, caseSensitive)
 }
+
+const NAME_SUFFIX = /^(jr\.?|sr\.?|junior|senior|ii|iii|iv)$/i
+
+/** Nom de famille d'un nom de personne : son dernier mot (« Luis Abinader » → « Abinader », « Jean-Pierre Lacroix » → « Lacroix »), un suffixe
+ *  « Jr » / « III » étant ignoré. Chaîne vide s'il n'y a qu'un mot : il n'y a alors rien de plus à accepter. */
+export function lastNameOf(fullName: string): string {
+  const words = fullName.trim().split(/\s+/).filter((word) => !NAME_SUFFIX.test(word))
+  return words.length > 1 ? words[words.length - 1] : ''
+}
+
+/** Comparateur pour une catégorie de personnes (président, Premier ministre…) : le nom complet, **ou le nom de famille seul**, avec la
+ *  tolérance habituelle (casse, accents, une faute de frappe). Le prénom seul reste refusé. */
+export const acceptLastName: AnswerMatcher = (given, expected) =>
+  matchesExpected(given, [...expected, ...expected.map(lastNameOf).filter(Boolean)], false)
+
+/** Comparateurs « nom de famille accepté » pour les catégories d'un jeu de données (`Dataset.lastNameCategories`). */
+export function lastNameMatchers(categoryIds: string[] | undefined): Record<string, AnswerMatcher> {
+  return Object.fromEntries((categoryIds ?? []).map((id) => [id, acceptLastName]))
+}

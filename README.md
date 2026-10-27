@@ -30,6 +30,8 @@ Le contenu du jeu de données. Tout ce qui est spécifique passe par `Dataset` (
   (casse, accents, espaces, faute de frappe) : à elle de décider ce qui est équivalent — par exemple une configuration électronique
   « [Rn] 5f3 6d1 7s2 » = « [Rn]7s2 5f3 6d1 ». Utilisée au jeu, à la correction, en révision et dans les statistiques. Exemple : `periodic-quiz`, `src/utils/electronConfig.ts`.
 
+- **`lastNameCategories`** — liste de catégories de personnes (`['president', 'premier_ministre']`) où le **nom de famille seul** (dernier mot, suffixe « Jr » ignoré) est accepté en plus du nom complet, avec la tolérance habituelle (casse, accents, une faute de frappe) ; le prénom seul reste refusé. Les autres catégories ne changent pas. Un `answerMatchers` de la même catégorie l'emporte.
+
 ## Modifier le moteur
 
 Depuis une appli : éditer `engine/`, y commiter et pousser, puis commiter dans l'appli le nouveau pointeur du sous-module (`git add engine`). Penser à mettre à jour **les deux** applis.

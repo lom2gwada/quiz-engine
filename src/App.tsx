@@ -3,7 +3,7 @@ import type { Session } from '@supabase/supabase-js'
 import { FilterPanel } from './components/FilterPanel'
 import { SubjectFilterPanel } from './components/SubjectFilterPanel'
 import { matchesSubjects } from './utils/subjectFilter'
-import { setAnswerMatchers } from './utils/answerMatch'
+import { lastNameMatchers, setAnswerMatchers } from './utils/answerMatch'
 import { HistoryPage } from './components/HistoryPage'
 import { ProfilePage } from './components/ProfilePage'
 import { LeaderboardPage } from './components/LeaderboardPage'
@@ -140,7 +140,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
   const [quiz, setQuiz] = useState<Quiz>(initial.quiz)
   const [dataset, setDataset] = useState<Dataset | null>(initial.dataset)
   // Comparateurs de réponse du jeu de données courant : posés pendant le rendu (idempotent) pour que la correction les voie dès le premier affichage.
-  useMemo(() => setAnswerMatchers(dataset?.answerMatchers), [dataset])
+  useMemo(() => setAnswerMatchers({ ...lastNameMatchers(dataset?.lastNameCategories), ...dataset?.answerMatchers }), [dataset])
   // Tirage courant : seed + locale ayant produit `quiz`. Le quiz initial = seed de l'appli en FR.
   const genRef = useRef<{ seed: string; locale: Locale }>({ seed: spec.seed, locale: DEFAULT_LOCALE })
   const [ficheSubject, setFicheSubject] = useState<string | null>(null)

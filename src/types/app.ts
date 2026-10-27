@@ -116,6 +116,8 @@ export interface Dataset {
    *  comparaison de chaînes du moteur, pour les questions à saisie : notation métier (configuration électronique, formule chimique…).
    *  Utilisée au jeu, à la correction, en révision et dans les statistiques. */
   answerMatchers?: Record<string, AnswerMatcher>
+  /** Catégories de personnes (président, Premier ministre…) où le nom de famille seul est accepté en plus du nom complet (le prénom seul reste refusé). */
+  lastNameCategories?: string[]
   /** Tri par défaut de la page Fiches (et ordre « précédent / suivant » d'une fiche) : une colonne numérique ; absent : par nom. */
   atlasSort?: { column: string; direction?: 'asc' | 'desc' }
   /** Absent : pas de filtre par sujet sur l'accueil. */

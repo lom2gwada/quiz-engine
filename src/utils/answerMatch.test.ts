@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { matchAnswer, matchesExpected, normalizeAnswer, setAnswerMatchers, withinOneEdit } from './answerMatch'
+import { acceptLastName, lastNameMatchers, lastNameOf, matchAnswer, matchesExpected, normalizeAnswer, setAnswerMatchers, withinOneEdit } from './answerMatch'
 
 describe('normalizeAnswer', () => {
   it('ignores case, accents, hyphens/apostrophes/spaces and the leading article', () => {
@@ -86,5 +86,49 @@ describe('matchAnswer / setAnswerMatchers', () => {
     expect(matchAnswer('formule', 'h2o', ['H2O'], false)).toBe(false) // le comparateur décide, pas matchesExpected
     expect(matchAnswer('capitale', 'la havane', ['La Havane'], false)).toBe(true)
     setAnswerMatchers(undefined)
+  })
+})
+
+describe('accepter le nom de famille d’une personne', () => {
+  const expected = ['Luis Abinader']
+
+  it('lastNameOf : dernier mot, suffixes ignorés, rien pour un seul mot', () => {
+    expect(lastNameOf('Luis Abinader')).toBe('Abinader')
+    expect(lastNameOf('Jean-Pierre Lacroix')).toBe('Lacroix')
+    expect(lastNameOf('Martin Luther King Jr')).toBe('King')
+    expect(lastNameOf('Xi')).toBe('')
+    expect(lastNameOf('')).toBe('')
+  })
+
+  it('le nom complet et le nom de famille seul sont acceptés', () => {
+    expect(acceptLastName('Luis Abinader', expected)).toBe(true)
+    expect(acceptLastName('Abinader', expected)).toBe(true)
+    expect(acceptLastName('abinader', expected)).toBe(true)
+    expect(acceptLastName('  ABINADER ', expected)).toBe(true)
+  })
+
+  it('une faute de frappe sur le nom de famille reste tolérée', () => {
+    expect(acceptLastName('Abinadre', expected)).toBe(true)
+    expect(acceptLastName('Abinadir', expected)).toBe(true)
+  })
+
+  it('le prénom seul reste refusé, comme un autre nom', () => {
+    expect(acceptLastName('Luis', expected)).toBe(false)
+    expect(acceptLastName('Fernandez', expected)).toBe(false)
+    expect(acceptLastName('', expected)).toBe(false)
+  })
+
+  it('un nom en un seul mot n’ouvre pas d’autre réponse', () => {
+    expect(acceptLastName('Xi', ['Xi'])).toBe(true)
+    expect(acceptLastName('Jinping', ['Xi'])).toBe(false)
+  })
+
+  it('seules les catégories déclarées changent de comportement', () => {
+    setAnswerMatchers(lastNameMatchers(['president']))
+    expect(matchAnswer('president', 'Abinader', expected, false)).toBe(true)
+    expect(matchAnswer('capitale', 'Abinader', expected, false)).toBe(false)
+    expect(matchAnswer('capitale', 'luis abinader', expected, false)).toBe(true)
+    setAnswerMatchers(undefined)
+    expect(lastNameMatchers(undefined)).toEqual({})
   })
 })
