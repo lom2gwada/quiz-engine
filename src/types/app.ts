@@ -75,6 +75,15 @@ export interface SubjectFilter {
   by: { column: string; labels: Partial<Record<Locale, string>> }[]
 }
 
+/** Poids minimal de catégories rares dans un tirage « toutes catégories » : sans lui, 38 drapeaux se noient parmi des milliers de
+ *  questions chiffrées. Appliqué aux modes de partie quand aucune catégorie n'est choisie (ou toutes). */
+export interface CategoryBoost {
+  /** Identifiants des catégories à mettre en avant. */
+  categories: string[]
+  /** Part visée de ces catégories dans le tirage (0–1) ; ex. 0,1 = une question sur dix. */
+  share: number
+}
+
 export interface Dataset {
   rows: Row[]
   schema: GenSchema
@@ -100,6 +109,8 @@ export interface Dataset {
   categoryGroups?: CategoryGroup[]
   /** Absent : pas de filtre par sujet sur l'accueil. */
   subjectFilter?: SubjectFilter
+  /** Absent : le tirage reflète la taille réelle de chaque catégorie. */
+  boost?: CategoryBoost
   map?: DatasetMap
   views?: DatasetView[]
 }

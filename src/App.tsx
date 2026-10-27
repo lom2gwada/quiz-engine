@@ -41,6 +41,7 @@ import { earnedBadges, addBadges, playedAllModesToday, pushBadges, readBadges, s
 import { DAILY_QUESTION_COUNT, claimDaily, dailyKey, dailyRank, dailySeed, dailyStreak, fetchDailyLeaderboard, fetchMyDaily, finishDaily, finishedLocalDays, markDailyFinished, markDailyStarted, pickDailyIds, readDailyLocal, selectDaily } from './utils/dailyChallenge'
 import { shuffle } from './utils/shuffle'
 import { spreadQuestions } from './utils/spreadQuestions'
+import { blendByShare } from './utils/blendByShare'
 
 type BuiltinView = 'start' | 'quiz' | 'results' | 'content' | 'history' | 'leaderboard' | 'profile' | 'atlas'
 /** Vues intégrées, ou id d'une vue propre au jeu de données (`Dataset.views`). */
@@ -316,13 +317,20 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     setNewBadges([])
     setActiveMode(gameMode)
     const seen = new Set(avoid.map((question) => question.id))
-    // Mélange, puis réordonnement pour ne pas enchaîner deux questions sur le même sujet (ni, si possible, la même catégorie).
-    const ordered = spreadQuestions([...shuffle(filteredQuestions.filter((q) => !seen.has(q.id))), ...shuffle(filteredQuestions.filter((q) => seen.has(q.id)))])
+    // Mélange (les questions jamais vues d'abord), puis — « toutes catégories » — poids minimal des catégories rares du jeu de données
+    // (les questions visuelles), puis réordonnement pour ne pas enchaîner deux questions sur le même sujet ni la même catégorie.
+    const shuffled = (list: Question[]) => [...shuffle(list.filter((q) => !seen.has(q.id))), ...shuffle(list.filter((q) => seen.has(q.id)))]
+    const boost = dataset?.boost
+    const allCategories = !selectedCategories.length || selectedCategories.length >= quiz.categories.length
+    const drawOrder = (pool: Question[]): Question[] => {
+      if (!boost || !allCategories) return spreadQuestions(shuffled(pool))
+      const isBoosted = (question: Question) => boost.categories.includes(question.category)
+      return spreadQuestions(blendByShare(shuffled(pool.filter((q) => !isBoosted(q))), shuffled(pool.filter(isBoosted)), boost.share))
+    }
+    const ordered = drawOrder(filteredQuestions)
     if (gameMode === 'blitz') {
       setActiveTimeLimit(undefined)
-      const fresh = shuffle(blitzCandidates.filter((question) => !seen.has(question.id)))
-      const again = shuffle(blitzCandidates.filter((question) => seen.has(question.id)))
-      setSessionQuestions(spreadQuestions([...fresh, ...again]).slice(0, BLITZ_QUESTION_COUNT))
+      setSessionQuestions(drawOrder(blitzCandidates).slice(0, BLITZ_QUESTION_COUNT))
     } else if (gameMode === 'classic') {
       setActiveTimeLimit(undefined)
       setSessionQuestions(ordered.slice(0, Math.min(questionCount, ordered.length)))
