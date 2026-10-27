@@ -29,6 +29,8 @@ export interface FicheDecor {
   lead?: ReactNode
   /** Après le nom (et le drapeau éventuel). */
   trail?: ReactNode
+  /** Titre sans l'article de la colonne `article` (« Hierro », pas « el Hierro ») : l'article sert aux phrases, pas à un titre de fiche. */
+  hideArticle?: boolean
 }
 export type FicheDecorator = (row: Row, ctx: { name: string; canonical: string }) => FicheDecor
 
@@ -107,6 +109,8 @@ export interface Dataset {
   intro?: SpeechTemplates
   /** Regroupement des catégories sur l'accueil ; absent : une seule liste à plat. */
   categoryGroups?: CategoryGroup[]
+  /** Tri par défaut de la page Fiches (et ordre « précédent / suivant » d'une fiche) : une colonne numérique ; absent : par nom. */
+  atlasSort?: { column: string; direction?: 'asc' | 'desc' }
   /** Absent : pas de filtre par sujet sur l'accueil. */
   subjectFilter?: SubjectFilter
   /** Absent : le tirage reflète la taille réelle de chaque catégorie. */

@@ -9,6 +9,7 @@ import { LeaderboardPage } from './components/LeaderboardPage'
 import { ProfileMenu, type ProfileMenuTarget } from './components/ProfileMenu'
 import { AtlasPage } from './components/AtlasPage'
 import { FicheModal } from './components/FicheModal'
+import { makeDatasetI18n } from './i18n/dataset'
 import { QuizContentPage } from './components/QuizContentPage'
 import { QuizPage, type GameMode } from './components/QuizPage'
 import { ResultPage } from './components/ResultPage'
@@ -140,6 +141,17 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
   // Tirage courant : seed + locale ayant produit `quiz`. Le quiz initial = seed de l'appli en FR.
   const genRef = useRef<{ seed: string; locale: Locale }>({ seed: spec.seed, locale: DEFAULT_LOCALE })
   const [ficheSubject, setFicheSubject] = useState<string | null>(null)
+  // Ordre de « fiche précédente / suivante » : celui du tri par défaut de la page Fiches — numéro atomique…, sinon alphabétique (nom affiché).
+  const ficheOrder = useMemo(() => {
+    if (!dataset) return []
+    const { subjectColumn } = dataset.schema
+    const sort = dataset.atlasSort
+    const numeric = (row: Row): number => { const n = Number(String(row[sort?.column ?? ''] ?? '').replace(/\s/g, '').replace(',', '.')); return Number.isFinite(n) ? n : Number.POSITIVE_INFINITY }
+    const names = makeDatasetI18n(dataset.i18n, locale)
+    const byName = (a: Row, b: Row) => names.value(a[subjectColumn] ?? '').localeCompare(names.value(b[subjectColumn] ?? ''), locale)
+    const rows = [...dataset.rows].sort(sort ? (a, b) => (sort.direction === 'desc' ? numeric(b) - numeric(a) : numeric(a) - numeric(b)) : byName)
+    return rows.map((row) => row[subjectColumn] ?? '')
+  }, [dataset, locale])
   const [genError, setGenError] = useState('')
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   // Filtre « Territoires » (sujets retenus, valeurs FR canoniques) ; vide = tous.
@@ -589,14 +601,15 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     }} onCancel={backToStart} />}
     {view === 'results' && <ResultPage questions={resultQuestions} answers={answers} categories={quiz.categories} elapsedSeconds={elapsedSeconds} onRestartSame={isReplay || dailyRun ? undefined : restartQuiz} onBackToSettings={backToStart} onViewHistory={() => viewHistory('results')} onViewFiche={dataset ? setFicheSubject : undefined} summary={<GameExtras blitz={activeMode === 'blitz' ? blitzSummary : null} daily={dailySummary} modeRecord={activeMode === 'blitz' ? null : modeRecordSummary} review={isReplay ? reviewChanges : null} newBadges={newBadges} />} />}
     {view === 'content' && <QuizContentPage quiz={quiz} dataset={dataset} onBack={() => navigate('start')} onCsvChange={loadCsv} onGenerate={generateFromPanel} onRegenerate={regenerateQuestions} onPreview={previewGenerated} sharedDefault={Boolean(dataset?.editable && isAdmin)} fileError={fileError} genError={genError} />}
-    {view === 'atlas' && dataset && <AtlasPage rows={dataset.rows} schema={dataset.schema} decor={dataset.ficheDecor} i18n={dataset.i18n} actions={dataset.views?.filter((v) => v.entry === 'atlas').map(viewButton)} onOpenFiche={setFicheSubject} onBack={() => navigate('start')} />}
+    {view === 'atlas' && dataset && <AtlasPage rows={dataset.rows} schema={dataset.schema} decor={dataset.ficheDecor} i18n={dataset.i18n} defaultSort={dataset.atlasSort} actions={dataset.views?.filter((v) => v.entry === 'atlas').map(viewButton)} onOpenFiche={setFicheSubject} onBack={() => navigate('start')} />}
     {dataset && (() => {
       const custom = dataset.views?.find((v) => v.id === view)
       return custom ? custom.render({ dataset, openFiche: setFicheSubject, back: () => navigate(custom.entry === 'atlas' ? 'atlas' : 'start') }) : null
     })()}
     {ficheSubject && dataset && (() => {
       const row = dataset.rows.find((r) => r[dataset.schema.subjectColumn] === ficheSubject)
-      return row ? <FicheModal row={row} schema={dataset.schema} decor={dataset.ficheDecor} speech={dataset.speech} i18n={dataset.i18n} canEdit={isAdmin && Boolean(dataset.editable && spec.remote)} updateRow={spec.remote?.updateRow} onRowUpdated={handleDatasetRowUpdated} onClose={() => setFicheSubject(null)} /> : null
+      const index = ficheOrder.indexOf(ficheSubject)
+      return row ? <FicheModal row={row} neighbors={index >= 0 ? { prev: ficheOrder[index - 1], next: ficheOrder[index + 1] } : undefined} onNavigate={setFicheSubject} schema={dataset.schema} decor={dataset.ficheDecor} speech={dataset.speech} i18n={dataset.i18n} canEdit={isAdmin && Boolean(dataset.editable && spec.remote)} updateRow={spec.remote?.updateRow} onRowUpdated={handleDatasetRowUpdated} onClose={() => setFicheSubject(null)} /> : null
     })()}
     {view === 'leaderboard' && <LeaderboardPage onBack={() => navigate('start')} historyKey={historyKeyOf(dataset, quiz)} userId={session?.user.id} />}
     {view === 'history' && <HistoryPage onBack={() => navigate(historyBack)} quiz={quiz} historyKey={historyKeyOf(dataset, quiz)} userId={session?.user.id} onReplayMissed={replayMissed} onPracticeWeak={practiceWeak} />}

@@ -32,7 +32,7 @@ export function Fiche({ row, schema, i18n, decor }: FicheProps) {
   const flag = imageCol && /^https?:\/\//.test((row[imageCol] ?? '').trim()) ? row[imageCol].trim() : null
   // « Drapeau d'Anguilla » : la nature de l'image (libellé de sa colonne) + le sujet, pour qu'elle ait un texte alternatif.
   const imageAlt = imageCol ? t('fiche.imageAlt', { label: cap(data.label(columns[imageCol].label)), of_name: data.ofSubject(canonical, articleColumn ? row[articleColumn] : undefined) }) : ''
-  const { lead, trail } = decor?.(row, { name, canonical }) ?? {}
+  const { lead, trail, hideArticle } = decor?.(row, { name, canonical }) ?? {}
   const factCols = Object.entries(columns).filter(
     ([c, s]) => s.include && !s.isImage && c !== subjectColumn && c !== articleColumn,
   )
@@ -41,7 +41,7 @@ export function Fiche({ row, schema, i18n, decor }: FicheProps) {
     <div className="fiche">
       <header className="fiche-head">
         {lead}
-        <h3>{article && <span className="fiche-article">{article}{/['’]$/.test(article) ? '' : ' '}</span>}{name}</h3>
+        <h3>{article && !hideArticle && <span className="fiche-article">{article}{/['’]$/.test(article) ? '' : ' '}</span>}{name}</h3>
         {flag && (
           <HoverPreview
             href={flag}

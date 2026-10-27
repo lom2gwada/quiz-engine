@@ -16,6 +16,8 @@ interface AtlasPageProps {
   /** Boutons d'accès aux vues propres au jeu de données (carte…), à gauche de « Retour ». */
   actions?: ReactNode
   i18n?: DataI18n
+  /** Tri de départ (`Dataset.atlasSort`) ; absent : par nom. */
+  defaultSort?: { column: string; direction?: 'asc' | 'desc' }
   onBack: () => void
   /** Ouvre la fiche d'une entité en modale (clic sur une carte). Reçoit la valeur FR canonique. */
   onOpenFiche: (name: string) => void
@@ -33,13 +35,13 @@ const writeView = (view: AtlasView) => {
 /** Grille de fiches, une par entité, dans l'ordre du tri choisi. Filtre + tri génériques
  * depuis le schéma. Deux vues, mémorisées : compacte (image, nom et une valeur clé — la page tient en quelques écrans) ou
  * détaillée (toutes les fiches complètes). Dans les deux cas, cliquer une carte ouvre la fiche en modale. */
-export function AtlasPage({ rows, schema, decor, actions, i18n, onBack, onOpenFiche }: AtlasPageProps) {
+export function AtlasPage({ rows, schema, decor, actions, i18n, defaultSort, onBack, onOpenFiche }: AtlasPageProps) {
   const t = useT()
   const locale = useLocale()
   const data = useMemo(() => makeDatasetI18n(i18n, locale), [i18n, locale])
   const [query, setQuery] = useState('')
-  const [sortKey, setSortKey] = useState('name') // 'name' ou une colonne nombre
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
+  const [sortKey, setSortKey] = useState(defaultSort?.column ?? 'name') // 'name' ou une colonne nombre
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>(defaultSort?.direction ?? 'asc')
   const [view, setView] = useState<AtlasView>(readView)
   const chooseView = (next: AtlasView) => { playClick(); setView(next); writeView(next) }
   const { subjectColumn, articleColumn, columns } = schema
