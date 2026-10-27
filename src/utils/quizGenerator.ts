@@ -248,6 +248,36 @@ export function capitalizeOptions(question: Question, cap: (text: string) => str
   return question
 }
 
+// --- Questions de classement : difficulté selon l'écart entre valeurs voisines ----------------------
+// Deux valeurs voisines trop proches (798 °C et 819 °C) rendent l'ordre impossible à deviner sans les connaître par cœur. L'écart entre
+// valeurs VOISINES une fois classées décide donc du niveau, et un groupe sous le seuil minimal n'est jamais proposé.
+// Valeurs ordinaires : écart relatif (|a − b| / max(|a|, |b|)) ; années : écart en années (un écart relatif n'y a pas de sens).
+export const ORDER_GAP = {
+  relative: { easy: 0.4, medium: 0.2, hard: 0.05 },
+  years: { easy: 25, medium: 10, hard: 2 },
+}
+
+/** Plus petit écart entre deux valeurs voisines du groupe classé (relatif, ou en années si `isYear`). */
+export function minNeighbourGap(values: number[], isYear: boolean): number {
+  const sorted = [...values].sort((a, b) => a - b)
+  let min = Number.POSITIVE_INFINITY
+  for (let i = 1; i < sorted.length; i += 1) {
+    const diff = Math.abs(sorted[i] - sorted[i - 1])
+    const gap = isYear ? diff : diff / (Math.max(Math.abs(sorted[i]), Math.abs(sorted[i - 1])) || 1)
+    if (gap < min) min = gap
+  }
+  return min
+}
+
+/** Niveau d'un classement d'après son plus petit écart ; `null` : écart sous le minimum, le groupe est écarté. */
+export function orderingDifficulty(gap: number, isYear: boolean): 'easy' | 'medium' | 'hard' | null {
+  const limits = isYear ? ORDER_GAP.years : ORDER_GAP.relative
+  if (gap >= limits.easy) return 'easy'
+  if (gap >= limits.medium) return 'medium'
+  if (gap >= limits.hard) return 'hard'
+  return null
+}
+
 export function generateQuiz(
   rows: Row[],
   schema: GenSchema,
@@ -305,13 +335,16 @@ export function generateQuiz(
 
   // Groupes aléatoires de `size` lignes, qui peuvent se recouvrir d'une question à l'autre.
   // ~une question par ligne du pool ; les doublons exacts (petits jeux de données) sont écartés.
-  const overlapGroups = (pool: Row[], size: number): Row[][] => {
+  // `accept` : un groupe refusé est retiré de nouveau (quelques essais), pour garder ~une question par ligne.
+  const overlapGroups = (pool: Row[], size: number, accept?: (group: Row[]) => boolean): Row[][] => {
     const n = Math.min(size, pool.length)
     if (n < 3) return []
     const groups: Row[][] = []
     const seen = new Set<string>()
     for (let i = 0; i < pool.length; i += 1) {
-      const group = sample(pool, n)
+      let group = sample(pool, n)
+      for (let attempt = 0; accept && !accept(group) && attempt < 25; attempt += 1) group = sample(pool, n)
+      if (accept && !accept(group)) continue
       const key = group.map(nameOf).sort().join('|')
       if (seen.has(key)) continue
       seen.add(key)
@@ -552,13 +585,15 @@ export function generateQuiz(
       const distinct = [...new Map(shuffle(numRowsWith).map((r) => [formatNumericValue(asNumber(r[col]), spec.isYear, undefined, unit), r] as const)).values()]
       const direction: 'asc' | 'desc' = spec.isYear ? 'asc' : 'desc'
       const idOf = (r: Row): string => `o-${hashStr(nameOf(r) + col)}`
-      for (const group of overlapGroups(distinct, CFG.order.groupSize)) {
+      const gapOf = (group: Row[]): number => minNeighbourGap(group.map((r) => asNumber(r[col])), Boolean(spec.isYear))
+      for (const group of overlapGroups(distinct, CFG.order.groupSize, (g) => orderingDifficulty(gapOf(g), Boolean(spec.isYear)) !== null)) {
+        const difficulty = orderingDifficulty(gapOf(group), Boolean(spec.isYear)) ?? CFG.order.difficulty
         const idMembers = [...group].map(nameOf).sort() // clé d'id : noms FR canoniques
         const members = [...group].map(displayName).sort((a, b) => a.localeCompare(b, locale))
         const sorted = [...group].sort((a, b) =>
           direction === 'asc' ? asNumber(a[col]) - asNumber(b[col]) : asNumber(b[col]) - asNumber(a[col]))
         questions.push({
-          id: qid([col, 'ordering', ...idMembers]), type: 'ordering', category: categoryId, difficulty: CFG.order.difficulty, points: CFG.order.points, tags: [col], subjects: idMembers,
+          id: qid([col, 'ordering', ...idMembers]), type: 'ordering', category: categoryId, difficulty, points: CFG.order.points, tags: [col], subjects: idMembers,
           question: T('prompt.ordering', { nouns, label, direction: grammar.direction(direction) }),
           topic: T('topic.labelList', { Label, list: members.join(', ') }),
           explanation: sorted
