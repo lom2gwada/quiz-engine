@@ -223,6 +223,10 @@ export const ht: Record<MessageKey, string> = {
   'history.pointsPair': '{earned} / {total} pwen',
   'history.leaderboard': 'Klasman',
   'history.leaderboardEmpty': 'Pèsonn poko jwe mòd sa a sou kiz sa a.',
+  'leaderboard.rule.classic': "Pi bon pousantaj chak jwè, sou pati ki gen omwen {min} kesyon. Si egalite, pi rapid la.",
+  'leaderboard.rule.timeAttack': "Pi gwo kantite bon repons chak jwè. Si egalite, pi rapid la.",
+  'leaderboard.rule.noMistake': "Pi lòng seri bon repons chak jwè. Si egalite, pi rapid la.",
+  'leaderboard.rule.blitz': "Pi gwo kantite bon repons chak jwè. Si egalite, pi rapid la.",
   'leaderboard.correctCount.one': '{n} bon repons',
   'leaderboard.correctCount.other': '{n} bon repons',
 

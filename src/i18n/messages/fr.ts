@@ -231,6 +231,10 @@ export const fr = {
   'history.pointsPair': '{earned} / {total} pts',
   'history.leaderboard': 'Classement',
   'history.leaderboardEmpty': "Personne n'a encore joué ce mode sur ce quiz.",
+  'leaderboard.rule.classic': "Meilleur pourcentage de chaque joueur, sur des parties d’au moins {min} questions. À égalité, le plus rapide.",
+  'leaderboard.rule.timeAttack': "Meilleur nombre de bonnes réponses de chaque joueur. À égalité, le plus rapide.",
+  'leaderboard.rule.noMistake': "Plus longue série de bonnes réponses de chaque joueur. À égalité, le plus rapide.",
+  'leaderboard.rule.blitz': "Meilleur nombre de bonnes réponses de chaque joueur. À égalité, le plus rapide.",
   'leaderboard.correctCount.one': '{n} bonne réponse',
   'leaderboard.correctCount.other': '{n} bonnes réponses',
 

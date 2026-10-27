@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useT } from '../i18n'
-import { fetchLeaderboard, type LeaderboardRow } from '../utils/leaderboard'
+import { fetchLeaderboard, LEADERBOARD_MIN_QUESTIONS, type LeaderboardRow } from '../utils/leaderboard'
 import { formatDuration } from '../utils/time'
 import { MODE_ICONS } from './HistoryPage'
 import type { GameMode } from './QuizPage'
@@ -37,6 +37,7 @@ export function LeaderboardPanel({ quizTitle, userId }: { quizTitle: string; use
         </button>
       ))}
     </div>
+    <p className="leaderboard-rule">{t(`leaderboard.rule.${mode}`, { min: LEADERBOARD_MIN_QUESTIONS })}</p>
     {!rows && <p>{t('common.loading')}</p>}
     {rows && !rows.length && <p>{t('history.leaderboardEmpty')}</p>}
     {rows && rows.length > 0 && <ul className="leaderboard-list">

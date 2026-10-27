@@ -12,6 +12,10 @@ export interface LeaderboardRow {
   created_at: string
 }
 
+/** Nombre minimal de questions d'une partie classique pour entrer au classement : au pourcentage, un 100 % sur 5 questions
+ *  battrait un 95 % sur 20. Appliqué par les vues (`WHERE question_count >= 10`, cf. migration) : garder les deux en phase. */
+export const LEADERBOARD_MIN_QUESTIONS = 10
+
 // Une vue par mode (<prefixe>_leaderboard_*, cf. migration) : meilleure ligne par joueur et par
 // quiz, déjà jointe à <prefixe>_profiles pour pseudo/avatar (vue security-definer, volontaire —
 // même mécanisme que les leaderboards d'Oliver Quiz — pour lire ces deux champs au-delà de la RLS

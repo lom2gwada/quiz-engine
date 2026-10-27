@@ -222,6 +222,10 @@ export const nl: Record<MessageKey, string> = {
   'history.pointsPair': '{earned} / {total} ptn',
   'history.leaderboard': 'Klassement',
   'history.leaderboardEmpty': 'Nog niemand heeft deze modus op deze quiz gespeeld.',
+  'leaderboard.rule.classic': "Het beste percentage van elke speler, in spellen van minstens {min} vragen. Bij gelijke stand wint de snelste.",
+  'leaderboard.rule.timeAttack': "Het hoogste aantal juiste antwoorden van elke speler. Bij gelijke stand wint de snelste.",
+  'leaderboard.rule.noMistake': "De langste reeks juiste antwoorden van elke speler. Bij gelijke stand wint de snelste.",
+  'leaderboard.rule.blitz': "Het hoogste aantal juiste antwoorden van elke speler. Bij gelijke stand wint de snelste.",
   'leaderboard.correctCount.one': '{n} goed antwoord',
   'leaderboard.correctCount.other': '{n} goede antwoorden',
 

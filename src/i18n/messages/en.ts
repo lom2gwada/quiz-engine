@@ -221,6 +221,10 @@ export const en: Record<MessageKey, string> = {
   'history.pointsPair': '{earned} / {total} pts',
   'history.leaderboard': 'Leaderboard',
   'history.leaderboardEmpty': "Nobody has played this mode on this quiz yet.",
+  'leaderboard.rule.classic': "Each player’s best percentage, on games of at least {min} questions. Ties go to the fastest.",
+  'leaderboard.rule.timeAttack': "Each player’s most correct answers. Ties go to the fastest.",
+  'leaderboard.rule.noMistake': "Each player’s longest streak of correct answers. Ties go to the fastest.",
+  'leaderboard.rule.blitz': "Each player’s most correct answers. Ties go to the fastest.",
   'leaderboard.correctCount.one': '{n} correct answer',
   'leaderboard.correctCount.other': '{n} correct answers',
 

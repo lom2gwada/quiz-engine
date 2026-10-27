@@ -222,6 +222,10 @@ export const es: Record<MessageKey, string> = {
   'history.pointsPair': '{earned} / {total} pts',
   'history.leaderboard': 'Clasificación',
   'history.leaderboardEmpty': 'Nadie ha jugado todavía este modo en este quiz.',
+  'leaderboard.rule.classic': "Mejor porcentaje de cada jugador, en partidas de al menos {min} preguntas. En caso de empate, gana el más rápido.",
+  'leaderboard.rule.timeAttack': "Mayor número de respuestas correctas de cada jugador. En caso de empate, gana el más rápido.",
+  'leaderboard.rule.noMistake': "Racha más larga de respuestas correctas de cada jugador. En caso de empate, gana el más rápido.",
+  'leaderboard.rule.blitz': "Mayor número de respuestas correctas de cada jugador. En caso de empate, gana el más rápido.",
   'leaderboard.correctCount.one': '{n} respuesta correcta',
   'leaderboard.correctCount.other': '{n} respuestas correctas',
 
