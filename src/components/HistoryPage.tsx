@@ -3,13 +3,17 @@ import type { Question, Quiz } from '../types/quiz'
 import type { QuestionResultRow, QuizResultRow } from '../types/history'
 import { plural, useLocale, useT } from '../i18n'
 import { bucketsToRadarPoints, computeCategoryWeekHeatmap, computeRecords, computeReviewQueue, fetchQuestionResults, fetchQuizHistory, resolveReviewQuestions, sumBuckets, REVIEW_BATCH_SIZE } from '../utils/quizHistory'
-import { formatDuration } from '../utils/time'
+import { formatDuration, formatLongDuration } from '../utils/time'
+import { sortCategoryPoints, type CategorySort } from '../utils/historyView'
 import { CategoryWeekHeatmap } from './CategoryWeekHeatmap'
 import { HeatmapChart } from './HeatmapChart'
 import { LeaderboardPanel } from './LeaderboardPanel'
 import { QUESTION_TYPES, difficultyLabel, typeLabel, type GameMode } from './QuizPage'
 import { RadarChart } from './RadarChart'
 import { ScoreChart } from './ScoreChart'
+import { TabList, tabId, tabPanelId } from './TabList'
+
+type HistoryTab = 'summary' | 'categories' | 'leaderboard' | 'games'
 
 export const MODE_ICONS: Record<GameMode, string> = { classic: '🎯', timeAttack: '⏱️', noMistake: '🔥', blitz: '⚡' }
 
@@ -29,6 +33,8 @@ export function HistoryPage({ onBack, quiz, historyKey, userId, onReplayMissed }
   const [questionRows, setQuestionRows] = useState<QuestionResultRow[]>([])
   const [error, setError] = useState('')
   const [selectedQuiz, setSelectedQuiz] = useState<string | null>(null)
+  const [tab, setTab] = useState<HistoryTab>('summary')
+  const [categorySort, setCategorySort] = useState<CategorySort>('weakest')
 
   useEffect(() => {
     fetchQuizHistory(userId).then(setRows).catch(() => setError(t('history.loadError')))
@@ -41,7 +47,7 @@ export function HistoryPage({ onBack, quiz, historyKey, userId, onReplayMissed }
 
   const records = quizRows ? computeRecords(quizRows) : null
   const chartPoints = quizRows ? [...quizRows].reverse().map((row) => ({ label: shortDate(row.created_at), score: row.score })) : []
-  const byCategory = quizRows ? bucketsToRadarPoints(sumBuckets(quizRows, (row) => row.by_category), catName) : []
+  const byCategory = quizRows ? sortCategoryPoints(bucketsToRadarPoints(sumBuckets(quizRows, (row) => row.by_category), catName), categorySort, locale) : []
   const byType = quizRows ? bucketsToRadarPoints(sumBuckets(quizRows, (row) => row.by_type), typeName) : []
   const byDifficulty = quizRows ? bucketsToRadarPoints(sumBuckets(quizRows, (row) => row.by_difficulty), diffName) : []
 
@@ -53,6 +59,15 @@ export function HistoryPage({ onBack, quiz, historyKey, userId, onReplayMissed }
   const playable = canReplay ? resolveReviewQuestions(dueQuestions, quiz.questions) : []
   const dueCount = canReplay ? playable.length : dueQuestions.length
   const replayQuestions = playable.slice(0, REVIEW_BATCH_SIZE)
+
+  // Onglets : résumé et catégories n'ont de sens qu'avec au moins une partie ; le classement est toujours là.
+  const hasGames = Boolean(records && records.gamesPlayed > 0)
+  const tabs: { id: HistoryTab; label: string }[] = [
+    ...(hasGames ? [{ id: 'summary' as const, label: t('history.tabSummary') }, { id: 'categories' as const, label: t('history.tabCategories') }] : []),
+    { id: 'leaderboard' as const, label: t('history.leaderboard') },
+    ...(hasGames && records ? [{ id: 'games' as const, label: t('history.tabGames', { n: records.gamesPlayed }) }] : []),
+  ]
+  const activeTab = tabs.some((item) => item.id === tab) ? tab : tabs[0].id
 
   return <section className="stats-page">
     <div className="stats-header">
@@ -67,53 +82,66 @@ export function HistoryPage({ onBack, quiz, historyKey, userId, onReplayMissed }
         {quizTitles.map((title) => <option key={title} value={title}>{title === historyKey ? quiz.metadata.title : title}</option>)}
       </select>
     </label>}
-    {rows && <LeaderboardPanel quizTitle={activeQuiz || historyKey} userId={userId} />}
-    {records && records.gamesPlayed > 0 && <>
-      <div className="records-grid">
-        <div className="record-tile"><span className="record-value">{records.gamesPlayed}</span><span className="record-label">{t('history.gamesPlayed')}</span></div>
-        <div className="record-tile"><span className="record-value">{records.bestScore}%</span><span className="record-label">{t('history.bestScore')}</span></div>
-        <div className="record-tile"><span className="record-value">{records.averageScore}%</span><span className="record-label">{t('history.avgScore')}</span></div>
-        <div className="record-tile"><span className="record-value">{formatDuration(records.totalPlaytimeSeconds)}</span><span className="record-label">{t('history.totalTime')}</span></div>
-        {records.bestTimeAttackCorrect > 0 && <div className="record-tile"><span className="record-value">{records.bestTimeAttackCorrect}</span><span className="record-label">{t('history.bestTimeAttack')}</span></div>}
-        {records.bestStreak > 0 && <div className="record-tile"><span className="record-value">{records.bestStreak}</span><span className="record-label">{t('history.bestStreak')}</span></div>}
+    {rows && <>
+      <TabList tabs={tabs} value={activeTab} onChange={setTab} label={t('history.tabsLabel')} idPrefix="history" />
+      <div role="tabpanel" id={tabPanelId('history')} aria-labelledby={tabId('history', activeTab)} className="tab-panel">
+        {activeTab === 'summary' && records && <>
+          {dueCount > 0 && <div className="missed-questions">
+            <div className="stats-group-header">
+              <h3 className="stats-group-title">{t(plural('history.toReview', dueCount), { n: dueCount })}</h3>
+              {replayQuestions.length > 0 && <button type="button" onClick={() => onReplayMissed(replayQuestions)}>{t(plural('review.play', replayQuestions.length), { n: replayQuestions.length })}</button>}
+            </div>
+          </div>}
+          <div className="records-grid">
+            <div className="record-tile"><span className="record-value">{records.gamesPlayed}</span><span className="record-label">{t('history.gamesPlayed')}</span></div>
+            <div className="record-tile"><span className="record-value">{records.bestScore}%</span><span className="record-label">{t('history.bestScore')}</span></div>
+            <div className="record-tile"><span className="record-value">{records.averageScore}%</span><span className="record-label">{t('history.avgScore')}</span></div>
+            <div className="record-tile"><span className="record-value">{formatLongDuration(records.totalPlaytimeSeconds)}</span><span className="record-label">{t('history.totalTime')}</span></div>
+            {records.bestTimeAttackCorrect > 0 && <div className="record-tile"><span className="record-value">{records.bestTimeAttackCorrect}</span><span className="record-label">{t('history.bestTimeAttack')}</span></div>}
+            {records.bestStreak > 0 && <div className="record-tile"><span className="record-value">{records.bestStreak}</span><span className="record-label">{t('history.bestStreak')}</span></div>}
+          </div>
+          <ScoreChart points={chartPoints} />
+          <div className="stats-groups">
+            <div className="stats-group">
+              <h3 className="stats-group-title">{t('history.byType')}</h3>
+              <RadarChart points={byType} ariaLabel={t('history.byType')} />
+            </div>
+            <div className="stats-group">
+              <h3 className="stats-group-title">{t('result.byDifficulty')}</h3>
+              <RadarChart points={byDifficulty} ariaLabel={t('result.byDifficulty')} />
+            </div>
+          </div>
+        </>}
+        {activeTab === 'categories' && <>
+          <div className="stats-group">
+            <div className="stats-group-header">
+              <h3 className="stats-group-title">{t('result.byCategory')}</h3>
+              <div className="mode-toggle" role="group" aria-label={t('history.sortLabel')}>
+                <button type="button" className={categorySort === 'weakest' ? 'mode-chip is-active' : 'mode-chip'} aria-pressed={categorySort === 'weakest'} onClick={() => setCategorySort('weakest')}>{t('history.sortWeakest')}</button>
+                <button type="button" className={categorySort === 'alpha' ? 'mode-chip is-active' : 'mode-chip'} aria-pressed={categorySort === 'alpha'} onClick={() => setCategorySort('alpha')}>{t('history.sortAlpha')}</button>
+              </div>
+            </div>
+            <HeatmapChart points={byCategory} />
+          </div>
+          {weekHeatmap && weekHeatmap.categories.length > 0 && <CategoryWeekHeatmap
+            heatmap={weekHeatmap}
+            title={t('history.weekHeatmapTitle')}
+            labelOf={catName}
+            note={weekHeatmap.truncated ? t('history.weekHeatmapNote', { count: weekHeatmap.categories.length }) : undefined}
+          />}
+        </>}
+        {activeTab === 'leaderboard' && <LeaderboardPanel quizTitle={activeQuiz || historyKey} userId={userId} />}
+        {activeTab === 'games' && quizRows && <ul className="history-list">
+          {quizRows.map((row) => <li className="history-item" key={row.id}>
+            <span title={modeLabel(row.mode)} role="img" aria-label={modeLabel(row.mode)}>{MODE_ICONS[row.mode]}</span>
+            <span className="history-score">{row.score}%</span>
+            <span className="history-date">{longDate(row.created_at)}</span>
+            <span className="history-categories">{row.categories.map(catName).join(', ')}</span>
+            <span>{t('history.pointsPair', { earned: row.earned_points, total: row.total_points })}</span>
+            <span>⏱ {formatDuration(row.elapsed_seconds)}</span>
+          </li>)}
+        </ul>}
       </div>
-      <ScoreChart points={chartPoints} />
-      <div className="stats-groups">
-        <div className="stats-group">
-          <h3 className="stats-group-title">{t('result.byCategory')}</h3>
-          <HeatmapChart points={byCategory} />
-        </div>
-        <div className="stats-group">
-          <h3 className="stats-group-title">{t('history.byType')}</h3>
-          <RadarChart points={byType} ariaLabel={t('history.byType')} />
-        </div>
-        <div className="stats-group">
-          <h3 className="stats-group-title">{t('result.byDifficulty')}</h3>
-          <RadarChart points={byDifficulty} ariaLabel={t('result.byDifficulty')} />
-        </div>
-      </div>
-      {weekHeatmap && weekHeatmap.categories.length > 0 && <CategoryWeekHeatmap
-        heatmap={weekHeatmap}
-        title={t('history.weekHeatmapTitle')}
-        labelOf={catName}
-        note={weekHeatmap.truncated ? t('history.weekHeatmapNote', { count: weekHeatmap.categories.length }) : undefined}
-      />}
     </>}
-    {dueCount > 0 && <div className="missed-questions">
-      <div className="stats-group-header">
-        <h3 className="stats-group-title">{t(plural('history.toReview', dueCount), { n: dueCount })}</h3>
-        {replayQuestions.length > 0 && <button type="button" onClick={() => onReplayMissed(replayQuestions)}>{t(plural('review.play', replayQuestions.length), { n: replayQuestions.length })}</button>}
-      </div>
-    </div>}
-    {quizRows && quizRows.length > 0 && <ul className="history-list">
-      {quizRows.map((row) => <li className="history-item" key={row.id}>
-        <span title={modeLabel(row.mode)} role="img" aria-label={modeLabel(row.mode)}>{MODE_ICONS[row.mode]}</span>
-        <span className="history-score">{row.score}%</span>
-        <span className="history-date">{longDate(row.created_at)}</span>
-        <span className="history-categories">{row.categories.map(catName).join(', ')}</span>
-        <span>{t('history.pointsPair', { earned: row.earned_points, total: row.total_points })}</span>
-        <span>⏱ {formatDuration(row.elapsed_seconds)}</span>
-      </li>)}
-    </ul>}
   </section>
 }
