@@ -33,6 +33,9 @@ export function formatNumber(value: number, locale: Locale = currentLocale, maxi
 // les locales.
 const UNIT_DECIMALS: Record<string, number> = { '°': 1 }
 
+/** Nombre maximal de décimales affichées pour une valeur d'une unité donnée (3 par défaut, comme `Intl`). */
+export const displayDecimals = (unit?: string): number => (unit ? UNIT_DECIMALS[unit] : undefined) ?? 3
+
 /** Valeur numérique d'un quiz : séparée par milliers, sauf les années (`isYear`) laissées
  * brutes. `unit` (déjà résolu pour l'affichage, cf. `data.unit()`) borne le nombre de décimales
  * pour certaines unités (voir `UNIT_DECIMALS`) — n'affecte que l'affichage, jamais les valeurs

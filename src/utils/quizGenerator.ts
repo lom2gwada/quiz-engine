@@ -4,7 +4,7 @@ import type { DataI18n } from '../i18n/data'
 import { makeDatasetI18n, splitAnnotation } from '../i18n/dataset'
 import { getGrammar } from '../i18n/grammar'
 import { fill, getTemplates } from '../i18n/templates'
-import { formatNumber, formatNumericValue } from './number'
+import { displayDecimals, formatNumber, formatNumericValue } from './number'
 
 // Génère un quiz jouable à partir de lignes tabulaires (un CSV, plus tard une base de données)
 // et d'un schéma décrivant les colonnes. Tout est pur et tourne dans le navigateur.
@@ -195,6 +195,33 @@ function niceStep(span: number): number {
 }
 const roundTo = (v: number, step: number): number => Math.round(v / step) * step
 
+// --- Leurres numériques : même précision que la bonne réponse ------------------------------
+// Un leurre arrondi (« 700 ») à côté d'une bonne réponse exacte (« 1 234 ») se repère à sa seule précision.
+// La « finesse » d'un nombre = sa dernière position significative : 1 234 → 1 ; 1 600 → 100 ; 3,5 → 0,1.
+
+/** Nombre de décimales de `value` (au plus `max`) : celles qui s'affichent. */
+export function decimalsOf(value: number, max: number): number {
+  for (let d = 0; d < max; d += 1) {
+    const scaled = value * 10 ** d
+    if (Math.abs(scaled - Math.round(scaled)) < 1e-9 * Math.max(1, Math.abs(scaled))) return d
+  }
+  return max
+}
+
+/** Ramène `candidate` à la même finesse que `target` (affiché avec `decimals` décimales) : même position du dernier chiffre
+ *  significatif, et ce dernier chiffre n'est jamais 0 (sinon le leurre aurait l'air plus arrondi que la cible). `bump` (±1)
+ *  dit de quel côté corriger quand l'arrondi tombe sur un multiple de 10. */
+export function matchPrecision(candidate: number, target: number, decimals: number, bump: 1 | -1): number {
+  const scale = 10 ** decimals
+  let zeros = 0
+  let scaledTarget = Math.abs(Math.round(target * scale))
+  while (scaledTarget > 0 && scaledTarget % 10 === 0) { scaledTarget /= 10; zeros += 1 }
+  const unit = 10 ** zeros
+  let q = Math.round((candidate * scale) / unit)
+  if (q % 10 === 0) q += bump
+  return Number(((q * unit) / scale).toFixed(decimals))
+}
+
 // --- Génération --------------------------------------------------------
 // Pas de quota : chaque colonne produit toutes les questions possibles.
 // `choices`/`options` = nombre d'items affichés, `groupSize` = taille d'un
@@ -332,17 +359,14 @@ export function generateQuiz(
       if (spec.isYear) {
         for (const v of sample([...new Set(numRowsWith.map((r) => asNumber(r[col])))].filter((v) => v !== target), n)) out.add(v)
       }
-      const factors = spec.isYear ? [-18, -11, -6, 5, 9, 15, 24] : [0.4, 0.6, 0.75, 1.3, 1.6, 2.1]
-      const step = spec.isYear ? 1 : niceStep(target * 2)
-      // Colonne à valeurs négatives (ex. longitude, target < 0) : on force les perturbations à
-      // rester négatives (symétrique du floor `Math.max(step, …)` utilisé pour un domaine positif).
-      for (const f of shuffle(factors)) {
+      // Hors années : leurres de même finesse que la cible (voir `matchPrecision`). Les facteurs de repli ne servent que si
+      // des arrondis ont fait tomber plusieurs leurres sur la même valeur.
+      const factors = spec.isYear ? shuffle([-18, -11, -6, 5, 9, 15, 24]) : [...shuffle([0.4, 0.6, 0.75, 1.3, 1.6, 2.1]), ...shuffle([0.5, 0.85, 1.15, 1.9, 2.6, 3.2])]
+      const decimals = decimalsOf(target, displayDecimals(unit))
+      // Colonne à valeurs négatives (ex. longitude, target < 0) : on force les perturbations à rester négatives.
+      for (const f of factors) {
         if (out.size >= n) break
-        const v = spec.isYear
-          ? target + f
-          : target >= 0
-            ? Math.max(step, roundTo(target * f, step))
-            : Math.min(-step, roundTo(target * f, step))
+        const v = spec.isYear ? target + f : matchPrecision(target * f, target, decimals, rand() < 0.5 ? 1 : -1)
         if (v !== target && (target >= 0 ? v > 0 : v < 0) && (!spec.isYear || v <= 2024)) out.add(v)
       }
       return shuffle([...out]).slice(0, n).map((v) => formatNumericValue(v, spec.isYear, undefined, unit))
