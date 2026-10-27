@@ -41,7 +41,6 @@ export const es: Record<MessageKey, string> = {
   'start.duration': 'Duración',
   'start.duration.one': '{n} minuto',
   'start.duration.other': '{n} minutos',
-  'start.duration.infinite': 'Ilimitada',
   'start.timeAttackHint': '{n} preguntas disponibles para aguantar.',
   'start.noMistakeHint': '{n} preguntas disponibles.',
   'start.blitzHint': '{n} preguntas disponibles con estos filtros.',

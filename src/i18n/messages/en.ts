@@ -40,7 +40,6 @@ export const en: Record<MessageKey, string> = {
   'start.duration': 'Duration',
   'start.duration.one': '{n} minute',
   'start.duration.other': '{n} minutes',
-  'start.duration.infinite': 'Unlimited',
   'start.timeAttackHint': '{n} questions available to go the distance.',
   'start.noMistakeHint': '{n} questions available.',
   'start.blitzHint': '{n} eligible questions with these filters.',

@@ -44,7 +44,6 @@ export const fr = {
   'start.duration': 'Durée',
   'start.duration.one': '{n} minute',
   'start.duration.other': '{n} minutes',
-  'start.duration.infinite': 'Illimitée',
   'start.timeAttackHint': '{n} questions disponibles pour tenir la distance.',
   'start.noMistakeHint': '{n} questions disponibles.',
   'start.blitzHint': '{n} questions éligibles avec ces filtres.',

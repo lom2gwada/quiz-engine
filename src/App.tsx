@@ -45,7 +45,7 @@ type View = BuiltinView | (string & {})
 
 const questionCounts = [5, 10, 20, 30, 50]
 /** Durées proposées pour le contre-la-montre, en minutes ; 0 = illimité. */
-const timeAttackDurations = [5, 10, 15, 20, 0]
+const timeAttackDurations = [5, 10, 15, 20]
 
 function fallbackQuiz(title: string): Quiz {
   return {
@@ -313,7 +313,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
       setActiveTimeLimit(undefined)
       setSessionQuestions(ordered.slice(0, Math.min(questionCount, ordered.length)))
     } else {
-      setActiveTimeLimit(gameMode === 'timeAttack' && timeAttackMinutes > 0 ? timeAttackMinutes * 60 : undefined)
+      setActiveTimeLimit(gameMode === 'timeAttack' ? timeAttackMinutes * 60 : undefined)
       setSessionQuestions(ordered)
     }
     goTo('quiz')
@@ -484,7 +484,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
         <label className="question-count">{t('start.questionCount')}<select value={questionCount} onChange={(event) => { playClick(); setQuestionCount(Number(event.target.value)) }}>{questionCounts.map((count) => <option key={count} value={count} disabled={count > filteredQuestions.length}>{t(count === 1 ? 'start.count.one' : 'start.count.other', { n: count })}{count > filteredQuestions.length ? t('start.unavailableSuffix') : ''}</option>)}<option value={filteredQuestions.length}>{t('start.allQuestions', { n: formatNumber(filteredQuestions.length) })}</option></select></label>
       </>}
       {gameMode === 'timeAttack' && <>
-        <label className="question-count">{t('start.duration')}<select value={timeAttackMinutes} onChange={(event) => { playClick(); setTimeAttackMinutes(Number(event.target.value)) }}>{timeAttackDurations.map((minutes) => <option key={minutes} value={minutes}>{minutes === 0 ? t('start.duration.infinite') : t(minutes === 1 ? 'start.duration.one' : 'start.duration.other', { n: minutes })}</option>)}</select></label>
+        <label className="question-count">{t('start.duration')}<select value={timeAttackMinutes} onChange={(event) => { playClick(); setTimeAttackMinutes(Number(event.target.value)) }}>{timeAttackDurations.map((minutes) => <option key={minutes} value={minutes}>{t(minutes === 1 ? 'start.duration.one' : 'start.duration.other', { n: minutes })}</option>)}</select></label>
       </>}
       <h2 className="start-section-title">{t('start.section.filters')}</h2>
       <FilterPanel categories={quiz.categories} groups={dataset?.categoryGroups} selectedCategories={selectedCategories} difficulty={difficulty} onSelectedChange={setSelectedCategories} onDifficultyChange={setDifficulty} />

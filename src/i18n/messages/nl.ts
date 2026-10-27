@@ -41,7 +41,6 @@ export const nl: Record<MessageKey, string> = {
   'start.duration': 'Duur',
   'start.duration.one': '{n} minuut',
   'start.duration.other': '{n} minuten',
-  'start.duration.infinite': 'Onbeperkt',
   'start.timeAttackHint': '{n} vragen beschikbaar om vol te houden.',
   'start.noMistakeHint': '{n} vragen beschikbaar.',
   'start.blitzHint': '{n} geschikte vragen met deze filters.',

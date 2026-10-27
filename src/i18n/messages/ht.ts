@@ -42,7 +42,6 @@ export const ht: Record<MessageKey, string> = {
   'start.duration': 'Dire',
   'start.duration.one': '{n} minit',
   'start.duration.other': '{n} minit',
-  'start.duration.infinite': 'Ilimite',
   'start.timeAttackHint': '{n} kesyon disponib pou kenbe pi lontan posib.',
   'start.noMistakeHint': '{n} kesyon disponib.',
   'start.blitzHint': '{n} kesyon disponib ak filt sa yo.',
