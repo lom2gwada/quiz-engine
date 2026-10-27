@@ -92,6 +92,9 @@ function initialStateOf(spec: QuizAppSpec): { dataset: Dataset | null; quiz: Qui
   return state
 }
 
+/** Phrase d'explication affichée sous le choix du mode. */
+const modeHelpKey = { classic: 'start.modeHelp.classic', timeAttack: 'start.modeHelp.timeAttack', noMistake: 'start.modeHelp.noMistake', blitz: 'start.modeHelp.blitz' } as const
+
 export default function App({ spec, session }: { spec: QuizAppSpec; session: Session | null }) {
   const userId = session?.user.id ?? null
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -202,9 +205,6 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
       (!selectedCategories.length || selectedCategories.includes(question.category)) && (!difficulty || question.difficulty === difficulty))
   }, [blitzSelected, dataset, quiz, locale, selectedCategories, difficulty]) // eslint-disable-line react-hooks/exhaustive-deps
   const blitzAvailable = blitzCandidates.length
-
-  const toggleCategory = (categoryId: string) => setSelectedCategories((previous) =>
-    previous.includes(categoryId) ? previous.filter((id) => id !== categoryId) : [...previous, categoryId])
 
   const applyQuiz = (next: Quiz) => {
     setQuiz(next)
@@ -426,7 +426,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     {view === 'start' && <section className="start-page">
       {dataset?.editable && <DailyChallengePanel userId={userId} day={dailyKey()} onPlay={startDaily} refreshKey={dailyRefresh} error={dailyError} />}
       <ReviewPanel quiz={quiz} historyKey={historyKeyOf(dataset, quiz)} userId={userId} onReview={replayMissed} />
-      <FilterPanel categories={quiz.categories} selectedCategories={selectedCategories} difficulty={difficulty} onCategoryToggle={toggleCategory} onDifficultyChange={setDifficulty} />
+      <h2 className="start-section-title">{t('start.section.mode')}</h2>
       <div className="mode-toggle" role="radiogroup" aria-label={t('start.mode.aria')}>
         <label className={gameMode === 'classic' ? 'mode-chip is-active' : 'mode-chip'}>
           <input type="radio" name="game-mode" checked={gameMode === 'classic'} onChange={() => { playClick(); setGameMode('classic') }} />
@@ -445,16 +445,19 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
           ⚡ {t('start.mode.blitz')}
         </label>
       </div>
+      <p className="mode-help">{t(modeHelpKey[gameMode], { seconds: BLITZ_SECONDS, lives: BLITZ_MAX_ERRORS })}</p>
       {gameMode === 'classic' && <>
         <label className="question-count">{t('start.questionCount')}<select value={questionCount} onChange={(event) => { playClick(); setQuestionCount(Number(event.target.value)) }}>{questionCounts.map((count) => <option key={count} value={count} disabled={count > filteredQuestions.length}>{t(count === 1 ? 'start.count.one' : 'start.count.other', { n: count })}{count > filteredQuestions.length ? t('start.unavailableSuffix') : ''}</option>)}<option value={filteredQuestions.length}>{t('start.allQuestions', { n: formatNumber(filteredQuestions.length) })}</option></select></label>
-        <p>{t('start.availability', { n: formatNumber(filteredQuestions.length), picked: Math.min(questionCount, filteredQuestions.length) })}</p>
       </>}
       {gameMode === 'timeAttack' && <>
         <label className="question-count">{t('start.duration')}<select value={timeAttackMinutes} onChange={(event) => { playClick(); setTimeAttackMinutes(Number(event.target.value)) }}>{timeAttackDurations.map((minutes) => <option key={minutes} value={minutes}>{minutes === 0 ? t('start.duration.infinite') : t(minutes === 1 ? 'start.duration.one' : 'start.duration.other', { n: minutes })}</option>)}</select></label>
-        <p>{t('start.timeAttackHint', { n: formatNumber(filteredQuestions.length) })}</p>
       </>}
+      <h2 className="start-section-title">{t('start.section.filters')}</h2>
+      <FilterPanel categories={quiz.categories} groups={dataset?.categoryGroups} selectedCategories={selectedCategories} difficulty={difficulty} onSelectedChange={setSelectedCategories} onDifficultyChange={setDifficulty} />
+      {gameMode === 'classic' && <p>{t('start.availability', { n: formatNumber(filteredQuestions.length), picked: Math.min(questionCount, filteredQuestions.length) })}</p>}
+      {gameMode === 'timeAttack' && <p>{t('start.timeAttackHint', { n: formatNumber(filteredQuestions.length) })}</p>}
       {gameMode === 'noMistake' && <p>{t('start.noMistakeHint', { n: formatNumber(filteredQuestions.length) })}</p>}
-      {gameMode === 'blitz' && <p>{t('start.blitzHint', { count: Math.min(BLITZ_QUESTION_COUNT, blitzAvailable), seconds: BLITZ_SECONDS, lives: BLITZ_MAX_ERRORS, n: formatNumber(blitzAvailable) })}</p>}
+      {gameMode === 'blitz' && <p>{t('start.blitzHint', { n: formatNumber(blitzAvailable) })}</p>}
       <div className="quiz-actions"><button type="button" onClick={startQuiz} disabled={gameMode === 'blitz' ? !blitzAvailable : !filteredQuestions.length}>{t('start.play')}</button></div>
     </section>}
     {view === 'quiz' && <QuizPage quiz={quiz} questions={sessionQuestions} renderMap={dataset?.map?.render} mode={activeMode} timeLimitSeconds={activeTimeLimit} onFinish={(nextAnswers, duration, shown, extra) => {

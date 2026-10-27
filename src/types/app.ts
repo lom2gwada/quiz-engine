@@ -56,6 +56,16 @@ export interface DatasetMap {
   render: (props: MapQuestionProps) => ReactNode
 }
 
+/** Un groupe de catégories sur l'accueil (« Géographie », « Économie »…). Une catégorie est une colonne du jeu de données
+ *  (son identifiant = le nom de la colonne), plus `silhouette` et `map` pour les questions visuelles. */
+export interface CategoryGroup {
+  id: string
+  /** Intitulé par locale ; repli sur le français. */
+  labels: Partial<Record<Locale, string>>
+  /** Identifiants des catégories du groupe, dans l'ordre d'affichage. Celles que l'appli ne cite pas vont dans « Autres ». */
+  categories: string[]
+}
+
 export interface Dataset {
   rows: Row[]
   schema: GenSchema
@@ -77,6 +87,8 @@ export interface Dataset {
    *  sur la page d'accueil. Mêmes phrases fixes par locale que `speech`, sans marqueurs de gabarit
    *  puisqu'il n'y a pas de ligne à interpoler — juste `SpeechTemplates` pour la locale de repli (français). */
   intro?: SpeechTemplates
+  /** Regroupement des catégories sur l'accueil ; absent : une seule liste à plat. */
+  categoryGroups?: CategoryGroup[]
   map?: DatasetMap
   views?: DatasetView[]
 }
