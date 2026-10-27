@@ -19,9 +19,12 @@ export interface DataI18n {
   /** Les sujets sont des noms communs (éléments chimiques…) et non des noms propres : dans une phrase
    * (« de l'hydrogène », « of iron »), leur initiale reste en minuscule. */
   commonNouns?: boolean
+  /** Mise en forme d'une valeur de cellule à l'affichage, quand elle n'a pas de traduction dans `values` (configurations électroniques
+   *  « [Ar]4s2 3d6 » → « [Ar] 4s² 3d⁶ »). Renvoie `undefined` pour laisser la valeur telle quelle. La donnée, elle, reste inchangée. */
+  formatValue?: (value: string) => string | undefined
 }
 
 /** Résout une valeur pour la locale, avec repli français. */
 export function trValue(i18n: DataI18n | undefined, value: string, locale: Locale): string {
-  return i18n?.values[value]?.[locale] ?? value
+  return i18n?.values[value]?.[locale] ?? i18n?.formatValue?.(value) ?? value
 }
