@@ -49,7 +49,7 @@ export const fr = {
   'alt.silhouette': 'Silhouette d’un {noun}.',
 
   // — divers —
-  'meta.description': '{count} questions générées à partir de {rows} {nouns} (seed « {seed} »).',
+  'meta.description': '{count} questions générées à partir de {rows} {nouns}.',
   'word.true': 'Vrai',
   'word.false': 'Faux',
   'word.silhouetteCategory': 'Silhouette',

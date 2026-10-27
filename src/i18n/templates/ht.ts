@@ -39,7 +39,7 @@ export const ht: Record<TemplateKey, string> = {
   'alt.image': 'Yon {label}.',
   'alt.silhouette': 'Kontou yon {noun}.',
 
-  'meta.description': '{count} kesyon jenere apati {rows} {nouns} (seed «{seed}»).',
+  'meta.description': '{count} kesyon jenere apati {rows} {nouns}.',
   'word.true': 'Vre',
   'word.false': 'Fo',
   'word.silhouetteCategory': 'Kontou',

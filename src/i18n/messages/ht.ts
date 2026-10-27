@@ -11,6 +11,7 @@ export const ht: Record<MessageKey, string> = {
   'common.or': ' oswa ',
 
   'header.by': 'pa {author}',
+  'header.seed': "seed «{seed}»",
   'header.soundOn': "Aktive efè son yo",
   'header.soundOff': "Koupe efè son yo",
   'nav.profile': 'Pwofil',

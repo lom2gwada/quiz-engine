@@ -39,7 +39,7 @@ export const nl: Record<TemplateKey, string> = {
   'alt.image': 'Een {label}.',
   'alt.silhouette': 'De omtrek van een {noun}.',
 
-  'meta.description': '{count} vragen gegenereerd uit {rows} {nouns} (seed "{seed}").',
+  'meta.description': '{count} vragen gegenereerd uit {rows} {nouns}.',
   'word.true': 'Waar',
   'word.false': 'Onwaar',
   'word.silhouetteCategory': 'Omtrek',

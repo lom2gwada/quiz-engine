@@ -11,6 +11,7 @@ export const fr = {
 
   // — en-tête / navigation —
   'header.by': 'par {author}',
+  'header.seed': "seed « {seed} »",
   'header.soundOn': "Activer les effets sonores",
   'header.soundOff': "Couper les effets sonores",
   'nav.profile': 'Profil',

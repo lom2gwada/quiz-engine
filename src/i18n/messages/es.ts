@@ -10,6 +10,7 @@ export const es: Record<MessageKey, string> = {
   'common.or': ' o ',
 
   'header.by': 'por {author}',
+  'header.seed': "seed «{seed}»",
   'header.soundOn': "Activar los efectos de sonido",
   'header.soundOff': "Silenciar los efectos de sonido",
   'nav.profile': 'Perfil',

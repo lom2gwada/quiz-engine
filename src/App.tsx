@@ -458,9 +458,12 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     </>}
   </>
 
+  // « par Periodic Quiz » sous le titre de Periodic Quiz n'apprend rien : la ligne n'apparaît que pour un auteur différent de l'appli.
+  const showAuthor = quiz.metadata.author.trim().toLowerCase() !== engineConfig().appName.trim().toLowerCase()
+
   return <main className="app-shell">
     {spec.Background && <spec.Background />}
-    <header><div><p className="eyebrow">{engineConfig().appName.toUpperCase()}</p><h1>{quiz.metadata.title}</h1><p>{t('header.by', { author: quiz.metadata.author })}</p>{view === 'start' && quiz.metadata.description && <p className="quiz-description-preview">{quiz.metadata.description}</p>}{view === 'start' && dataset?.intro && <div className="header-intro"><SpeakButton sentences={dataset.intro[speechLocale(dataset.intro, locale)] ?? []} locale={speechLocale(dataset.intro, locale)} label={t('intro.speak')} /><details className="intro-text"><summary>{t('intro.read')}</summary>{(dataset.intro[speechLocale(dataset.intro, locale)] ?? []).map((sentence) => <p key={sentence}>{sentence}</p>)}</details></div>}</div><div className="header-actions">{headerActions}</div></header>
+    <header><div><p className="eyebrow">{engineConfig().appName.toUpperCase()}</p><h1>{quiz.metadata.title}</h1>{showAuthor && <p>{t('header.by', { author: quiz.metadata.author })}</p>}{view === 'start' && quiz.metadata.description && <p className="quiz-description-preview">{quiz.metadata.description}{isAdmin && <> {t('header.seed', { seed: genRef.current.seed })}</>}</p>}{view === 'start' && dataset?.intro && <div className="header-intro"><SpeakButton sentences={dataset.intro[speechLocale(dataset.intro, locale)] ?? []} locale={speechLocale(dataset.intro, locale)} label={t('intro.speak')} /><details className="intro-text"><summary>{t('intro.read')}</summary>{(dataset.intro[speechLocale(dataset.intro, locale)] ?? []).map((sentence) => <p key={sentence}>{sentence}</p>)}</details></div>}</div><div className="header-actions">{headerActions}</div></header>
     {view === 'start' && <section className="start-page">
       {dataset?.editable && <DailyChallengePanel userId={userId} day={dailyKey()} onPlay={startDaily} refreshKey={dailyRefresh} error={dailyError} />}
       <ReviewPanel quiz={quiz} historyKey={historyKeyOf(dataset, quiz)} userId={userId} onReview={replayMissed} />

@@ -9,6 +9,7 @@ export const en: Record<MessageKey, string> = {
   'common.or': ' or ',
 
   'header.by': 'by {author}',
+  'header.seed': "seed “{seed}”",
   'header.soundOn': "Turn sound effects on",
   'header.soundOff': "Turn sound effects off",
   'nav.profile': 'Profile',

@@ -39,7 +39,7 @@ export const en: Record<TemplateKey, string> = {
   'alt.image': 'A {label}.',
   'alt.silhouette': 'The outline of a {noun}.',
 
-  'meta.description': '{count} questions generated from {rows} {nouns} (seed "{seed}").',
+  'meta.description': '{count} questions generated from {rows} {nouns}.',
   'word.true': 'True',
   'word.false': 'False',
   'word.silhouetteCategory': 'Outline',

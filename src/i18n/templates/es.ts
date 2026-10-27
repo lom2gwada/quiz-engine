@@ -41,7 +41,7 @@ export const es: Record<TemplateKey, string> = {
   'alt.image': 'Una {label}.',
   'alt.silhouette': 'Silueta de un {noun}.',
 
-  'meta.description': '{count} preguntas generadas a partir de {rows} {nouns} (seed «{seed}»).',
+  'meta.description': '{count} preguntas generadas a partir de {rows} {nouns}.',
   'word.true': 'Verdadero',
   'word.false': 'Falso',
   'word.silhouetteCategory': 'Silueta',

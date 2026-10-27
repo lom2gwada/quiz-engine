@@ -10,6 +10,7 @@ export const nl: Record<MessageKey, string> = {
   'common.or': ' of ',
 
   'header.by': 'door {author}',
+  'header.seed': "seed “{seed}”",
   'header.soundOn': "Geluidseffecten aan",
   'header.soundOff': "Geluidseffecten uit",
   'nav.profile': 'Profiel',
