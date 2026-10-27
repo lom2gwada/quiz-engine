@@ -239,6 +239,15 @@ const CFG = {
   map: { points: 2, difficulty: 'medium' as const },
 }
 
+/** Les options affichées commencent par une majuscule (« Presidential republic », « Peso cubain ») : les valeurs du jeu de données sont
+ *  stockées en minuscules pour pouvoir s'insérer dans une phrase, mais une option de réponse est un texte autonome. Ne touche que la première
+ *  lettre, et ni l'identification des bonnes réponses (par identifiant) ni les valeurs attendues des questions à saisie. */
+export function capitalizeOptions(question: Question, cap: (text: string) => string): Question {
+  if (question.type === 'qcm') return { ...question, content: { ...question.content, answers: question.content.answers.map((answer) => ({ ...answer, label: cap(answer.label) })) } }
+  if (question.type === 'matching') return { ...question, content: { ...question.content, right: question.content.right.map((item) => ({ ...item, label: cap(item.label) })) } }
+  return question
+}
+
 export function generateQuiz(
   rows: Row[],
   schema: GenSchema,
@@ -779,7 +788,7 @@ export function generateQuiz(
       description: T('meta.description', { count: formatNumber(questions.length + mapQuestions.length), rows: formatNumber(rows.length), nouns, seed: opts.seed }),
     },
     categories,
-    questions: [...shuffle(questions), ...mapQuestions],
+    questions: [...shuffle(questions), ...mapQuestions].map((question) => capitalizeOptions(question, grammar.cap)),
   }
 }
 

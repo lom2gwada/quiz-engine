@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { decimalsOf, generateQuiz, inferSchema, matchPrecision, parseCsv } from './quizGenerator'
+import { SUPPORTED_LOCALES } from '../i18n/locale'
 import { blitzPool } from './blitz'
 
 const rows = parseCsv([
@@ -90,5 +91,41 @@ describe('numeric decoys have the same precision as the correct answer', () => {
     expect(decimalsOf(17.1274, 3)).toBe(3)
     expect(decimalsOf(17.1274, 1)).toBe(1)
     expect(decimalsOf(0.1 + 0.2, 3)).toBe(1)
+  })
+})
+
+describe('displayed options start with a capital letter, in every locale', () => {
+  const lowerRows = parseCsv([
+    'pays;regime;statut;langues',
+    'Cuba;république socialiste;pays;espagnol|anglais',
+    'Haïti;république semi-présidentielle;pays;créole|français',
+    'Aruba;monarchie constitutionnelle;pays autonome;néerlandais|papiamento',
+    'Bahamas;monarchie parlementaire;pays;anglais',
+    'Belize;république parlementaire;pays;anglais|espagnol',
+  ].join('\n'))
+  const lowerSchema = { ...inferSchema(lowerRows), noun: 'territoire', title: 'Test' }
+
+  for (const locale of SUPPORTED_LOCALES) {
+    it(`${locale} : QCM, réponses multiples et associations`, () => {
+      const quiz = generateQuiz(lowerRows, lowerSchema, { seed: 'cap', locale })
+      let checked = 0
+      for (const question of quiz.questions) {
+        const labels = question.type === 'qcm' ? question.content.answers.map((a) => a.label) : question.type === 'matching' ? question.content.right.map((r) => r.label) : []
+        for (const label of labels) {
+          const first = label.trim()[0]
+          expect(first, label).toBe(first.toLocaleUpperCase(locale))
+          checked += 1
+        }
+      }
+      expect(checked).toBeGreaterThan(20)
+    })
+  }
+
+  it('la bonne réponse reste reconnue après la mise en majuscule', () => {
+    const quiz = generateQuiz(lowerRows, lowerSchema, { seed: 'cap' })
+    for (const question of quiz.questions) {
+      if (question.type !== 'qcm' || question.content.multiple) continue
+      expect(question.content.answers.filter((a) => a.isCorrect)).toHaveLength(1)
+    }
   })
 })
