@@ -41,3 +41,20 @@ export function matchesExpected(answer: string, expected: string[], caseSensitiv
     return withinOneEdit(given, wanted)
   })
 }
+
+/** Comparaison de réponse propre à une catégorie (voir `Dataset.answerMatchers`) : la réponse tapée correspond-elle à l'une des attendues ? */
+export type AnswerMatcher = (given: string, expected: string[]) => boolean
+
+let matchers: Record<string, AnswerMatcher> = {}
+
+/** Pose les comparateurs du jeu de données courant (appelé par l'appli à chaque changement de jeu de données). */
+export function setAnswerMatchers(next: Record<string, AnswerMatcher> | undefined): void {
+  matchers = next ?? {}
+}
+
+/** Réponse à une question à saisie : le comparateur de la catégorie s'il y en a un (notations métier : configuration électronique,
+ *  formules…), sinon `matchesExpected`. */
+export function matchAnswer(categoryId: string, given: string, expected: string[], caseSensitive: boolean): boolean {
+  const custom = matchers[categoryId]
+  return custom ? custom(given, expected) : matchesExpected(given, expected, caseSensitive)
+}

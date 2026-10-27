@@ -86,6 +86,9 @@ export interface CategoryBoost {
   share: number
 }
 
+import type { AnswerMatcher } from '../utils/answerMatch'
+export type { AnswerMatcher }
+
 export interface Dataset {
   rows: Row[]
   schema: GenSchema
@@ -109,6 +112,10 @@ export interface Dataset {
   intro?: SpeechTemplates
   /** Regroupement des catégories sur l'accueil ; absent : une seule liste à plat. */
   categoryGroups?: CategoryGroup[]
+  /** Comparaison de réponse propre à une catégorie (clé = identifiant de catégorie, c'est-à-dire le nom de colonne), à la place de la
+   *  comparaison de chaînes du moteur, pour les questions à saisie : notation métier (configuration électronique, formule chimique…).
+   *  Utilisée au jeu, à la correction, en révision et dans les statistiques. */
+  answerMatchers?: Record<string, AnswerMatcher>
   /** Tri par défaut de la page Fiches (et ordre « précédent / suivant » d'une fiche) : une colonne numérique ; absent : par nom. */
   atlasSort?: { column: string; direction?: 'asc' | 'desc' }
   /** Absent : pas de filtre par sujet sur l'accueil. */

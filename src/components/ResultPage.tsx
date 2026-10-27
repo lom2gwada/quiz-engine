@@ -4,7 +4,7 @@ import type { AnswersByQuestion, Category, Question } from '../types/quiz'
 import type { MessageKey, TFunction } from '../i18n'
 import { getT, useT } from '../i18n'
 import { difficultyLabel } from './QuizPage'
-import { matchesExpected } from '../utils/answerMatch'
+import { matchAnswer } from '../utils/answerMatch'
 import { formatNumericValue } from '../utils/number'
 import { formatDuration } from '../utils/time'
 import { playFinish, playVictory } from '../utils/sound'
@@ -21,7 +21,7 @@ const sameIds = (left: string[], right: string[]) => left.length === right.lengt
 export function isCorrect(question: Question, answer: AnswersByQuestion[string] | undefined): boolean {
   if (question.type === 'text' || question.type === 'cloze') {
     if (typeof answer !== 'string') return false
-    return matchesExpected(answer, question.content.expectedAnswers, question.content.caseSensitive)
+    return matchAnswer(question.category, answer, question.content.expectedAnswers, question.content.caseSensitive)
   }
   if (question.type === 'map') return typeof answer === 'string' && answer === question.content.target
   if (question.type === 'numeric') {

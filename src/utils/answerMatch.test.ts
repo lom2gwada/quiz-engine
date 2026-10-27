@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { matchesExpected, normalizeAnswer, withinOneEdit } from './answerMatch'
+import { matchAnswer, matchesExpected, normalizeAnswer, setAnswerMatchers, withinOneEdit } from './answerMatch'
 
 describe('normalizeAnswer', () => {
   it('ignores case, accents, hyphens/apostrophes/spaces and the leading article', () => {
@@ -70,5 +70,21 @@ describe('matchesExpected', () => {
 
   it('rejects an unrelated answer', () => {
     expect(matchesExpected('Kingston', ['Bridgetown'], false)).toBe(false)
+  })
+})
+
+describe('matchAnswer / setAnswerMatchers', () => {
+  it('sans comparateur : comparaison par défaut', () => {
+    setAnswerMatchers(undefined)
+    expect(matchAnswer('capitale', 'la havane', ['La Havane'], false)).toBe(true)
+    expect(matchAnswer('capitale', 'Lima', ['La Havane'], false)).toBe(false)
+  })
+
+  it('le comparateur d’une catégorie remplace la comparaison par défaut, les autres catégories non', () => {
+    setAnswerMatchers({ formule: (given, expected) => given.replace(/\s/g, '') === expected[0].replace(/\s/g, '') })
+    expect(matchAnswer('formule', 'H 2 O', ['H2O'], false)).toBe(true)
+    expect(matchAnswer('formule', 'h2o', ['H2O'], false)).toBe(false) // le comparateur décide, pas matchesExpected
+    expect(matchAnswer('capitale', 'la havane', ['La Havane'], false)).toBe(true)
+    setAnswerMatchers(undefined)
   })
 })
