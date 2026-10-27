@@ -10,6 +10,7 @@ import { BLITZ_MAX_ERRORS, BLITZ_SECONDS, speedBonusTenths } from '../utils/blit
 import { playCorrect, playStreak, playTick, playWrong } from '../utils/sound'
 import { preloadAnswerImages } from '../utils/preload'
 import { rateColor } from '../utils/rateColor'
+import { LEITNER_BOX_COUNT } from '../utils/quizHistory'
 import { BlitzQuestion } from './BlitzQuestion'
 import { isCorrect } from './ResultPage'
 import { QuestionImage } from './QuestionImage'
@@ -45,11 +46,13 @@ interface QuizPageProps {
   /** `extra.speedBonus` : blitz uniquement, bonus de rapidité cumulé (en points). */
   onFinish: (answers: AnswersByQuestion, elapsedSeconds: number, shown: Question[], extra?: { speedBonus: number }) => void
   onCancel: () => void
+  /** Révision : boîte (Leitner) de chaque question par identifiant. Présent = bandeau « Révision » et niveau de la question affichés. */
+  reviewBoxes?: Record<string, number>
   /** Rendu de la carte cliquable des questions « Localisation » (fourni par l'appli, `Dataset.map`). */
   renderMap?: DatasetMap['render']
 }
 
-export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, onFinish, onCancel, renderMap }: QuizPageProps) {
+export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, onFinish, onCancel, renderMap, reviewBoxes }: QuizPageProps) {
   const t = useT()
   const locale = useLocale()
   const [current, setCurrent] = useState(0)
@@ -191,7 +194,15 @@ export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, 
       </div>
     </section>
   }
+  const reviewLevel = reviewBoxes ? reviewBoxes[question.id] ?? 1 : null
   return <section className="quiz-card">
+    {reviewLevel !== null && <div className="review-banner">
+      <strong>📚 {t('review.banner')}</strong>
+      <span className="review-level">
+        <span className="review-dots" aria-hidden="true">{Array.from({ length: LEITNER_BOX_COUNT }, (_, index) => index < reviewLevel ? '●' : '○').join('')}</span>
+        {t('review.level', { box: reviewLevel, total: LEITNER_BOX_COUNT })}
+      </span>
+    </div>}
     <div className="question-meta">
       <span>{TYPE_ICONS[question.type]} {typeLabel(question.type, t)}</span><span>{category}</span><span>{difficultyLabel(question.difficulty, t)}</span><span>{t('quiz.points', { n: question.points })}</span>
       <span>⏱ {formatDuration(remaining ?? elapsed)}{unlimited ? ` · ${t('quiz.unlimited')}` : ''}</span>

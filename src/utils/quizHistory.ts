@@ -190,9 +190,9 @@ export async function fetchQuestionResults(userId?: string | null): Promise<Ques
 }
 
 // Nombre de boîtes du système de révision espacée (Leitner) : 1 = à revoir en priorité, la
-// dernière = maîtrisée — jamais totalement retirée, juste revue très espacée. Interne à l'algo
-// (pas affiché à l'utilisateur, le numéro de boîte n'aide pas grand-chose côté UI).
-const LEITNER_BOX_COUNT = 5
+// dernière = maîtrisée — jamais totalement retirée, juste revue très espacée. Pendant une révision,
+// la boîte de la question s'affiche comme son « niveau » (ReviewPanel, QuizPage, bilan).
+export const LEITNER_BOX_COUNT = 5
 
 // Jours avant qu'une question redevienne due, par boîte (index 0 = boîte 1). Boîte 1 : due
 // immédiatement (on vient de la rater, ou jamais vue) ; l'écart grandit ensuite — on ne revoit
@@ -244,6 +244,35 @@ export function computeReviewQueue(rows: QuestionResultRow[], quizTitle: string,
     }))
     .filter((entry) => entry.dueAt <= nowIso)
     .sort((a, b) => a.box - b.box || b.wrongCount - a.wrongCount || a.dueAt.localeCompare(b.dueAt))
+}
+
+/** Boîte de chaque question d'une file de révision, par identifiant de question. */
+export function reviewBoxes(queue: ReviewQuestion[]): Record<string, number> {
+  return Object.fromEntries(queue.map((entry) => [entry.questionId, entry.box]))
+}
+
+export interface ReviewChange {
+  questionId: string
+  text: string
+  /** Boîte avant la partie et après (bonne réponse : une de plus, plafonnée ; mauvaise : retour en boîte 1). */
+  before: number
+  after: number
+  correct: boolean
+}
+
+/** Bilan d'une révision : pour chaque question jouée, la boîte avant (`before`, absente = 1) et celle qu'elle atteint
+ *  avec la réponse donnée — mêmes règles que `computeReviewState`. */
+export function computeReviewChanges(before: Record<string, number>, results: QuestionResultPayload[]): ReviewChange[] {
+  return results.map((result) => {
+    const from = before[result.question_id] ?? 1
+    return {
+      questionId: result.question_id,
+      text: result.question_text,
+      before: from,
+      after: result.correct ? Math.min(from + 1, LEITNER_BOX_COUNT) : 1,
+      correct: result.correct,
+    }
+  })
 }
 
 /** Taille d'un lot de révision (accueil, historique) : on ne propose pas d'un coup toutes les questions

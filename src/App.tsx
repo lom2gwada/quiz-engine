@@ -17,7 +17,7 @@ import { applyLocale, DEFAULT_LOCALE, resolveLocale, type Locale } from './i18n/
 import type { Dataset, DatasetView, QuizAppSpec, SchemaConfig } from './types/app'
 import { engineConfig } from './config'
 import { supabase } from './utils/supabase'
-import { buildQuestionResultPayloads, buildQuizResultPayload, fetchQuizHistory, saveQuestionResults, saveQuizResult } from './utils/quizHistory'
+import { buildQuestionResultPayloads, buildQuizResultPayload, computeReviewChanges, fetchQuizHistory, saveQuestionResults, saveQuizResult, type ReviewChange } from './utils/quizHistory'
 import { fetchProfile, saveProfile } from './utils/profile'
 import { checkIsAdmin } from './utils/adminAccess'
 import { applyTheme } from './utils/theme'
@@ -151,6 +151,9 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
   const [activeTimeLimit, setActiveTimeLimit] = useState<number | undefined>(undefined)
   // Vrai pour une reprise ciblée de ses erreurs : « rejouer avec les mêmes paramètres » n'a alors pas de sens.
   const [isReplay, setIsReplay] = useState(false)
+  // Révision (boîtes de Leitner) : boîte de chaque question au lancement, puis bilan à la fin de la partie.
+  const [reviewBoxes, setReviewBoxes] = useState<Record<string, number> | null>(null)
+  const [reviewChanges, setReviewChanges] = useState<ReviewChange[] | null>(null)
   const [blitzSummary, setBlitzSummary] = useState<BlitzSummaryData | null>(null)
   // Bilan « record personnel » des 3 autres modes (classique / contre-la-montre / sans-faute) : équivalent de `blitzSummary`.
   const [modeRecordSummary, setModeRecordSummary] = useState<RecordSummaryData | null>(null)
@@ -292,7 +295,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
   const beginQuiz = (avoid: Question[], goTo: (view: View) => void) => {
     playClick()
     setAnswers({})
-    setIsReplay(false)
+    setIsReplay(false); setReviewBoxes(null); setReviewChanges(null)
     setBlitzSummary(null)
     setModeRecordSummary(null)
     setDailyRun(null)
@@ -318,10 +321,12 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
   const startQuiz = () => beginQuiz([], navigate)
   const restartQuiz = () => beginQuiz(resultQuestions, replace)
 
-  const replayMissed = (questions: Question[]) => {
+  const replayMissed = (questions: Question[], boxes: Record<string, number> = {}) => {
     playClick()
     setAnswers({})
     setIsReplay(true)
+    setReviewBoxes(boxes)
+    setReviewChanges(null)
     setBlitzSummary(null)
     setModeRecordSummary(null)
     setDailyRun(null)
@@ -394,7 +399,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     }
     markDailyStarted(day)
     playClick()
-    setAnswers({}); setIsReplay(false); setBlitzSummary(null); setModeRecordSummary(null); setDailySummary(null); setNewBadges([])
+    setAnswers({}); setIsReplay(false); setReviewBoxes(null); setReviewChanges(null); setBlitzSummary(null); setModeRecordSummary(null); setDailySummary(null); setNewBadges([])
     setDailyRun({ day }); setActiveMode('blitz'); setActiveTimeLimit(undefined)
     setSessionQuestions(questions)
     navigate('quiz')
@@ -489,9 +494,10 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
       {gameMode === 'blitz' && <p>{t('start.blitzHint', { n: formatNumber(blitzAvailable) })}</p>}
       <div className="quiz-actions"><button type="button" onClick={startQuiz} disabled={gameMode === 'blitz' ? !blitzAvailable : !filteredQuestions.length}>{t('start.play')}</button></div>
     </section>}
-    {view === 'quiz' && <QuizPage quiz={quiz} questions={sessionQuestions} renderMap={dataset?.map?.render} mode={activeMode} timeLimitSeconds={activeTimeLimit} onFinish={(nextAnswers, duration, shown, extra) => {
+    {view === 'quiz' && <QuizPage quiz={quiz} questions={sessionQuestions} renderMap={dataset?.map?.render} mode={activeMode} timeLimitSeconds={activeTimeLimit} reviewBoxes={isReplay && reviewBoxes ? reviewBoxes : undefined} onFinish={(nextAnswers, duration, shown, extra) => {
       setAnswers(nextAnswers); setResultQuestions(shown); setElapsedSeconds(duration); replace('results')
       const historyKey = historyKeyOf(dataset, quiz)
+      if (isReplay && reviewBoxes) setReviewChanges(computeReviewChanges(reviewBoxes, buildQuestionResultPayloads(shown, nextAnswers, historyKey)))
       const daily = dailyRun
       const stats = activeMode === 'blitz' ? blitzStats(shown, nextAnswers) : null
       const bonus = extra?.speedBonus ?? 0
@@ -555,7 +561,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
         .catch(() => {})
         .finally(persist)
     }} onCancel={backToStart} />}
-    {view === 'results' && <ResultPage questions={resultQuestions} answers={answers} categories={quiz.categories} elapsedSeconds={elapsedSeconds} onRestartSame={isReplay || dailyRun ? undefined : restartQuiz} onBackToSettings={backToStart} onViewHistory={() => viewHistory('results')} onViewFiche={dataset ? setFicheSubject : undefined} summary={<GameExtras blitz={activeMode === 'blitz' ? blitzSummary : null} daily={dailySummary} modeRecord={activeMode === 'blitz' ? null : modeRecordSummary} newBadges={newBadges} />} />}
+    {view === 'results' && <ResultPage questions={resultQuestions} answers={answers} categories={quiz.categories} elapsedSeconds={elapsedSeconds} onRestartSame={isReplay || dailyRun ? undefined : restartQuiz} onBackToSettings={backToStart} onViewHistory={() => viewHistory('results')} onViewFiche={dataset ? setFicheSubject : undefined} summary={<GameExtras blitz={activeMode === 'blitz' ? blitzSummary : null} daily={dailySummary} modeRecord={activeMode === 'blitz' ? null : modeRecordSummary} review={isReplay ? reviewChanges : null} newBadges={newBadges} />} />}
     {view === 'content' && <QuizContentPage quiz={quiz} dataset={dataset} onBack={() => navigate('start')} onCsvChange={loadCsv} onGenerate={generateFromPanel} onRegenerate={regenerateQuestions} fileError={fileError} genError={genError} />}
     {view === 'atlas' && dataset && <AtlasPage rows={dataset.rows} schema={dataset.schema} decor={dataset.ficheDecor} i18n={dataset.i18n} actions={dataset.views?.filter((v) => v.entry === 'atlas').map(viewButton)} onOpenFiche={setFicheSubject} onBack={() => navigate('start')} />}
     {dataset && (() => {

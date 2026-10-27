@@ -7,7 +7,9 @@ import type { BlitzStats } from '../utils/blitz'
 import type { DailyRow } from '../utils/dailyChallenge'
 import { playVictory } from '../utils/sound'
 import { BlitzSummary, type BlitzSummaryData } from './BlitzSummary'
+import type { ReviewChange } from '../utils/quizHistory'
 import { RecordSummary, type RecordSummaryData } from './RecordSummary'
+import { ReviewSummary } from './ReviewSummary'
 
 export type DailySummaryData = BlitzStats & { guest: boolean; bonus?: number; rank?: { rank: number; total: number } | null }
 
@@ -38,11 +40,12 @@ function NewBadges({ ids }: { ids: BadgeId[] }) {
 
 /** Ce qui s'ajoute sous le score d'une partie : bilan blitz, bilan du défi du jour, record personnel
  *  (classique / contre-la-montre / sans-faute), badges obtenus. */
-export function GameExtras({ blitz, daily, modeRecord, newBadges }: { blitz?: BlitzSummaryData | null; daily?: DailySummaryData | null; modeRecord?: RecordSummaryData | null; newBadges: BadgeId[] }) {
-  if (!blitz && !daily && !modeRecord && !newBadges.length) return null
+export function GameExtras({ blitz, daily, modeRecord, review, newBadges }: { blitz?: BlitzSummaryData | null; daily?: DailySummaryData | null; modeRecord?: RecordSummaryData | null; review?: ReviewChange[] | null; newBadges: BadgeId[] }) {
+  if (!blitz && !daily && !modeRecord && !review?.length && !newBadges.length) return null
   return <>
     {blitz && <BlitzSummary data={blitz} />}
     {daily && <DailySummary data={daily} />}
+    {review && <ReviewSummary changes={review} />}
     {modeRecord && <RecordSummary data={modeRecord} />}
     {newBadges.length > 0 && <NewBadges ids={newBadges} />}
   </>

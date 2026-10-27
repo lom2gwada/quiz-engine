@@ -2,7 +2,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { BooleanQuestion, Category, QCMQuestion } from '../types/quiz'
 import type { QuestionResultRow, QuizResultRow } from '../types/history'
-import { bucketsToChartGroups, bucketsToRadarPoints, buildQuestionResultPayloads, buildQuizResultPayload, computeCategoryWeekHeatmap, computeRecords, computeReviewQueue, resolveReviewQuestions, sumBuckets, weekStartKey } from './quizHistory'
+import { bucketsToChartGroups, bucketsToRadarPoints, buildQuestionResultPayloads, buildQuizResultPayload, computeCategoryWeekHeatmap, computeRecords, computeReviewChanges, computeReviewQueue, resolveReviewQuestions, sumBuckets, weekStartKey } from './quizHistory'
 
 vi.mock('./supabase', () => ({ supabase: { from: vi.fn() } }))
 
@@ -455,5 +455,22 @@ describe('saveQuestionResults / fetchQuestionResults (sync cloud)', () => {
     const rows = await fetchQuestionResults('user-1')
     expect(rows).toHaveLength(1005)
     expect(table.selectChain.range.mock.calls).toEqual([[0, 999], [1000, 1999]])
+  })
+})
+
+describe('computeReviewChanges', () => {
+  const result = (id: string, correct: boolean) => ({ quiz_title: 'Q', question_id: id, question_text: `Question ${id}`, correct })
+
+  it('une bonne réponse monte d’une boîte, une mauvaise retombe en boîte 1', () => {
+    const changes = computeReviewChanges({ a: 2, b: 4 }, [result('a', true), result('b', false)])
+    expect(changes.map((c) => [c.before, c.after])).toEqual([[2, 3], [4, 1]])
+  })
+
+  it('plafonne à la dernière boîte', () => {
+    expect(computeReviewChanges({ a: 5 }, [result('a', true)])[0]).toMatchObject({ before: 5, after: 5, correct: true })
+  })
+
+  it('une question absente de la file part de la boîte 1', () => {
+    expect(computeReviewChanges({}, [result('z', true), result('y', false)]).map((c) => [c.before, c.after])).toEqual([[1, 2], [1, 1]])
   })
 })

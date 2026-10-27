@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { Question, Quiz } from '../types/quiz'
 import type { QuestionResultRow, QuizResultRow } from '../types/history'
 import { plural, useLocale, useT } from '../i18n'
-import { bucketsToRadarPoints, computeCategoryWeekHeatmap, computeRecords, computeReviewQueue, fetchQuestionResults, fetchQuizHistory, resolveReviewQuestions, sumBuckets, REVIEW_BATCH_SIZE } from '../utils/quizHistory'
+import { bucketsToRadarPoints, computeCategoryWeekHeatmap, computeRecords, computeReviewQueue, fetchQuestionResults, fetchQuizHistory, resolveReviewQuestions, reviewBoxes, sumBuckets, REVIEW_BATCH_SIZE } from '../utils/quizHistory'
 import { formatDuration, formatLongDuration } from '../utils/time'
 import { sortCategoryPoints, type CategorySort } from '../utils/historyView'
 import { WeakCategoriesCard, weakCategoriesOf } from './WeakCategoriesCard'
@@ -18,7 +18,7 @@ type HistoryTab = 'summary' | 'categories' | 'leaderboard' | 'games'
 
 export const MODE_ICONS: Record<GameMode, string> = { classic: '🎯', timeAttack: '⏱️', noMistake: '🔥', blitz: '⚡' }
 
-export function HistoryPage({ onBack, quiz, historyKey, userId, onReplayMissed, onPracticeWeak }: { onBack: () => void; quiz: Quiz; historyKey: string; userId?: string | null; onReplayMissed: (questions: Question[]) => void; onPracticeWeak: (categoryIds: string[]) => void }) {
+export function HistoryPage({ onBack, quiz, historyKey, userId, onReplayMissed, onPracticeWeak }: { onBack: () => void; quiz: Quiz; historyKey: string; userId?: string | null; onReplayMissed: (questions: Question[], boxes: Record<string, number>) => void; onPracticeWeak: (categoryIds: string[]) => void }) {
   const t = useT()
   const locale = useLocale()
   const shortDate = (iso: string) => new Date(iso).toLocaleDateString(locale, { day: 'numeric', month: 'short' })
@@ -93,7 +93,7 @@ export function HistoryPage({ onBack, quiz, historyKey, userId, onReplayMissed, 
           {dueCount > 0 && <div className="missed-questions">
             <div className="stats-group-header">
               <h3 className="stats-group-title">{t(plural('history.toReview', dueCount), { n: dueCount })}</h3>
-              {replayQuestions.length > 0 && <button type="button" onClick={() => onReplayMissed(replayQuestions)}>{t(plural('review.play', replayQuestions.length), { n: replayQuestions.length })}</button>}
+              {replayQuestions.length > 0 && <button type="button" onClick={() => onReplayMissed(replayQuestions, reviewBoxes(dueQuestions))}>{t(plural('review.play', replayQuestions.length), { n: replayQuestions.length })}</button>}
             </div>
           </div>}
           <div className="records-grid">

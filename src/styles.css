@@ -333,6 +333,15 @@ pre { padding: 1rem; overflow: auto; background: var(--code-bg); border: 1px sol
 .weak-list li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .2rem .8rem; }
 .weak-name { font-weight: 600; }
 .weak-detail { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.review-banner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .3rem .8rem; margin-bottom: 1rem; padding: .55rem .9rem; background: var(--surface-alt); border: 1px solid var(--border); border-radius: .6rem; }
+.review-level { display: inline-flex; align-items: center; gap: .5rem; color: var(--text-muted); font-size: .85rem; }
+.review-dots { color: var(--accent-text); letter-spacing: .12em; }
+.review-up { color: var(--accent-text); font-weight: 700; }
+.review-details summary { cursor: pointer; margin-top: .4rem; }
+.review-changes { list-style: none; margin: .6rem 0 0; padding: 0; display: grid; gap: .35rem; }
+.review-changes li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .1rem .8rem; }
+.review-changes li.is-down .review-change-levels { color: var(--error); }
+.review-change-levels { color: var(--text-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .weak-panel .daily-note { min-height: 1.3em; margin: .6rem 0 0; }
 .daily-note { color: var(--text-muted); font-size: .85rem; }
 .daily-panel .stats-group-title { margin-top: 1.2rem; }
