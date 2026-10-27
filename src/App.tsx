@@ -574,7 +574,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     })()}
     {view === 'leaderboard' && <LeaderboardPage onBack={() => navigate('start')} historyKey={historyKeyOf(dataset, quiz)} userId={session?.user.id} />}
     {view === 'history' && <HistoryPage onBack={() => navigate(historyBack)} quiz={quiz} historyKey={historyKeyOf(dataset, quiz)} userId={session?.user.id} onReplayMissed={replayMissed} onPracticeWeak={practiceWeak} />}
-    {view === 'profile' && <ProfilePage profile={profile} session={session} badges={badges} onBack={() => navigate('start')} onSave={async (next) => { await saveProfile(next, session?.user.id); onProfileChange(next) }} onViewHistory={() => viewHistory('profile')} />}
+    {view === 'profile' && <ProfilePage profile={profile} session={session} badges={badges} categoryIds={quiz.categories.map((category) => category.id)} onBack={() => navigate('start')} onSave={async (next) => { await saveProfile(next, session?.user.id); onProfileChange(next) }} onViewHistory={() => viewHistory('profile')} />}
     <footer className="app-footer">{t('footer.version', { hash: __COMMIT_HASH__ })}</footer>
   </main>
 }

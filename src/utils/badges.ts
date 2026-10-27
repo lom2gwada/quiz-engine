@@ -2,6 +2,7 @@ import { storageKey, table } from '../config'
 import type { GameMode } from '../components/QuizPage'
 import type { QuizResultRow, StatBucket } from '../types/history'
 import type { BlitzStats } from './blitz'
+import { dailyStreak } from './dailyChallenge'
 import { supabase } from './supabase'
 
 export type BadgeId = 'streak10' | 'flawless20' | 'globe10' | 'globe25' | 'globe50' | 'blitz50' | 'record1' | 'daily7' | 'classic7' | 'allModes'
@@ -73,6 +74,44 @@ export function earnedBadges(ctx: BadgeContext): BadgeId[] {
   if ((ctx.classicStreakDays ?? 0) >= 7) earned.push('classic7')
   if (ctx.allModesToday) earned.push('allModes')
   return earned
+}
+
+export interface BadgeProgress {
+  current: number
+  /** Seuil du badge ; `current` est plafonné à cette valeur. */
+  target: number
+}
+
+export interface ProgressContext {
+  /** Historique des parties (toutes celles de l'appareil / du compte). */
+  history: QuizResultRow[]
+  categoryIds: string[]
+  /** Jours (`YYYY-MM-DD`) où le défi du jour a été terminé. */
+  dailyDays: string[]
+  /** Aujourd'hui, `YYYY-MM-DD`. */
+  today: string
+}
+
+/** Où en est-on de chaque badge à seuil chiffré (les autres — « sans faute », « record battu » — n'ont pas de progression).
+ *  « 10 d'affilée » ne compte que les séries du sans-faute : celles du blitz ne sont pas conservées dans l'historique. */
+export function badgeProgress(ctx: ProgressContext): Partial<Record<BadgeId, BadgeProgress>> {
+  const cap = (current: number, target: number): BadgeProgress => ({ current: Math.min(current, target), target })
+  const result: Partial<Record<BadgeId, BadgeProgress>> = {}
+
+  result.streak10 = cap(Math.max(0, ...ctx.history.filter((row) => row.mode === 'noMistake').map((row) => row.correct_count)), 10)
+
+  if (ctx.categoryIds.length) {
+    const correct: Record<string, number> = {}
+    for (const row of ctx.history) for (const [category, bucket] of Object.entries(row.by_category)) correct[category] = (correct[category] ?? 0) + bucket.correct
+    const weakest = Math.min(...ctx.categoryIds.map((id) => correct[id] ?? 0))
+    for (const tier of GLOBE_TIERS) result[tier.id] = cap(weakest, tier.threshold)
+  }
+
+  result.blitz50 = cap(ctx.history.filter((row) => row.mode === 'blitz').length, 50)
+  result.daily7 = cap(dailyStreak(ctx.dailyDays, ctx.today), 7)
+  result.classic7 = cap(dailyStreak(ctx.history.filter((row) => row.mode === 'classic').map((row) => row.created_at.slice(0, 10)), ctx.today), 7)
+  result.allModes = cap(new Set(ctx.history.filter((row) => row.created_at.slice(0, 10) === ctx.today).map((row) => row.mode)).size, 4)
+  return result
 }
 
 /** Les 4 modes ont-ils été joués le même jour (`today`, `YYYY-MM-DD`) ? `history` = parties avant celle-ci,

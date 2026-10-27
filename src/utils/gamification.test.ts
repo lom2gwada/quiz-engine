@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { Question } from '../types/quiz'
 import type { QuizResultRow } from '../types/history'
-import { addBadges, earnedBadges, playedAllModesToday, type BadgeContext } from './badges'
+import { addBadges, badgeProgress, earnedBadges, playedAllModesToday, type BadgeContext } from './badges'
 import { DAILY_QUESTION_COUNT, dailyKey, dailyRank, dailySeed, dailyStreak, pickDailyIds, selectDaily, type DailyRow } from './dailyChallenge'
 
 vi.mock('./supabase', () => ({ supabase: {} }))
@@ -106,5 +106,47 @@ describe('badges', () => {
     const owned = { streak10: '2026-09-01T00:00:00Z' }
     const next = addBadges(owned, ['streak10', 'record1'], '2026-09-20T00:00:00Z')
     expect(next).toEqual({ streak10: '2026-09-01T00:00:00Z', record1: '2026-09-20T00:00:00Z' })
+  })
+})
+
+describe('badgeProgress', () => {
+  const row = (over: Partial<QuizResultRow>): QuizResultRow => ({
+    id: 'x', created_at: '2026-09-21T10:00:00Z', quiz_title: 'Q', mode: 'classic', score: 0, earned_points: 0, total_points: 0, correct_count: 0,
+    elapsed_seconds: 0, question_count: 0, categories: [], by_category: {}, by_type: {}, by_difficulty: {}, ...over,
+  })
+  const ctx = { history: [] as QuizResultRow[], categoryIds: ['a', 'b'], dailyDays: [] as string[], today: '2026-09-21' }
+
+  it('starts every badge at zero without history', () => {
+    const progress = badgeProgress(ctx)
+    expect(Object.values(progress).every((step) => step?.current === 0)).toBe(true)
+    expect(progress.globe10).toEqual({ current: 0, target: 10 })
+    expect(progress.blitz50).toEqual({ current: 0, target: 50 })
+  })
+
+  it('counts blitz games, the best no-mistake streak and the modes played today', () => {
+    const history = [
+      row({ mode: 'blitz' }), row({ mode: 'blitz' }), row({ mode: 'noMistake', correct_count: 7 }), row({ mode: 'noMistake', correct_count: 4 }),
+      row({ mode: 'timeAttack', created_at: '2026-09-20T10:00:00Z' }),
+    ]
+    const progress = badgeProgress({ ...ctx, history })
+    expect(progress.blitz50).toEqual({ current: 2, target: 50 })
+    expect(progress.streak10).toEqual({ current: 7, target: 10 })
+    expect(progress.allModes).toEqual({ current: 2, target: 4 })
+  })
+
+  it('measures the globe-trotter tiers on the least advanced category, capped at the threshold', () => {
+    const history = [row({ by_category: { a: { correct: 30, total: 40 }, b: { correct: 12, total: 20 } } })]
+    const progress = badgeProgress({ ...ctx, history })
+    expect(progress.globe10).toEqual({ current: 10, target: 10 })
+    expect(progress.globe25).toEqual({ current: 12, target: 25 })
+    expect(progress.globe50).toEqual({ current: 12, target: 50 })
+    expect(badgeProgress({ ...ctx, categoryIds: [] }).globe10).toBeUndefined()
+  })
+
+  it('counts consecutive days for the daily challenge and the classic mode', () => {
+    const history = [row({ created_at: '2026-09-21T08:00:00Z' }), row({ created_at: '2026-09-20T08:00:00Z' }), row({ created_at: '2026-09-18T08:00:00Z' })]
+    const progress = badgeProgress({ ...ctx, history, dailyDays: ['2026-09-20', '2026-09-19', '2026-09-18'] })
+    expect(progress.classic7).toEqual({ current: 2, target: 7 })
+    expect(progress.daily7).toEqual({ current: 3, target: 7 })
   })
 })

@@ -12,35 +12,20 @@ describe('resolveAvatarInput', () => {
     expect(resolveAvatarInput('  🌋  ')).toBe('🌋')
   })
 
-  it('keeps only the first grapheme of a longer paste', () => {
+  it('keeps only the first emoji of a longer paste', () => {
     expect(resolveAvatarInput('🦈🐬')).toBe('🦈')
-    expect(resolveAvatarInput('abc')).toBe('a')
+    expect(resolveAvatarInput('🦈 bonjour')).toBe('🦈')
   })
 
-  it('converts a hex code point in several notations', () => {
-    expect(resolveAvatarInput('U+1F984')).toBe('🦄')
-    expect(resolveAvatarInput('1F984')).toBe('🦄')
-    expect(resolveAvatarInput('1f984')).toBe('🦄')
-    expect(resolveAvatarInput('u1f984')).toBe('🦄')
+  it('keeps a ZWJ sequence and a flag whole', () => {
+    expect(resolveAvatarInput('🏴‍☠️')).toBe('🏴‍☠️')
+    expect(resolveAvatarInput('🇬🇵')).toBe('🇬🇵')
   })
 
-  it('converts a ZWJ sequence given as several code points', () => {
-    expect(resolveAvatarInput('1F3F4 200D 2620 FE0F')).toBe('🏴‍☠️')
-    expect(resolveAvatarInput('1F3F4+200D+2620+FE0F')).toBe('🏴‍☠️')
-  })
-
-  it('rejects an unusable code point (control char, surrogate)', () => {
-    expect(resolveAvatarInput('0007')).toBe('') // BEL, < 0x20
-    expect(resolveAvatarInput('D800')).toBe('') // lone surrogate
-  })
-
-  it('treats a short or digit-less hex-looking string as a pasted character', () => {
-    expect(resolveAvatarInput('café')).toBe('c')
-    expect(resolveAvatarInput('abc')).toBe('a') // 3 chars, no U+ prefix
-    expect(resolveAvatarInput('cafe')).toBe('c') // 4 hex chars but no digit
-  })
-
-  it('honours the U+ prefix even for short codes', () => {
-    expect(resolveAvatarInput('U+41')).toBe('A')
+  it('rejects anything that is not an emoji, code points included', () => {
+    expect(resolveAvatarInput('abc')).toBe('')
+    expect(resolveAvatarInput('U+1F984')).toBe('')
+    expect(resolveAvatarInput('1F984')).toBe('')
+    expect(resolveAvatarInput('é')).toBe('')
   })
 })

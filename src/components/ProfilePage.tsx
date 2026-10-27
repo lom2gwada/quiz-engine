@@ -36,38 +36,13 @@ function firstGrapheme(value: string): string {
   return Array.from(value)[0] ?? ''
 }
 
-const HEX_TOKEN = /^(u\+?)?([0-9a-f]{2,6})$/i
+const EMOJI = /\p{Extended_Pictographic}|\p{Regional_Indicator}/u
 
-/** Résout la saisie du champ libre en un seul emoji.
- *  - un ou plusieurs points de code hexadécimaux (« U+1F984 », « 1F984 », « 1f3f4 200d 2620 fe0f »)
- *    → le caractère correspondant (gère les séquences ZWJ) ; '' si le point de code est inutilisable ;
- *  - sinon, le premier « caractère visible » de ce qui est collé (emoji tapé au clavier).
- *  Renvoie '' si vide ou invalide. Sans préfixe « U+ », une suite trop courte ou sans chiffre
- *  (« abc », « cafe ») est traitée comme un caractère collé, pas comme un code. */
+/** Résout la saisie du champ libre en un seul emoji : le premier « caractère visible » de ce qui est tapé ou collé
+ *  (les emoji ZWJ comme 🏴‍☠️ restent entiers). '' si c'est vide ou que ce n'est pas un emoji. */
 export function resolveAvatarInput(raw: string): string {
-  const trimmed = raw.trim()
-  if (!trimmed) return ''
-
-  // « U+1F984 » : le « + » fait partie du préfixe — on le colle avant de découper sur «  » / « + ».
-  const points = trimmed.replace(/\bu\s*\+\s*/gi, 'U').split(/[\s+]+/).map((token) => {
-    const match = token.match(HEX_TOKEN)
-    if (!match) return null
-    const [, prefix, hex] = match
-    if (!prefix && !(hex.length >= 4 && /\d/.test(hex))) return null
-    return parseInt(hex, 16)
-  })
-
-  if (points.every((cp): cp is number => cp !== null)) {
-    const usable = points.every((cp) => cp >= 0x20 && cp <= 0x10ffff && (cp < 0xd800 || cp > 0xdfff))
-    if (!usable) return ''
-    try {
-      return String.fromCodePoint(...points).trim()
-    } catch {
-      return ''
-    }
-  }
-
-  return firstGrapheme(trimmed).trim()
+  const first = firstGrapheme(raw.trim()).trim()
+  return EMOJI.test(first) ? first : ''
 }
 
 interface ProfilePageProps {
@@ -78,9 +53,11 @@ interface ProfilePageProps {
   onViewHistory: () => void
   /** Badges obtenus ; absent : pas de section badges. */
   badges?: OwnedBadges
+  /** Catégories du quiz, pour la progression des badges « globe-trotter » ; absent : pas de progression chiffrée. */
+  categoryIds?: string[]
 }
 
-export function ProfilePage({ profile, session, onBack, onSave, onViewHistory, badges }: ProfilePageProps) {
+export function ProfilePage({ profile, session, onBack, onSave, onViewHistory, badges, categoryIds }: ProfilePageProps) {
   const t = useT()
   const [pseudo, setPseudo] = useState(profile?.pseudo ?? '')
   const options = avatarOptions()
@@ -128,9 +105,12 @@ export function ProfilePage({ profile, session, onBack, onSave, onViewHistory, b
     <div className="nav-links">
       <button type="button" className="secondary" onClick={onViewHistory}>🕓 {t('nav.history')}</button>
     </div>
-    {badges && <BadgesPanel owned={badges} />}
-    <AuthPanel session={session} />
-    {session && <GuestPassPanel userId={session.user.id} />}
+    <section className="profile-section" aria-labelledby="profile-account">
+      <h3 id="profile-account">{t('profile.section.account')}</h3>
+      <AuthPanel session={session} />
+    </section>
+    <section className="profile-section" aria-labelledby="profile-appearance">
+      <h3 id="profile-appearance">{t('profile.section.appearance')}</h3>
     <form className="profile-form" onSubmit={submit}>
       <label>{t('profile.pseudo')}
         <input value={pseudo} onChange={(event) => { setPseudo(event.target.value); setSaved(false) }} required maxLength={30} placeholder={t('profile.pseudoPlaceholder')} />
@@ -149,7 +129,7 @@ export function ProfilePage({ profile, session, onBack, onSave, onViewHistory, b
             className="avatar-custom-input"
             value={customRaw}
             onChange={(event) => changeCustom(event.target.value)}
-            placeholder="🦄  ·  U+1F984"
+            placeholder="🦄"
             aria-label={t('profile.avatarCustom')}
             spellCheck={false}
             autoComplete="off"
@@ -182,5 +162,13 @@ export function ProfilePage({ profile, session, onBack, onSave, onViewHistory, b
       {saved && !error && <p className="profile-saved">{t('profile.saved')}</p>}
       <button type="submit" disabled={saving || !pseudo.trim()}>{saving ? t('common.saving') : t('common.save')}</button>
     </form>
+    </section>
+    {session && <section className="profile-section" aria-labelledby="profile-share">
+      <h3 id="profile-share">{t('profile.section.share')}</h3>
+      <GuestPassPanel userId={session.user.id} />
+    </section>}
+    {badges && <section className="profile-section">
+      <BadgesPanel owned={badges} userId={session?.user.id} categoryIds={categoryIds} />
+    </section>}
   </section>
 }
