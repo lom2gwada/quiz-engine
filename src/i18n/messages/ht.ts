@@ -320,6 +320,10 @@ export const ht: Record<MessageKey, string> = {
   'atlas.sortName': 'non',
   'atlas.sortAsc': 'Lòd k ap monte, klike pou desann',
   'atlas.sortDesc': 'Lòd k ap desann, klike pou monte',
+  'fiche.imageAlt': "{label} {of_name}",
+  'atlas.viewLabel': "Fason pou montre fich yo",
+  'atlas.viewCompact': "Kout",
+  'atlas.viewDetailed': "Detaye",
   'atlas.empty': 'Pa gen fich pou "{query}".',
 
   'fiche.silhouetteLabel': 'Kontou: {name} (pase sourit la pou agrandi)',

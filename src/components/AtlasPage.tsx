@@ -4,6 +4,8 @@ import type { GenSchema, Row } from '../utils/quizGenerator'
 import type { DataI18n } from '../i18n/data'
 import { makeDatasetI18n } from '../i18n/dataset'
 import { useLocale, useT } from '../i18n'
+import { storageKey } from '../config'
+import { playClick } from '../utils/sound'
 import type { FicheDecorator } from '../types/app'
 import { Fiche } from './Fiche'
 
@@ -19,8 +21,18 @@ interface AtlasPageProps {
   onOpenFiche: (name: string) => void
 }
 
+type AtlasView = 'compact' | 'detailed'
+
+const readView = (): AtlasView => {
+  try { return localStorage.getItem(storageKey('atlas-view')) === 'detailed' ? 'detailed' : 'compact' } catch { return 'compact' }
+}
+const writeView = (view: AtlasView) => {
+  try { localStorage.setItem(storageKey('atlas-view'), view) } catch { /* non bloquant */ }
+}
+
 /** Grille de fiches, une par entité, dans l'ordre du tri choisi. Filtre + tri génériques
- * depuis le schéma. Cliquer une carte ouvre la fiche en modale. */
+ * depuis le schéma. Deux vues, mémorisées : compacte (image, nom et une valeur clé — la page tient en quelques écrans) ou
+ * détaillée (toutes les fiches complètes). Dans les deux cas, cliquer une carte ouvre la fiche en modale. */
 export function AtlasPage({ rows, schema, decor, actions, i18n, onBack, onOpenFiche }: AtlasPageProps) {
   const t = useT()
   const locale = useLocale()
@@ -28,7 +40,12 @@ export function AtlasPage({ rows, schema, decor, actions, i18n, onBack, onOpenFi
   const [query, setQuery] = useState('')
   const [sortKey, setSortKey] = useState('name') // 'name' ou une colonne nombre
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
-  const { subjectColumn, columns } = schema
+  const [view, setView] = useState<AtlasView>(readView)
+  const chooseView = (next: AtlasView) => { playClick(); setView(next); writeView(next) }
+  const { subjectColumn, articleColumn, columns } = schema
+  const imageCol = Object.keys(columns).find((c) => columns[c].include && columns[c].isImage)
+  // Valeur clé de la vue compacte : la première colonne de texte (la capitale, le symbole…).
+  const summaryCol = Object.keys(columns).find((c) => columns[c].include && !columns[c].isImage && columns[c].kind !== 'number' && c !== subjectColumn && c !== articleColumn)
 
   const numCols = useMemo(
     () => Object.entries(columns).filter(([c, s]) => s.include && s.kind === 'number' && c !== subjectColumn),
@@ -102,7 +119,27 @@ export function AtlasPage({ rows, schema, decor, actions, i18n, onBack, onOpenFi
           {sortDir === 'asc' ? '↑' : '↓'}
         </button>
       </div>
-      <div className="atlas-grid">
+      <div className="atlas-view-toggle mode-toggle" role="group" aria-label={t('atlas.viewLabel')}>
+        <button type="button" className={view === 'compact' ? 'mode-chip is-active' : 'mode-chip'} aria-pressed={view === 'compact'} onClick={() => chooseView('compact')}>{t('atlas.viewCompact')}</button>
+        <button type="button" className={view === 'detailed' ? 'mode-chip is-active' : 'mode-chip'} aria-pressed={view === 'detailed'} onClick={() => chooseView('detailed')}>{t('atlas.viewDetailed')}</button>
+      </div>
+      {view === 'compact' && <div className="atlas-grid is-compact">
+        {sorted.map((row) => {
+          const canonical = row[subjectColumn] ?? ''
+          const name = nameOf(row)
+          const image = imageCol && /^https?:\/\//.test((row[imageCol] ?? '').trim()) ? row[imageCol].trim() : null
+          const { lead } = decor?.(row, { name, canonical }) ?? {}
+          const summary = summaryCol ? (row[summaryCol] ?? '').trim() : ''
+          return <button type="button" className="atlas-tile" key={canonical} onClick={() => { playClick(); onOpenFiche(canonical) }}>
+            <span className="atlas-tile-media">
+              {image ? <img className="fiche-flag" src={image} alt={imageCol ? t('fiche.imageAlt', { label: data.label(columns[imageCol].label).replace(/^./, (c) => c.toUpperCase()), of_name: data.ofSubject(canonical, articleColumn ? row[articleColumn] : undefined) }) : ''} loading="lazy" /> : lead}
+            </span>
+            <span className="atlas-tile-name">{name}</span>
+            {summaryCol && summary && <span className="atlas-tile-sub">{data.label(columns[summaryCol].label).replace(/^./, (c) => c.toUpperCase())} : {data.value(summary)}</span>}
+          </button>
+        })}
+      </div>}
+      {view === 'detailed' && <div className="atlas-grid">
         {sorted.map((row) => {
           const canonical = row[subjectColumn] ?? '' // valeur FR : clé d'ouverture de la fiche
           return (
@@ -120,7 +157,7 @@ export function AtlasPage({ rows, schema, decor, actions, i18n, onBack, onOpenFi
             </div>
           )
         })}
-      </div>
+      </div>}
       {!sorted.length && <p className="atlas-empty">{t('atlas.empty', { query })}</p>}
     </section>
   )

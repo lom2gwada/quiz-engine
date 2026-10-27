@@ -319,6 +319,10 @@ export const es: Record<MessageKey, string> = {
   'atlas.sortName': 'nombre',
   'atlas.sortAsc': 'Orden ascendente, clic para descendente',
   'atlas.sortDesc': 'Orden descendente, clic para ascendente',
+  'fiche.imageAlt': "{label} {of_name}",
+  'atlas.viewLabel': "Vista de las fichas",
+  'atlas.viewCompact': "Compacta",
+  'atlas.viewDetailed': "Detallada",
   'atlas.empty': 'Ninguna ficha para «{query}».',
 
   'fiche.silhouetteLabel': 'Silueta: {name} (pasa el ratón para ampliar)',

@@ -332,6 +332,10 @@ export const fr = {
   'atlas.sortName': 'nom',
   'atlas.sortAsc': 'Ordre croissant, cliquer pour décroissant',
   'atlas.sortDesc': 'Ordre décroissant, cliquer pour croissant',
+  'fiche.imageAlt': "{label} {of_name}",
+  'atlas.viewLabel': "Affichage des fiches",
+  'atlas.viewCompact': "Compacte",
+  'atlas.viewDetailed': "Détaillée",
   'atlas.empty': 'Aucune fiche pour « {query} ».',
 
   // — carte régionale (vue d'ensemble) —

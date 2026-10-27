@@ -318,6 +318,10 @@ export const en: Record<MessageKey, string> = {
   'atlas.sortName': 'name',
   'atlas.sortAsc': 'Ascending order, click for descending',
   'atlas.sortDesc': 'Descending order, click for ascending',
+  'fiche.imageAlt': "{label} {of_name}",
+  'atlas.viewLabel': "Card layout",
+  'atlas.viewCompact': "Compact",
+  'atlas.viewDetailed': "Detailed",
   'atlas.empty': 'No card for "{query}".',
 
   'fiche.silhouetteLabel': 'Outline: {name} (hover to enlarge)',

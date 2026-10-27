@@ -30,6 +30,8 @@ export function Fiche({ row, schema, i18n, decor }: FicheProps) {
   const article = data.article(canonical, articleColumn ? row[articleColumn] : undefined)
   const imageCol = Object.keys(columns).find((c) => columns[c].include && columns[c].isImage)
   const flag = imageCol && /^https?:\/\//.test((row[imageCol] ?? '').trim()) ? row[imageCol].trim() : null
+  // « Drapeau d'Anguilla » : la nature de l'image (libellé de sa colonne) + le sujet, pour qu'elle ait un texte alternatif.
+  const imageAlt = imageCol ? t('fiche.imageAlt', { label: cap(data.label(columns[imageCol].label)), of_name: data.ofSubject(canonical, articleColumn ? row[articleColumn] : undefined) }) : ''
   const { lead, trail } = decor?.(row, { name, canonical }) ?? {}
   const factCols = Object.entries(columns).filter(
     ([c, s]) => s.include && !s.isImage && c !== subjectColumn && c !== articleColumn,
@@ -45,7 +47,7 @@ export function Fiche({ row, schema, i18n, decor }: FicheProps) {
             href={flag}
             className="fiche-flag-wrap"
             label={t('fiche.flagLabel', { name })}
-            trigger={<img className="fiche-flag" src={flag} alt="" loading="lazy" />}
+            trigger={<img className="fiche-flag" src={flag} alt={imageAlt} loading="lazy" />}
             preview={<img src={flag} alt="" />}
           />
         )}

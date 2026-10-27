@@ -319,6 +319,10 @@ export const nl: Record<MessageKey, string> = {
   'atlas.sortName': 'naam',
   'atlas.sortAsc': 'Oplopend, klik voor aflopend',
   'atlas.sortDesc': 'Aflopend, klik voor oplopend',
+  'fiche.imageAlt': "{label} {of_name}",
+  'atlas.viewLabel': "Weergave van de kaarten",
+  'atlas.viewCompact': "Compact",
+  'atlas.viewDetailed': "Uitgebreid",
   'atlas.empty': 'Geen kaart voor "{query}".',
 
   'fiche.silhouetteLabel': 'Omtrek: {name} (beweeg de muis om te vergroten)',
