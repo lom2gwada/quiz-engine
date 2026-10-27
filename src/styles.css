@@ -328,6 +328,11 @@ pre { padding: 1rem; overflow: auto; background: var(--code-bg); border: 1px sol
 .daily-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .6rem; }
 .daily-head h3 { margin: 0; }
 .daily-streak { font-size: .85rem; font-weight: 700; color: var(--accent-text); }
+.weak-list { list-style: none; margin: .6rem 0 1rem; padding: 0; display: grid; gap: .35rem; }
+.weak-list li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .2rem .8rem; }
+.weak-name { font-weight: 600; }
+.weak-detail { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.weak-panel .daily-note { min-height: 1.3em; margin: .6rem 0 0; }
 .daily-note { color: var(--text-muted); font-size: .85rem; }
 .daily-panel .stats-group-title { margin-top: 1.2rem; }
 .badges-panel { margin-bottom: 1.5rem; }

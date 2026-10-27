@@ -5,6 +5,7 @@ import { plural, useLocale, useT } from '../i18n'
 import { bucketsToRadarPoints, computeCategoryWeekHeatmap, computeRecords, computeReviewQueue, fetchQuestionResults, fetchQuizHistory, resolveReviewQuestions, sumBuckets, REVIEW_BATCH_SIZE } from '../utils/quizHistory'
 import { formatDuration, formatLongDuration } from '../utils/time'
 import { sortCategoryPoints, type CategorySort } from '../utils/historyView'
+import { WeakCategoriesCard, weakCategoriesOf } from './WeakCategoriesCard'
 import { CategoryWeekHeatmap } from './CategoryWeekHeatmap'
 import { HeatmapChart } from './HeatmapChart'
 import { LeaderboardPanel } from './LeaderboardPanel'
@@ -17,7 +18,7 @@ type HistoryTab = 'summary' | 'categories' | 'leaderboard' | 'games'
 
 export const MODE_ICONS: Record<GameMode, string> = { classic: '🎯', timeAttack: '⏱️', noMistake: '🔥', blitz: '⚡' }
 
-export function HistoryPage({ onBack, quiz, historyKey, userId, onReplayMissed }: { onBack: () => void; quiz: Quiz; historyKey: string; userId?: string | null; onReplayMissed: (questions: Question[]) => void }) {
+export function HistoryPage({ onBack, quiz, historyKey, userId, onReplayMissed, onPracticeWeak }: { onBack: () => void; quiz: Quiz; historyKey: string; userId?: string | null; onReplayMissed: (questions: Question[]) => void; onPracticeWeak: (categoryIds: string[]) => void }) {
   const t = useT()
   const locale = useLocale()
   const shortDate = (iso: string) => new Date(iso).toLocaleDateString(locale, { day: 'numeric', month: 'short' })
@@ -50,6 +51,9 @@ export function HistoryPage({ onBack, quiz, historyKey, userId, onReplayMissed }
   const byCategory = quizRows ? sortCategoryPoints(bucketsToRadarPoints(sumBuckets(quizRows, (row) => row.by_category), catName), categorySort, locale) : []
   const byType = quizRows ? bucketsToRadarPoints(sumBuckets(quizRows, (row) => row.by_type), typeName) : []
   const byDifficulty = quizRows ? bucketsToRadarPoints(sumBuckets(quizRows, (row) => row.by_difficulty), diffName) : []
+
+  // L'entraînement ciblé pré-coche les catégories du quiz courant : sans objet pour l'historique d'un autre quiz.
+  const weak = rows && activeQuiz === historyKey ? weakCategoriesOf(rows, historyKey, quiz) : []
 
   const weekHeatmap = quizRows ? computeCategoryWeekHeatmap(quizRows) : null
 
@@ -113,6 +117,7 @@ export function HistoryPage({ onBack, quiz, historyKey, userId, onReplayMissed }
           </div>
         </>}
         {activeTab === 'categories' && <>
+          {weak.length > 0 && <WeakCategoriesCard weak={weak} quiz={quiz} applied={false} onPractice={onPracticeWeak} />}
           <div className="stats-group">
             <div className="stats-group-header">
               <h3 className="stats-group-title">{t('result.byCategory')}</h3>

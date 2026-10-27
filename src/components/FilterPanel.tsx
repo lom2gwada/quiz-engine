@@ -19,6 +19,8 @@ interface FilterPanelProps {
  *  réglé ; sur grand écran ils restent dépliés. */
 const startsOpen = () => typeof window.matchMedia !== 'function' || window.matchMedia('(min-width: 700px)').matches
 
+const SUMMARY_NAMES_MAX = 5
+
 /** Catégories (par groupes, avec « Tout / Aucun » par groupe et au total) et difficulté. Aucune case cochée = toutes les
  *  catégories : c'est dit en toutes lettres sous la liste. */
 export function FilterPanel({ categories, groups, selectedCategories, difficulty, onSelectedChange, onDifficultyChange }: FilterPanelProps) {
@@ -28,7 +30,8 @@ export function FilterPanel({ categories, groups, selectedCategories, difficulty
   const views = groupCategories(categories, groups, locale)
   const n = selectedCategories.length
   const status = n === 0 ? t('filter.noneChecked') : n === categories.length ? t('filter.allCategories') : t(plural('filter.selected', n), { n, total: categories.length })
-  const categoriesSummary = n === 0 || n === categories.length ? t('filter.allCategories') : t(plural('filter.selected', n), { n, total: categories.length })
+  // Peu de catégories cochées (entraînement ciblé, choix à la main) : on les nomme, pour qu'on les voie sans déplier la liste.
+  const categoriesSummary = n === 0 || n === categories.length ? t('filter.allCategories') : n <= SUMMARY_NAMES_MAX ? categories.filter((category) => selectedCategories.includes(category.id)).map((category) => category.label).join(', ') : t(plural('filter.selected', n), { n, total: categories.length })
   const difficultySummary = difficulty ? t(`difficulty.${difficulty}`) : t('filter.allDifficulties')
   const change = (next: string[]) => { playClick(); onSelectedChange(next) }
   const allIds = categories.map((category) => category.id)

@@ -32,6 +32,7 @@ import { GameExtras, type DailySummaryData } from './components/GameExtras'
 import type { RecordSummaryData } from './components/RecordSummary'
 import { DailyChallengePanel } from './components/DailyChallengePanel'
 import { ReviewPanel } from './components/ReviewPanel'
+import { WeakCategoriesPanel } from './components/WeakCategoriesCard'
 import { SpeakButton } from './components/SpeakButton'
 import { speechLocale } from './utils/speechText'
 import { earnedBadges, addBadges, playedAllModesToday, pushBadges, readBadges, syncBadges, writeBadges, type BadgeContext, type BadgeId, type OwnedBadges } from './utils/badges'
@@ -429,6 +430,8 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     if (target === 'history') viewHistory(view)
     else navigate(target)
   }
+  // Entraînement ciblé : pré-coche les catégories faibles (sans filtre de difficulté) et ramène à l'accueil, où elles sont rappelées avant de jouer.
+  const practiceWeak = (categoryIds: string[]) => { playClick(); setSelectedCategories(categoryIds); setDifficulty(''); if (view !== 'start') navigate('start') }
   const navButton = (target: View, label: string) => <button type="button" className="secondary" aria-current={view === target ? 'page' : undefined} onClick={() => goTo(target)}>{label}</button>
   // La même barre sur toutes les pages. Pendant une partie, seul le son reste : quitter l'abandonnerait (le retour du navigateur demande confirmation).
   const headerActions = <>
@@ -447,6 +450,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     {view === 'start' && <section className="start-page">
       {dataset?.editable && <DailyChallengePanel userId={userId} day={dailyKey()} onPlay={startDaily} refreshKey={dailyRefresh} error={dailyError} />}
       <ReviewPanel quiz={quiz} historyKey={historyKeyOf(dataset, quiz)} userId={userId} onReview={replayMissed} />
+      <WeakCategoriesPanel quiz={quiz} historyKey={historyKeyOf(dataset, quiz)} userId={userId} selectedCategories={selectedCategories} onPractice={practiceWeak} />
       <div className="nav-links home-shortcuts">
         <button type="button" className="secondary" onClick={() => { playClick(); viewHistory('start') }}>🕓 {t('nav.history')}</button>
         <button type="button" className="secondary" onClick={() => goTo('leaderboard')}>🏆 {t('nav.leaderboard')}</button>
@@ -563,7 +567,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
       return row ? <FicheModal row={row} schema={dataset.schema} decor={dataset.ficheDecor} speech={dataset.speech} i18n={dataset.i18n} canEdit={isAdmin && Boolean(dataset.editable && spec.remote)} updateRow={spec.remote?.updateRow} onRowUpdated={handleDatasetRowUpdated} onClose={() => setFicheSubject(null)} /> : null
     })()}
     {view === 'leaderboard' && <LeaderboardPage onBack={() => navigate('start')} historyKey={historyKeyOf(dataset, quiz)} userId={session?.user.id} />}
-    {view === 'history' && <HistoryPage onBack={() => navigate(historyBack)} quiz={quiz} historyKey={historyKeyOf(dataset, quiz)} userId={session?.user.id} onReplayMissed={replayMissed} />}
+    {view === 'history' && <HistoryPage onBack={() => navigate(historyBack)} quiz={quiz} historyKey={historyKeyOf(dataset, quiz)} userId={session?.user.id} onReplayMissed={replayMissed} onPracticeWeak={practiceWeak} />}
     {view === 'profile' && <ProfilePage profile={profile} session={session} badges={badges} onBack={() => navigate('start')} onSave={async (next) => { await saveProfile(next, session?.user.id); onProfileChange(next) }} onViewHistory={() => viewHistory('profile')} />}
     <footer className="app-footer">{t('footer.version', { hash: __COMMIT_HASH__ })}</footer>
   </main>
