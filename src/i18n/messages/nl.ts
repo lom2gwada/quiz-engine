@@ -110,6 +110,8 @@ export const nl: Record<MessageKey, string> = {
   'filter.selectNoneAria': 'Alle categorieën wissen',
   'filter.group.other': 'Overig',
   'filter.difficulty': 'Moeilijkheid',
+  'filter.edit': 'Wijzigen',
+  'filter.collapse': 'Inklappen',
   'filter.allDifficulties': 'Alle moeilijkheden',
   'difficulty.easy': 'Makkelijk',
   'difficulty.medium': 'Gemiddeld',

@@ -114,6 +114,8 @@ export const fr = {
   'filter.selectNoneAria': 'Désélectionner toutes les catégories',
   'filter.group.other': 'Autres',
   'filter.difficulty': 'Difficulté',
+  'filter.edit': 'Modifier',
+  'filter.collapse': 'Replier',
   'filter.allDifficulties': 'Toutes les difficultés',
   'difficulty.easy': 'Facile',
   'difficulty.medium': 'Intermédiaire',

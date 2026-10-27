@@ -109,6 +109,8 @@ export const en: Record<MessageKey, string> = {
   'filter.selectNoneAria': 'Clear all categories',
   'filter.group.other': 'Other',
   'filter.difficulty': 'Difficulty',
+  'filter.edit': 'Change',
+  'filter.collapse': 'Collapse',
   'filter.allDifficulties': 'All difficulties',
   'difficulty.easy': 'Easy',
   'difficulty.medium': 'Medium',

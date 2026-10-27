@@ -46,19 +46,21 @@ export function DailyChallengePanel({ userId, day, onPlay, refreshKey, error }: 
     </>}
     {error && <p className="alert" role="alert">{t('daily.error')}</p>}
     {!userId && <p className="daily-note">{t('daily.guest')}</p>}
-    <h4 className="stats-group-title">{t('daily.leaderboard')}</h4>
-    {board === null && <p>{t('common.loading')}</p>}
-    {board && !board.length && <p>{t('daily.empty')}</p>}
-    {board && board.length > 0 && <ul className="leaderboard-list">
-      {board.slice(0, 10).map((row, index) => <li key={row.user_id} className={row.user_id === userId ? 'leaderboard-item leaderboard-item-self' : 'leaderboard-item'}>
-        <span className="leaderboard-rank">{index + 1}</span>
-        <span className="leaderboard-avatar">{row.avatar}</span>
-        <div className="leaderboard-main">
-          <span className="leaderboard-pseudo">{row.pseudo}</span>
-          <span className="leaderboard-details">⏱ {formatDuration(row.elapsed_seconds)}</span>
-        </div>
-        <span className="leaderboard-score">{t(row.correct_count === 1 ? 'leaderboard.correctCount.one' : 'leaderboard.correctCount.other', { n: row.correct_count })}</span>
-      </li>)}
-    </ul>}
+    <details className="daily-board">
+      <summary className="stats-group-title">{t('daily.leaderboard')}</summary>
+      {board === null && <p>{t('common.loading')}</p>}
+      {board && !board.length && <p>{t('daily.empty')}</p>}
+      {board && board.length > 0 && <ul className="leaderboard-list">
+        {board.slice(0, 10).map((row, index) => <li key={row.user_id} className={row.user_id === userId ? 'leaderboard-item leaderboard-item-self' : 'leaderboard-item'}>
+          <span className="leaderboard-rank">{index + 1}</span>
+          <span className="leaderboard-avatar">{row.avatar}</span>
+          <div className="leaderboard-main">
+            <span className="leaderboard-pseudo">{row.pseudo}</span>
+            <span className="leaderboard-details">⏱ {formatDuration(row.elapsed_seconds)}</span>
+          </div>
+          <span className="leaderboard-score">{t(row.correct_count === 1 ? 'leaderboard.correctCount.one' : 'leaderboard.correctCount.other', { n: row.correct_count })}</span>
+        </li>)}
+      </ul>}
+    </details>
   </section>
 }

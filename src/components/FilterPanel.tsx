@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { CategoryGroup } from '../types/app'
 import type { Category, Difficulty } from '../types/quiz'
 import { plural, useLocale, useT } from '../i18n'
@@ -14,18 +15,29 @@ interface FilterPanelProps {
   onDifficultyChange: (value: Difficulty | '') => void
 }
 
+/** Sur téléphone les filtres sont repliés (29 catégories = plusieurs écrans avant « Jouer ») : la ligne de résumé dit ce qui est
+ *  réglé ; sur grand écran ils restent dépliés. */
+const startsOpen = () => typeof window.matchMedia !== 'function' || window.matchMedia('(min-width: 700px)').matches
+
 /** Catégories (par groupes, avec « Tout / Aucun » par groupe et au total) et difficulté. Aucune case cochée = toutes les
  *  catégories : c'est dit en toutes lettres sous la liste. */
 export function FilterPanel({ categories, groups, selectedCategories, difficulty, onSelectedChange, onDifficultyChange }: FilterPanelProps) {
   const t = useT()
   const locale = useLocale()
+  const [open, setOpen] = useState(startsOpen)
   const views = groupCategories(categories, groups, locale)
   const n = selectedCategories.length
   const status = n === 0 ? t('filter.noneChecked') : n === categories.length ? t('filter.allCategories') : t(plural('filter.selected', n), { n, total: categories.length })
+  const categoriesSummary = n === 0 || n === categories.length ? t('filter.allCategories') : t(plural('filter.selected', n), { n, total: categories.length })
+  const difficultySummary = difficulty ? t(`difficulty.${difficulty}`) : t('filter.allDifficulties')
   const change = (next: string[]) => { playClick(); onSelectedChange(next) }
   const allIds = categories.map((category) => category.id)
 
-  return <section className="filter-panel" aria-label={t('filter.aria')}>
+  return <details className="filter-panel filter-details" open={open} onToggle={(event) => setOpen(event.currentTarget.open)}>
+    <summary className="filter-summary">
+      <span className="filter-summary-text">{categoriesSummary} · {difficultySummary}</span>
+      <span className="filter-summary-edit">{open ? t('filter.collapse') : t('filter.edit')}</span>
+    </summary>
     <fieldset className="category-filter">
       <legend>{t('filter.categories')}</legend>
       <div className="category-actions">
@@ -61,5 +73,5 @@ export function FilterPanel({ categories, groups, selectedCategories, difficulty
         <option value="hard">{t('difficulty.hard')}</option>
       </select>
     </label>
-  </section>
+  </details>
 }

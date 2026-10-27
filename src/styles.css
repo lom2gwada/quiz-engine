@@ -65,6 +65,12 @@ p { color: var(--text-muted); } .eyebrow { margin: 0; color: var(--accent-text);
 .category-group { display: grid; gap: .45rem; } .category-group + .category-group { margin-top: .35rem; }
 .category-group-head { display: flex; align-items: baseline; justify-content: space-between; gap: .8rem; }
 .category-group-title { font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-soft); }
+.filter-summary { display: flex; align-items: center; justify-content: space-between; gap: .8rem; padding: .7rem .9rem; border: 1px solid var(--border); border-radius: .7rem; background: var(--surface-alt); cursor: pointer; font-weight: 600; }
+.filter-summary-edit { color: var(--accent-text); font-size: .85rem; white-space: nowrap; }
+.filter-details[open] > .filter-summary { margin-bottom: 1rem; }
+.daily-board > summary { cursor: pointer; margin-top: 1rem; }
+/* Téléphone : « Jouer » reste collé en bas de l'écran tant qu'on règle la partie ; il reprend sa place au bout de la page. */
+@media (max-width: 550px) { .start-page .quiz-actions { position: sticky; bottom: 0; z-index: 5; margin: 1rem 0 0; padding: 1.2rem 0 .2rem; background: linear-gradient(to bottom, transparent, var(--surface-solid) 1.1rem); } }
 .profile-menu { position: relative; }
 .profile-menu-list { position: absolute; right: 0; top: calc(100% + .4rem); z-index: 30; display: grid; gap: .15rem; min-width: 13rem; margin: 0; padding: .4rem; list-style: none; border: 1px solid var(--border); border-radius: .7rem; background: var(--surface-solid); box-shadow: var(--shadow); }
 .profile-menu-item { width: 100%; padding: .55rem .7rem; background: none; color: var(--text); font-weight: 600; text-align: left; }

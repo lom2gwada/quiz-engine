@@ -111,6 +111,8 @@ export const ht: Record<MessageKey, string> = {
   'filter.selectNoneAria': 'Retire tout kategori yo',
   'filter.group.other': 'Lòt',
   'filter.difficulty': 'Difikilte',
+  'filter.edit': 'Chanje',
+  'filter.collapse': 'Fèmen',
   'filter.allDifficulties': 'Tout difikilte yo',
   'difficulty.easy': 'Fasil',
   'difficulty.medium': 'Mwayen',
