@@ -182,7 +182,7 @@ export function userAnswer(question: Question, answer: AnswersByQuestion[string]
 }
 
 export function correctAnswer(question: Question, t: TFunction = frT): string {
-  if (question.type === 'text' || question.type === 'cloze') return question.content.expectedAnswers.join(t('common.or'))
+  if (question.type === 'text' || question.type === 'cloze') return Array.from(new Set(question.content.expectedAnswers)).join(t('common.or'))
   if (question.type === 'map') return question.content.labels[question.content.target] ?? question.content.target
   if (question.type === 'numeric') {
     const { target, tolerance, unit, isYear } = question.content

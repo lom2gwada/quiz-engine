@@ -281,6 +281,13 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     if (dataset.editable && isAdmin) spec.remote?.saveSchemaConfig(schema).catch(() => {})
   }
 
+  // Aperçu du panneau « Générer » : mêmes données, schéma et graine du formulaire, mais rien n'est appliqué.
+  const previewGenerated = (schema: GenSchema, seed: string) => {
+    if (!dataset) return { questions: [], error: '' }
+    const { quiz: preview, error } = safeGenerate(spec, { ...dataset, schema }, seed, locale)
+    return { questions: preview.questions, error }
+  }
+
   // Reconstruit le pool de questions depuis les mêmes données, avec un nouveau seed :
   // autres distracteurs, autres énoncés Vrai/Faux, autres regroupements de classement.
   const regenerateQuestions = () => {
@@ -562,7 +569,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
         .finally(persist)
     }} onCancel={backToStart} />}
     {view === 'results' && <ResultPage questions={resultQuestions} answers={answers} categories={quiz.categories} elapsedSeconds={elapsedSeconds} onRestartSame={isReplay || dailyRun ? undefined : restartQuiz} onBackToSettings={backToStart} onViewHistory={() => viewHistory('results')} onViewFiche={dataset ? setFicheSubject : undefined} summary={<GameExtras blitz={activeMode === 'blitz' ? blitzSummary : null} daily={dailySummary} modeRecord={activeMode === 'blitz' ? null : modeRecordSummary} review={isReplay ? reviewChanges : null} newBadges={newBadges} />} />}
-    {view === 'content' && <QuizContentPage quiz={quiz} dataset={dataset} onBack={() => navigate('start')} onCsvChange={loadCsv} onGenerate={generateFromPanel} onRegenerate={regenerateQuestions} fileError={fileError} genError={genError} />}
+    {view === 'content' && <QuizContentPage quiz={quiz} dataset={dataset} onBack={() => navigate('start')} onCsvChange={loadCsv} onGenerate={generateFromPanel} onRegenerate={regenerateQuestions} onPreview={previewGenerated} sharedDefault={Boolean(dataset?.editable && isAdmin)} fileError={fileError} genError={genError} />}
     {view === 'atlas' && dataset && <AtlasPage rows={dataset.rows} schema={dataset.schema} decor={dataset.ficheDecor} i18n={dataset.i18n} actions={dataset.views?.filter((v) => v.entry === 'atlas').map(viewButton)} onOpenFiche={setFicheSubject} onBack={() => navigate('start')} />}
     {dataset && (() => {
       const custom = dataset.views?.find((v) => v.id === view)

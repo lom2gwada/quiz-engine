@@ -1,8 +1,10 @@
-import type { Difficulty, Quiz } from '../types/quiz'
+import { useState } from 'react'
+import type { Difficulty, Question, Quiz } from '../types/quiz'
 import type { GenSchema, Row } from '../utils/quizGenerator'
 import type { DataI18n } from '../i18n/data'
 import { useT } from '../i18n'
 import { formatNumber } from '../utils/number'
+import { ConfirmBar } from './ConfirmBar'
 import { DataTable } from './DataTable'
 import { GeneratorPanel } from './GeneratorPanel'
 import { PieChart } from './PieChart'
@@ -19,12 +21,18 @@ interface QuizContentPageProps {
   onCsvChange: (file?: File) => void
   onGenerate: (schema: GenSchema, seed: string) => void
   onRegenerate: () => void
+  /** Questions que donnerait ce schéma avec cette graine, sans rien appliquer. */
+  onPreview: (schema: GenSchema, seed: string) => { questions: Question[]; error: string }
+  /** « Générer le quiz » enregistre aussi ces réglages comme défaut de tous les joueurs (admin sur le jeu de données partagé). */
+  sharedDefault: boolean
   fileError: string
   genError: string
 }
 
-export function QuizContentPage({ quiz, dataset, onBack, onCsvChange, onGenerate, onRegenerate, fileError, genError }: QuizContentPageProps) {
+export function QuizContentPage({ quiz, dataset, onBack, onCsvChange, onGenerate, onRegenerate, onPreview, sharedDefault, fileError, genError }: QuizContentPageProps) {
   const t = useT()
+  // Régénérer et importer remplacent les questions : on dit lesquelles et ce qui est conservé avant d'agir.
+  const [pending, setPending] = useState<{ kind: 'regenerate' } | { kind: 'import'; file: File } | null>(null)
   const total = formatNumber(quiz.questions.length)
 
   const byCategory = quiz.categories
@@ -57,12 +65,22 @@ export function QuizContentPage({ quiz, dataset, onBack, onCsvChange, onGenerate
       <button type="button" className="secondary" onClick={onBack}>{t('common.back')}</button>
     </div>
     {quiz.metadata.description && <p className="quiz-description">{quiz.metadata.description}</p>}
-    {dataset && <button type="button" className="secondary regenerate-btn" onClick={onRegenerate}>{t('content.regenerate')}</button>}
+    {dataset && <button type="button" className="secondary regenerate-btn" onClick={() => setPending({ kind: 'regenerate' })}>{t('content.regenerate')}</button>}
+    {pending?.kind === 'regenerate' && <ConfirmBar title={t('confirm.regenerate.title')} confirmLabel={t('confirm.regenerate.confirm')} onConfirm={() => { setPending(null); onRegenerate() }} onCancel={() => setPending(null)}>
+      <p>{t('confirm.regenerate.body')}</p>
+    </ConfirmBar>}
     <div className="quiz-import">
-      <label className="file-input">{t('content.importCsv')}<input type="file" accept="text/csv,.csv,.tsv,text/plain" onChange={(event) => onCsvChange(event.target.files?.[0])} /></label>
+      <label className="file-input">{t('content.importCsv')}<input type="file" accept="text/csv,.csv,.tsv,text/plain" onChange={(event) => {
+        const file = event.target.files?.[0]
+        event.target.value = '' // rechoisir le même fichier après une annulation doit redéclencher l'événement
+        if (file) setPending({ kind: 'import', file })
+      }} /></label>
+      {pending?.kind === 'import' && <ConfirmBar title={t('confirm.import.title', { file: pending.file.name })} confirmLabel={t('confirm.import.confirm')} onConfirm={() => { const { file } = pending; setPending(null); onCsvChange(file) }} onCancel={() => setPending(null)}>
+        <p>{t('confirm.import.body')}</p>
+      </ConfirmBar>}
       {fileError && <p className="alert" role="alert">{fileError}</p>}
     </div>
-    {dataset && <GeneratorPanel key={Object.keys(dataset.rows[0] ?? {}).join(',')} rows={dataset.rows} schema={dataset.schema} i18n={dataset.i18n} onGenerate={onGenerate} error={genError} />}
+    {dataset && <GeneratorPanel key={Object.keys(dataset.rows[0] ?? {}).join(',')} rows={dataset.rows} schema={dataset.schema} i18n={dataset.i18n} onGenerate={onGenerate} onPreview={onPreview} sharedDefault={sharedDefault} totalQuestions={quiz.questions.length} error={genError} />}
     <h3 className="stats-group-title">{t('content.distribution')}</h3>
     <div className="stats-grid">
       <PieChart title={t('content.categoriesChart', { n: total })} data={byCategory} />
