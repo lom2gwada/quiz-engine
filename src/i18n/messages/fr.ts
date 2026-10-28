@@ -145,6 +145,9 @@ export const fr = {
   'quiz.previous': 'Précédente',
   'quiz.next': 'Suivante',
   'quiz.finish': 'Voir ma correction',
+  'ordering.upItem': "Monter {name}",
+  'ordering.downItem': "Descendre {name}",
+  'ordering.position': "{name} : position {position} sur {total}",
   'quiz.validate': 'Valider',
   'quiz.stop': 'Terminer maintenant',
   'quiz.unlimited': 'illimité',
@@ -173,8 +176,6 @@ export const fr = {
   'dictation.denied': "Micro refusé : autorisez-le dans le navigateur.",
   'dictation.noSpeech': "Rien entendu, réessayez.",
   'dictation.failed': "La dictée n’a pas fonctionné.",
-  'ordering.up': 'Monter',
-  'ordering.down': 'Descendre',
 
   // — résultats —
   'result.yourScore': 'Votre score',

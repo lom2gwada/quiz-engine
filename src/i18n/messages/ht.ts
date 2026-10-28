@@ -140,6 +140,9 @@ export const ht: Record<MessageKey, string> = {
   'quiz.previous': 'Anvan',
   'quiz.next': 'Apre',
   'quiz.finish': 'Wè koreksyon m',
+  'ordering.upItem': "Monte {name}",
+  'ordering.downItem': "Desann {name}",
+  'ordering.position': "{name} : pozisyon {position} sou {total}",
   'quiz.validate': 'Valide',
   'quiz.stop': 'Fini kounye a',
   'quiz.unlimited': 'san limit',
@@ -167,8 +170,6 @@ export const ht: Record<MessageKey, string> = {
   'dictation.denied': "Mikwo a bloke : otorize l nan navigatè a.",
   'dictation.noSpeech': "Pa tande anyen, eseye ankò.",
   'dictation.failed': "Dikte a pa mache.",
-  'ordering.up': 'Monte',
-  'ordering.down': 'Desann',
 
   'result.yourScore': 'Nòt ou',
   'result.points': '{earned} / {total} pwen',

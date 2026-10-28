@@ -8,6 +8,11 @@ export function OrderingQuestion({ question, answer, onChange }: { question: Que
   const order = Array.isArray(answer) && answer.length ? answer : question.content.items.map((item) => item.id)
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const itemRefs = useRef(new Map<string, HTMLLIElement>())
+  // Annonce pour les lecteurs d'écran après un déplacement (« Cérium : position 2 sur 4 »), et bouton à re-focaliser : le déplacement du
+  // <li> dans le DOM fait perdre le focus au bouton qu'on vient d'utiliser.
+  const [announcement, setAnnouncement] = useState('')
+  const pendingFocus = useRef<{ id: string; direction: -1 | 1 } | null>(null)
+  const labelOf = (id: string) => question.content.items.find((entry) => entry.id === id)?.label ?? ''
 
   // Sans ça, un ordre jamais touché (déjà le bon à l'affichage, ou on passe directement à la
   // question suivante) laisse `answer` à `undefined` : compté faux alors que l'écran montre le bon
@@ -23,8 +28,21 @@ export function OrderingQuestion({ question, answer, onChange }: { question: Que
     if (target < 0 || target >= next.length) return
     ;[next[index], next[target]] = [next[target], next[index]]
     playClick()
+    pendingFocus.current = { id: order[index], direction }
+    setAnnouncement(t('ordering.position', { name: labelOf(order[index]), position: target + 1, total: next.length }))
     onChange(next)
   }
+
+  // Redonne le focus au bouton utilisé ; s'il est désactivé (l'élément est arrivé en haut ou en bas), à l'autre bouton de la ligne.
+  useEffect(() => {
+    const pending = pendingFocus.current
+    if (!pending) return
+    pendingFocus.current = null
+    const row = itemRefs.current.get(pending.id)
+    const preferred = row?.querySelector<HTMLButtonElement>(pending.direction === -1 ? 'button[data-move="up"]' : 'button[data-move="down"]')
+    const other = row?.querySelector<HTMLButtonElement>(pending.direction === -1 ? 'button[data-move="down"]' : 'button[data-move="up"]')
+    ;(preferred && !preferred.disabled ? preferred : other)?.focus()
+  }, [order.join('|')]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Glisser-déposer par pointer events (souris + tactile unifiés) : la poignée capture le pointeur et on
   // réordonne en direct pendant le déplacement, en trackant l'ordre courant nous-mêmes (pas via `order`,
@@ -53,6 +71,7 @@ export function OrderingQuestion({ question, answer, onChange }: { question: Que
     const onUp = () => {
       playClick()
       setDragIndex(null)
+      setAnnouncement(t('ordering.position', { name: labelOf(currentOrder[currentIndex]), position: currentIndex + 1, total: currentOrder.length }))
       window.removeEventListener('pointermove', onMove)
       window.removeEventListener('pointerup', onUp)
     }
@@ -60,14 +79,17 @@ export function OrderingQuestion({ question, answer, onChange }: { question: Que
     window.addEventListener('pointerup', onUp)
   }
 
-  return <ol className="ordering-list">
+  return <>
+  <ol className="ordering-list">
     {order.map((id, index) => {
       const item = question.content.items.find((entry) => entry.id === id)!
       return <li key={id} ref={(el) => { if (el) itemRefs.current.set(id, el); else itemRefs.current.delete(id) }} className={dragIndex === index ? 'dragging' : ''}>
         <span className="ordering-handle" onPointerDown={startDrag(index)} aria-hidden="true">⠿</span>
         <span className="ordering-label">{item.label}</span>
-        <span><button type="button" onClick={() => move(index, -1)} disabled={index === 0} aria-label={t('ordering.up')}>↑</button><button type="button" onClick={() => move(index, 1)} disabled={index === order.length - 1} aria-label={t('ordering.down')}>↓</button></span>
+        <span><button type="button" data-move="up" onClick={() => move(index, -1)} disabled={index === 0} aria-label={t('ordering.upItem', { name: item.label })}>↑</button><button type="button" data-move="down" onClick={() => move(index, 1)} disabled={index === order.length - 1} aria-label={t('ordering.downItem', { name: item.label })}>↓</button></span>
       </li>
     })}
   </ol>
+  <p className="sr-only" role="status" aria-live="polite">{announcement}</p>
+  </>
 }

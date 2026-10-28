@@ -139,6 +139,9 @@ export const es: Record<MessageKey, string> = {
   'quiz.previous': 'Anterior',
   'quiz.next': 'Siguiente',
   'quiz.finish': 'Ver mi corrección',
+  'ordering.upItem': "Subir {name}",
+  'ordering.downItem': "Bajar {name}",
+  'ordering.position': "{name}: posición {position} de {total}",
   'quiz.validate': 'Validar',
   'quiz.stop': 'Terminar ahora',
   'quiz.unlimited': 'ilimitado',
@@ -166,8 +169,6 @@ export const es: Record<MessageKey, string> = {
   'dictation.denied': "Micrófono bloqueado: permítelo en el navegador.",
   'dictation.noSpeech': "No se oyó nada, inténtalo de nuevo.",
   'dictation.failed': "El dictado no funcionó.",
-  'ordering.up': 'Subir',
-  'ordering.down': 'Bajar',
 
   'result.yourScore': 'Tu puntuación',
   'result.points': '{earned} / {total} puntos',

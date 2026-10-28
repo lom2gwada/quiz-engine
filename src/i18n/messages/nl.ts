@@ -139,6 +139,9 @@ export const nl: Record<MessageKey, string> = {
   'quiz.previous': 'Vorige',
   'quiz.next': 'Volgende',
   'quiz.finish': 'Mijn resultaten bekijken',
+  'ordering.upItem': "{name} omhoog",
+  'ordering.downItem': "{name} omlaag",
+  'ordering.position': "{name}: positie {position} van {total}",
   'quiz.validate': 'Bevestigen',
   'quiz.stop': 'Nu stoppen',
   'quiz.unlimited': 'onbeperkt',
@@ -166,8 +169,6 @@ export const nl: Record<MessageKey, string> = {
   'dictation.denied': "Microfoon geblokkeerd: sta hem toe in de browser.",
   'dictation.noSpeech': "Niets gehoord, probeer opnieuw.",
   'dictation.failed': "Inspreken is niet gelukt.",
-  'ordering.up': 'Omhoog',
-  'ordering.down': 'Omlaag',
 
   'result.yourScore': 'Jouw score',
   'result.points': '{earned} / {total} punten',
