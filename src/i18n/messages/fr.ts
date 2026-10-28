@@ -158,7 +158,8 @@ export const fr = {
   'record.behind': 'Votre record personnel : {prev}. Cette partie : {value}.',
   'quiz.poolExhausted': 'Vous avez répondu à toutes les questions disponibles !',
   'quiz.abandonConfirm': 'Abandonner le quiz en cours ? Votre progression sera perdue.',
-  'quiz.points': '{n} pts',
+  'quiz.points.one': '{n} pt',
+  'quiz.points.other': '{n} pts',
 
   // — composants de réponse —
   'bool.true': 'Vrai',
@@ -243,7 +244,8 @@ export const fr = {
   'review.title': 'À réviser',
   'review.play.one': 'Réviser 1 question',
   'review.play.other': 'Réviser {n} questions',
-  'history.pointsPair': '{earned} / {total} pts',
+  'history.pointsPair.one': '{earned} / {total} pt',
+  'history.pointsPair.other': '{earned} / {total} pts',
   'history.leaderboard': 'Classement',
   'history.leaderboardEmpty': "Personne n'a encore joué ce mode sur ce quiz.",
   'leaderboard.rule.classic': "Meilleur pourcentage de chaque joueur, sur des parties d’au moins {min} questions. À égalité, le plus rapide.",

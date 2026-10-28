@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { AnswersByQuestion, Difficulty, Question, Quiz } from '../types/quiz'
 import type { DatasetMap } from '../types/app'
 import type { MessageKey, TFunction } from '../i18n'
-import { useLocale, useT } from '../i18n'
+import { plural, useLocale, useT } from '../i18n'
 import { formatNumber } from '../utils/number'
 import { formatDuration } from '../utils/time'
 import { shuffle } from '../utils/shuffle'
@@ -176,7 +176,7 @@ export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, 
     return <section className="quiz-card blitz-card">
       <div className="question-meta">
         <span>⚡ {t('start.mode.blitz')}</span>
-        <span key={errors} className={errors > 0 ? 'blitz-lives is-hit' : 'blitz-lives'} role="img" aria-label={t('quiz.blitzLives', { n: BLITZ_MAX_ERRORS - errors })}>{'❤️'.repeat(BLITZ_MAX_ERRORS - errors)}{'🖤'.repeat(errors)}</span>{streak >= 2 && <span key={streak} className="blitz-streak" role="img" aria-label={t('quiz.blitzStreak', { n: streak })}>🔥 {streak}</span>}<span role="img" aria-label={t('quiz.blitzScore', { n: formatNumber(scoreTenths / 10, locale, 1) })}>⭐ {formatNumber(scoreTenths / 10, locale, 1)}</span>{gain && <span key={gain.key} className="blitz-gain">+{formatNumber(gain.tenths / 10, locale, 1)}</span>}<span>{category}</span><span>{t('quiz.points', { n: question.points })}</span>
+        <span key={errors} className={errors > 0 ? 'blitz-lives is-hit' : 'blitz-lives'} role="img" aria-label={t('quiz.blitzLives', { n: BLITZ_MAX_ERRORS - errors })}>{'❤️'.repeat(BLITZ_MAX_ERRORS - errors)}{'🖤'.repeat(errors)}</span>{streak >= 2 && <span key={streak} className="blitz-streak" role="img" aria-label={t('quiz.blitzStreak', { n: streak })}>🔥 {streak}</span>}<span role="img" aria-label={t('quiz.blitzScore', { n: formatNumber(scoreTenths / 10, locale, 1) })}>⭐ {formatNumber(scoreTenths / 10, locale, 1)}</span>{gain && <span key={gain.key} className="blitz-gain">+{formatNumber(gain.tenths / 10, locale, 1)}</span>}<span>{category}</span><span>{t(plural('quiz.points', question.points, locale), { n: question.points })}</span>
         <span>⏱ {formatDuration(Math.ceil(questionMs / 1000))}</span>
       </div>
       <div className="quiz-progress" role="timer" aria-label={t('quiz.blitzTimer')}>
@@ -204,7 +204,7 @@ export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, 
       </span>
     </div>}
     <div className="question-meta">
-      <span>{TYPE_ICONS[question.type]} {typeLabel(question.type, t)}</span><span>{category}</span><span>{difficultyLabel(question.difficulty, t)}</span><span>{t('quiz.points', { n: question.points })}</span>
+      <span>{TYPE_ICONS[question.type]} {typeLabel(question.type, t)}</span><span>{category}</span><span>{difficultyLabel(question.difficulty, t)}</span><span>{t(plural('quiz.points', question.points, locale), { n: question.points })}</span>
       <span>⏱ {formatDuration(remaining ?? elapsed)}{unlimited ? ` · ${t('quiz.unlimited')}` : ''}</span>
     </div>
     {mode === 'classic' && <div className="quiz-progress"><div className="quiz-progress-fill" style={{ width: `${((current + 1) / shuffledQuestions.length) * 100}%` }} /></div>}

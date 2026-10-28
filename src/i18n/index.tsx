@@ -68,7 +68,12 @@ export function useLocale(): Locale {
   return useContext(LocaleContext).locale
 }
 
-/** Pour un compteur : renvoie la bonne clé `.one` / `.other`. */
-export function plural(key: 'start.count' | 'filter.selected' | 'history.toReview' | 'review.play', n: number): MessageKey {
-  return `${key}.${n === 1 ? 'one' : 'other'}` as MessageKey
+/** Pour un compteur : renvoie la bonne clé `.one` / `.other`. Avec `locale`, la règle de la langue (`Intl.PluralRules`) : en français « 0 pt » et
+ *  « 1 pt » sont au singulier ; sans, seul 1 l'est. */
+export function plural(key: 'start.count' | 'filter.selected' | 'history.toReview' | 'review.play' | 'quiz.points' | 'history.pointsPair', n: number, locale?: string): MessageKey {
+  let one = n === 1
+  if (locale) {
+    try { one = new Intl.PluralRules(locale).select(n) === 'one' } catch { /* langue inconnue du navigateur : règle par défaut */ }
+  }
+  return `${key}.${one ? 'one' : 'other'}` as MessageKey
 }

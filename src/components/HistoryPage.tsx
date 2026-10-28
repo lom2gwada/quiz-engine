@@ -142,7 +142,7 @@ export function HistoryPage({ onBack, quiz, historyKey, userId, onReplayMissed, 
             <span className="history-score">{row.score}%</span>
             <span className="history-date">{longDate(row.created_at)}</span>
             <span className="history-categories">{row.categories.map(catName).join(', ')}</span>
-            <span>{t('history.pointsPair', { earned: row.earned_points, total: row.total_points })}</span>
+            <span>{t(plural('history.pointsPair', row.total_points, locale), { earned: row.earned_points, total: row.total_points })}</span>
             <span>⏱ {formatDuration(row.elapsed_seconds)}</span>
           </li>)}
         </ul>}
