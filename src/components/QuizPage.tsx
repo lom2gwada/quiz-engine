@@ -12,7 +12,7 @@ import { preloadAnswerImages } from '../utils/preload'
 import { rateColor } from '../utils/rateColor'
 import { LEITNER_BOX_COUNT } from '../utils/quizHistory'
 import { BlitzQuestion } from './BlitzQuestion'
-import { isCorrect } from './ResultPage'
+import { correctAnswer, isCorrect } from './ResultPage'
 import { QuestionImage } from './QuestionImage'
 import { QuestionRenderer } from './QuestionRenderer'
 import { QuestionShape } from './QuestionShape'
@@ -48,16 +48,20 @@ interface QuizPageProps {
   onCancel: () => void
   /** Révision : boîte (Leitner) de chaque question par identifiant. Présent = bandeau « Révision » et niveau de la question affichés. */
   reviewBoxes?: Record<string, number>
+  /** Mode classique : « Valider » verrouille la réponse et montre aussitôt bonne / mauvaise réponse, réponse attendue et explication, avant « Suivante ». */
+  immediateFeedback?: boolean
   /** Rendu de la carte cliquable des questions « Localisation » (fourni par l'appli, `Dataset.map`). */
   renderMap?: DatasetMap['render']
 }
 
-export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, onFinish, onCancel, renderMap, reviewBoxes }: QuizPageProps) {
+export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, onFinish, onCancel, renderMap, reviewBoxes, immediateFeedback }: QuizPageProps) {
   const t = useT()
   const locale = useLocale()
   const [current, setCurrent] = useState(0)
   const [answers, setAnswers] = useState<AnswersByQuestion>({})
   const [elapsed, setElapsed] = useState(0)
+  // Correction immédiate : questions déjà validées (leur réponse est verrouillée, la correction reste affichée si on revient en arrière).
+  const [checked, setChecked] = useState<Record<string, boolean>>({})
   const shuffledQuestions = useMemo(() => questions.map(withShuffledAnswers), [questions])
   const question = shuffledQuestions[current]
   const timeAttack = mode === 'timeAttack'
@@ -82,7 +86,13 @@ export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, 
   }
   // Même action que le bouton principal (Valider en sans-faute, Suivante/Voir ma correction sinon) —
   // déclenchée par la touche Entrée depuis un champ de saisie libre (question de type « texte »).
-  const advance = () => noMistake ? validate() : atEnd ? finish() : setCurrent((value) => value + 1)
+  const feedbackOn = Boolean(immediateFeedback) && mode === 'classic'
+  const isChecked = feedbackOn && Boolean(question && checked[question.id])
+  const check = () => {
+    if (isCorrect(question, answers[question.id])) playCorrect(); else playWrong()
+    setChecked((previous) => ({ ...previous, [question.id]: true }))
+  }
+  const advance = () => feedbackOn && !isChecked ? check() : noMistake ? validate() : atEnd ? finish() : setCurrent((value) => value + 1)
 
   useEffect(() => {
     const interval = setInterval(() => setElapsed((value) => value + 1), 1000)
@@ -214,12 +224,22 @@ export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, 
       : timeAttack
         ? t(answeredCount === 1 ? 'quiz.answered.one' : 'quiz.answered.other', { n: answeredCount })
         : t('quiz.progress', { current: current + 1, total: shuffledQuestions.length })}</p>
-    <div className="question-body" key={question.id}>
+    <div className={isChecked ? 'question-body is-locked' : 'question-body'} key={question.id}>
       {question.imageUrl && <QuestionImage src={question.imageUrl} alt={question.imageAlt} />}
       {question.shapeSvg && <QuestionShape svg={question.shapeSvg} alt={question.imageAlt} />}
       {question.type !== 'cloze' && <h2>{question.question}</h2>}
-      <QuestionRenderer question={question} answer={answers[question.id]} onChange={updateAnswer} onSubmit={advance} renderMap={renderMap} />
+      <fieldset className="question-fieldset" disabled={isChecked}>
+        <QuestionRenderer question={question} answer={answers[question.id]} onChange={updateAnswer} onSubmit={advance} renderMap={renderMap} />
+      </fieldset>
     </div>
+    {isChecked && (() => {
+      const correct = isCorrect(question, answers[question.id])
+      return <div className={correct ? 'quiz-feedback is-correct' : 'quiz-feedback is-wrong'} role="status">
+        <p><strong>{correct ? t('result.correct') : t('result.incorrect')}</strong></p>
+        {!correct && <p><strong>{t('result.goodAnswer')}</strong> {correctAnswer(question, t)}</p>}
+        {question.explanation && <p>{question.explanation}</p>}
+      </div>
+    })()}
     {(timeAttack || noMistake) && atEnd && <p className="hint-banner">{t('quiz.poolExhausted')}</p>}
     <div className="quiz-actions">
       <button type="button" className="secondary" onClick={cancelQuiz}>{t('common.cancel')}</button>
@@ -229,9 +249,11 @@ export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, 
         {noMistake && current > 0 && <button type="button" className="secondary" onClick={bank}>{t('quiz.stop')}</button>}
         {noMistake
           ? <button type="button" onClick={validate}>{t('quiz.validate')}</button>
-          : atEnd
-            ? <button type="button" onClick={finish}>{t('quiz.finish')}</button>
-            : <button type="button" onClick={() => setCurrent((value) => value + 1)}>{t('quiz.next')}</button>}
+          : feedbackOn && !isChecked
+            ? <button type="button" onClick={check}>{t('quiz.validate')}</button>
+            : atEnd
+              ? <button type="button" onClick={finish}>{t('quiz.finish')}</button>
+              : <button type="button" onClick={() => setCurrent((value) => value + 1)}>{t('quiz.next')}</button>}
       </div>
     </div>
   </section>

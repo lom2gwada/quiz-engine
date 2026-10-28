@@ -23,6 +23,8 @@ export const nl: Record<MessageKey, string> = {
   'footer.version': 'Versie {hash}',
 
   'start.questionCount': 'Aantal vragen',
+  'start.immediateFeedback': "Directe correctie",
+  'start.immediateFeedbackHint': "Na elke vraag: goed of fout, het juiste antwoord en de uitleg, voordat je verdergaat.",
   'start.count.one': '{n} vraag',
   'start.count.other': '{n} vragen',
   'start.unavailableSuffix': ' (niet beschikbaar)',

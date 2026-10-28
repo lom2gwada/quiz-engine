@@ -23,6 +23,8 @@ export const es: Record<MessageKey, string> = {
   'footer.version': 'Versión {hash}',
 
   'start.questionCount': 'Número de preguntas',
+  'start.immediateFeedback': "Corrección inmediata",
+  'start.immediateFeedbackHint': "Tras cada pregunta: acierto o error, la respuesta correcta y la explicación, antes de pasar a la siguiente.",
   'start.count.one': '{n} pregunta',
   'start.count.other': '{n} preguntas',
   'start.unavailableSuffix': ' (no disponible)',

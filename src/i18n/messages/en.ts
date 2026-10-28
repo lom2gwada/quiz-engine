@@ -22,6 +22,8 @@ export const en: Record<MessageKey, string> = {
   'footer.version': 'Version {hash}',
 
   'start.questionCount': 'Number of questions',
+  'start.immediateFeedback': "Immediate feedback",
+  'start.immediateFeedbackHint': "After each question: right or wrong, the correct answer and the explanation, before moving on.",
   'start.count.one': '{n} question',
   'start.count.other': '{n} questions',
   'start.unavailableSuffix': ' (unavailable)',

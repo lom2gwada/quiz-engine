@@ -26,6 +26,8 @@ export const fr = {
 
   // — accueil —
   'start.questionCount': 'Nombre de questions',
+  'start.immediateFeedback': "Correction immédiate",
+  'start.immediateFeedbackHint': "Après chaque question : juste ou faux, bonne réponse et explication, avant de passer à la suivante.",
   'start.count.one': '{n} question',
   'start.count.other': '{n} questions',
   'start.unavailableSuffix': ' (indisponible)',

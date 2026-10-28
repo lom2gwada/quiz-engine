@@ -19,7 +19,7 @@ import type { Profile } from './types/profile'
 import { LocaleProvider, useLocale, useT } from './i18n'
 import { applyLocale, DEFAULT_LOCALE, resolveLocale, type Locale } from './i18n/locale'
 import type { Dataset, DatasetView, QuizAppSpec, SchemaConfig } from './types/app'
-import { engineConfig } from './config'
+import { engineConfig, storageKey } from './config'
 import { supabase } from './utils/supabase'
 import { buildQuestionResultPayloads, buildQuizResultPayload, computeReviewChanges, fetchQuizHistory, saveQuestionResults, saveQuizResult, type ReviewChange } from './utils/quizHistory'
 import { fetchProfile, saveProfile } from './utils/profile'
@@ -168,6 +168,9 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
   const [answers, setAnswers] = useState<AnswersByQuestion>({})
   const [fileError, setFileError] = useState('')
   const [questionCount, setQuestionCount] = useState(10)
+  // Correction immédiate (mode classique) : mémorisée ; toujours active en révision (on y est pour mémoriser).
+  const [immediateFeedback, setImmediateFeedback] = useState(() => { try { return localStorage.getItem(storageKey('immediate-feedback')) === '1' } catch { return false } })
+  const toggleImmediateFeedback = (checked: boolean) => { setImmediateFeedback(checked); try { localStorage.setItem(storageKey('immediate-feedback'), checked ? '1' : '0') } catch { /* non bloquant */ } }
   const [gameMode, setGameMode] = useState<GameMode>('classic')
   const [timeAttackMinutes, setTimeAttackMinutes] = useState(10)
   // Mode/limite de temps figés au lancement (`startQuiz`/`replayMissed`), indépendants des réglages
@@ -535,6 +538,10 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
       {gameMode === 'classic' && <>
         <label className="question-count">{t('start.questionCount')}<select value={questionCount} onChange={(event) => { playClick(); setQuestionCount(Number(event.target.value)) }}>{questionCounts.map((count) => <option key={count} value={count} disabled={count > filteredQuestions.length}>{t(count === 1 ? 'start.count.one' : 'start.count.other', { n: count })}{count > filteredQuestions.length ? t('start.unavailableSuffix') : ''}</option>)}<option value={filteredQuestions.length}>{t('start.allQuestions', { n: formatNumber(filteredQuestions.length) })}</option></select></label>
       </>}
+      {gameMode === 'classic' && <label className="immediate-feedback" title={t('start.immediateFeedbackHint')}>
+        <input type="checkbox" checked={immediateFeedback} onChange={(event) => { playClick(); toggleImmediateFeedback(event.target.checked) }} />
+        <span>{t('start.immediateFeedback')} <small>{t('start.immediateFeedbackHint')}</small></span>
+      </label>}
       {gameMode === 'timeAttack' && <>
         <label className="question-count">{t('start.duration')}<select value={timeAttackMinutes} onChange={(event) => { playClick(); setTimeAttackMinutes(Number(event.target.value)) }}>{timeAttackDurations.map((minutes) => <option key={minutes} value={minutes}>{t(minutes === 1 ? 'start.duration.one' : 'start.duration.other', { n: minutes })}</option>)}</select></label>
       </>}
@@ -547,7 +554,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
       {gameMode === 'blitz' && <p>{t('start.blitzHint', { n: formatNumber(blitzAvailable) })}</p>}
       <div className="quiz-actions"><button type="button" onClick={startQuiz} disabled={gameMode === 'blitz' ? !blitzAvailable : !filteredQuestions.length}>{t('start.play')}</button></div>
     </section>}
-    {view === 'quiz' && <QuizPage quiz={quiz} questions={sessionQuestions} renderMap={dataset?.map?.render} mode={activeMode} timeLimitSeconds={activeTimeLimit} reviewBoxes={isReplay && reviewBoxes ? reviewBoxes : undefined} onFinish={(nextAnswers, duration, shown, extra) => {
+    {view === 'quiz' && <QuizPage quiz={quiz} questions={sessionQuestions} renderMap={dataset?.map?.render} mode={activeMode} timeLimitSeconds={activeTimeLimit} reviewBoxes={isReplay && reviewBoxes ? reviewBoxes : undefined} immediateFeedback={isReplay || (activeMode === 'classic' && !dailyRun && immediateFeedback)} onFinish={(nextAnswers, duration, shown, extra) => {
       setAnswers(nextAnswers); setResultQuestions(shown); setElapsedSeconds(duration); replace('results')
       const historyKey = historyKeyOf(dataset, quiz)
       if (isReplay && reviewBoxes) setReviewChanges(computeReviewChanges(reviewBoxes, buildQuestionResultPayloads(shown, nextAnswers, historyKey)))

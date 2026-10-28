@@ -24,6 +24,8 @@ export const ht: Record<MessageKey, string> = {
   'footer.version': 'Vèsyon {hash}',
 
   'start.questionCount': 'Kantite kesyon',
+  'start.immediateFeedback': "Koreksyon imedya",
+  'start.immediateFeedbackHint': "Apre chak kesyon : kòrèk oswa fo, bon repons lan ak eksplikasyon an, anvan ou pase nan pwochen an.",
   'start.count.one': '{n} kesyon',
   'start.count.other': '{n} kesyon',
   'start.unavailableSuffix': ' (pa disponib)',
