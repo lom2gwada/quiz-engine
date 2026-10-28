@@ -1,17 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { FilterPanel } from './components/FilterPanel'
 import { SubjectFilterPanel } from './components/SubjectFilterPanel'
 import { matchesSubjects } from './utils/subjectFilter'
 import { lastNameMatchers, setAnswerMatchers } from './utils/answerMatch'
-import { HistoryPage } from './components/HistoryPage'
-import { ProfilePage } from './components/ProfilePage'
-import { LeaderboardPage } from './components/LeaderboardPage'
 import { ProfileMenu, type ProfileMenuTarget } from './components/ProfileMenu'
-import { AtlasPage } from './components/AtlasPage'
-import { FicheModal } from './components/FicheModal'
 import { makeDatasetI18n } from './i18n/dataset'
-import { QuizContentPage } from './components/QuizContentPage'
 import { QuizPage, type GameMode } from './components/QuizPage'
 import { ResultPage } from './components/ResultPage'
 import type { AnswersByQuestion, Difficulty, Quiz, Question } from './types/quiz'
@@ -41,6 +35,14 @@ import { ReviewPanel } from './components/ReviewPanel'
 import { WeakCategoriesPanel } from './components/WeakCategoriesCard'
 import { SpeakButton } from './components/SpeakButton'
 import { speechLocale } from './utils/speechText'
+
+// Pages secondaires chargées à la demande (un seul gros fichier JS au démarrage : historique et ses graphiques, profil, classement, fiches, admin).
+const HistoryPage = lazy(() => import('./components/HistoryPage').then((m) => ({ default: m.HistoryPage })))
+const ProfilePage = lazy(() => import('./components/ProfilePage').then((m) => ({ default: m.ProfilePage })))
+const LeaderboardPage = lazy(() => import('./components/LeaderboardPage').then((m) => ({ default: m.LeaderboardPage })))
+const AtlasPage = lazy(() => import('./components/AtlasPage').then((m) => ({ default: m.AtlasPage })))
+const FicheModal = lazy(() => import('./components/FicheModal').then((m) => ({ default: m.FicheModal })))
+const QuizContentPage = lazy(() => import('./components/QuizContentPage').then((m) => ({ default: m.QuizContentPage })))
 import { earnedBadges, addBadges, playedAllModesToday, pushBadges, readBadges, syncBadges, writeBadges, type BadgeContext, type BadgeId, type OwnedBadges } from './utils/badges'
 import { DAILY_QUESTION_COUNT, claimDaily, dailyKey, dailyRank, dailySeed, dailyStreak, fetchDailyLeaderboard, fetchMyDaily, finishDaily, finishedLocalDays, markDailyFinished, markDailyStarted, pickDailyIds, readDailyLocal, selectDaily } from './utils/dailyChallenge'
 import { shuffle } from './utils/shuffle'
@@ -622,6 +624,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
         .finally(persist)
     }} onCancel={backToStart} />}
     {view === 'results' && <ResultPage questions={resultQuestions} answers={answers} categories={quiz.categories} elapsedSeconds={elapsedSeconds} onRestartSame={isReplay || dailyRun ? undefined : restartQuiz} onBackToSettings={backToStart} onViewHistory={() => viewHistory('results')} onViewFiche={dataset ? setFicheSubject : undefined} summary={<GameExtras blitz={activeMode === 'blitz' ? blitzSummary : null} daily={dailySummary} modeRecord={activeMode === 'blitz' ? null : modeRecordSummary} review={isReplay ? reviewChanges : null} newBadges={newBadges} />} />}
+    <Suspense fallback={<p className="page-loading" role="status">{t('common.loading')}</p>}>
     {view === 'content' && <QuizContentPage quiz={quiz} dataset={dataset} onBack={() => navigate('start')} onCsvChange={loadCsv} onGenerate={generateFromPanel} onRegenerate={regenerateQuestions} onPreview={previewGenerated} sharedDefault={Boolean(dataset?.editable && isAdmin)} fileError={fileError} genError={genError} />}
     {view === 'atlas' && dataset && <AtlasPage rows={dataset.rows} schema={dataset.schema} decor={dataset.ficheDecor} i18n={dataset.i18n} defaultSort={dataset.atlasSort} actions={dataset.views?.filter((v) => v.entry === 'atlas').map(viewButton)} onOpenFiche={setFicheSubject} onBack={() => navigate('start')} />}
     {dataset && (() => {
@@ -631,11 +634,12 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     {ficheSubject && dataset && (() => {
       const row = dataset.rows.find((r) => r[dataset.schema.subjectColumn] === ficheSubject)
       const index = ficheOrder.indexOf(ficheSubject)
-      return row ? <FicheModal row={row} neighbors={index >= 0 ? { prev: ficheOrder[index - 1], next: ficheOrder[index + 1] } : undefined} onNavigate={setFicheSubject} schema={dataset.schema} decor={dataset.ficheDecor} speech={dataset.speech} i18n={dataset.i18n} canEdit={isAdmin && Boolean(dataset.editable && spec.remote)} updateRow={spec.remote?.updateRow} onRowUpdated={handleDatasetRowUpdated} onClose={() => setFicheSubject(null)} /> : null
+      return row ? <Suspense fallback={null}><FicheModal row={row} neighbors={index >= 0 ? { prev: ficheOrder[index - 1], next: ficheOrder[index + 1] } : undefined} onNavigate={setFicheSubject} schema={dataset.schema} decor={dataset.ficheDecor} speech={dataset.speech} i18n={dataset.i18n} canEdit={isAdmin && Boolean(dataset.editable && spec.remote)} updateRow={spec.remote?.updateRow} onRowUpdated={handleDatasetRowUpdated} onClose={() => setFicheSubject(null)} /></Suspense> : null
     })()}
     {view === 'leaderboard' && <LeaderboardPage onBack={() => navigate('start')} historyKey={historyKeyOf(dataset, quiz)} userId={session?.user.id} />}
     {view === 'history' && <HistoryPage onBack={() => navigate(historyBack)} quiz={quiz} historyKey={historyKeyOf(dataset, quiz)} userId={session?.user.id} onReplayMissed={replayMissed} onPracticeWeak={practiceWeak} />}
     {view === 'profile' && <ProfilePage profile={profile} session={session} badges={badges} categoryIds={quiz.categories.map((category) => category.id)} onBack={() => navigate('start')} onSave={async (next) => { await saveProfile(next, session?.user.id); onProfileChange(next) }} onViewHistory={() => viewHistory('profile')} />}
+    </Suspense>
     <footer className="app-footer">{t('footer.version', { hash: __COMMIT_HASH__ })}</footer>
   </main>
 }

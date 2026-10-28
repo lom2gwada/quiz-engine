@@ -167,6 +167,7 @@ pre { padding: 1rem; overflow: auto; background: var(--code-bg); border: 1px sol
 .immediate-feedback { display: flex; align-items: flex-start; gap: .6rem; margin: 1rem 0 .4rem; cursor: pointer; }
 .immediate-feedback input { margin-top: .25rem; flex: none; width: auto; }
 .immediate-feedback small { display: block; color: var(--text-soft); font-size: .8rem; }
+.page-loading { margin: 2rem 0; color: var(--text-soft); }
 .regenerate-btn { margin-bottom: 1.4rem; }
 .quiz-import { display: flex; flex-wrap: wrap; gap: .8rem; margin-bottom: 2rem; }.quiz-import .alert { flex-basis: 100%; margin-top: 0; }
 .generator-panel { margin-bottom: 2rem; padding: 1.2rem; border: 1px solid var(--border); border-radius: .8rem; background: var(--surface); }
