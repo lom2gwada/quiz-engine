@@ -3,7 +3,9 @@ import App from '../App'
 import type { QuizAppSpec } from '../types/app'
 import { Login } from './Login'
 import { useAuth } from '../hooks/useAuth'
-import { useT } from '../i18n'
+import { LocaleProvider, useT } from '../i18n'
+import { applyLocale, resolveLocale, type Locale } from '../i18n/locale'
+import { readLocalePreference, writeLocalePreference } from '../utils/localePreference'
 import { checkGuestPass, hasGuestPassInSession, markGuestPassInSession } from '../utils/guestPass'
 
 /** Porte d'entrée de l'app : connexion, ou « Essayer sans compte », ou lien d'invité valide (`?guest=<token>`,
@@ -14,6 +16,10 @@ export function AuthGate({ spec }: { spec: QuizAppSpec }) {
   const [guestChecked, setGuestChecked] = useState(false)
   const [guestValid, setGuestValid] = useState(false)
   const t = useT()
+  // Langue de l'écran de connexion (avant tout profil) : le choix fait ici est gardé sur l'appareil et suit dans l'appli.
+  const [loginLocale, setLoginLocale] = useState<Locale>(() => resolveLocale(readLocalePreference()))
+  const changeLoginLocale = (next: Locale) => { writeLocalePreference(next); setLoginLocale(next); applyLocale(next) }
+  useEffect(() => { applyLocale(loginLocale) }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (hasGuestPassInSession()) { setGuestValid(true); setGuestChecked(true); return }
@@ -33,5 +39,5 @@ export function AuthGate({ spec }: { spec: QuizAppSpec }) {
   if (session) return <App spec={spec} session={session} />
   if (guestValid) return <App spec={spec} session={null} />
   // « Essayer sans compte » : même session invitée que le lien `?guest=` (aucune session, tout reste local), sans vérification cloud.
-  return <Login onGuest={() => { markGuestPassInSession(); setGuestValid(true) }} />
+  return <LocaleProvider locale={loginLocale}><Login locale={loginLocale} onLocaleChange={changeLoginLocale} onGuest={() => { markGuestPassInSession(); setGuestValid(true) }} /></LocaleProvider>
 }

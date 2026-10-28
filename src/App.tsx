@@ -23,6 +23,8 @@ import { engineConfig } from './config'
 import { supabase } from './utils/supabase'
 import { buildQuestionResultPayloads, buildQuizResultPayload, computeReviewChanges, fetchQuizHistory, saveQuestionResults, saveQuizResult, type ReviewChange } from './utils/quizHistory'
 import { fetchProfile, saveProfile } from './utils/profile'
+import { readLocalePreference, writeLocalePreference } from './utils/localePreference'
+import { LanguageSelect } from './components/LanguageSelect'
 import { checkIsAdmin } from './utils/adminAccess'
 import { applyTheme } from './utils/theme'
 import { parseQuiz } from './utils/quizValidation'
@@ -121,7 +123,8 @@ export default function App({ spec, session }: { spec: QuizAppSpec; session: Ses
     if (!userId) { setIsAdmin(false); return }
     checkIsAdmin().then(setIsAdmin).catch(() => setIsAdmin(false))
   }, [userId])
-  const locale = resolveLocale(profile?.locale)
+  // Langue : celle du profil ; sans profil (visiteur, invité), celle choisie avec le sélecteur, puis la langue du navigateur.
+  const locale = resolveLocale(profile?.locale ?? readLocalePreference())
   useEffect(() => { applyLocale(locale) }, [locale])
   return (
     <LocaleProvider locale={locale}>
@@ -467,6 +470,14 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
   // Aller à une page depuis la barre du haut ou les raccourcis : sans effet si on y est déjà (pas d'entrée d'historique en double).
   const goTo = (next: View) => { playClick(); if (view !== next) navigate(next) }
   const viewButton = (v: DatasetView) => <button key={v.id} type="button" className="secondary" aria-current={view === v.id ? 'page' : undefined} onClick={() => goTo(v.id)}>{v.icon} {t(v.labelKey)}</button>
+  // Sélecteur de langue de l'en-tête : enregistré dans le profil (cloud si connecté) et gardé sur l'appareil ; sans profil, un profil minimal en mémoire.
+  const changeLanguage = (next: string) => {
+    playClick()
+    writeLocalePreference(next)
+    const updated: Profile = { ...(profile ?? { pseudo: '', avatar: '', theme: 'lagon' }), locale: next }
+    if (profile) saveProfile(updated, session?.user.id).catch(() => {})
+    onProfileChange(updated)
+  }
   const openFromMenu = (target: ProfileMenuTarget) => {
     if (view === target) return
     if (target === 'history') viewHistory(view)
@@ -479,6 +490,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
   const headerActions = <>
     <button type="button" className="secondary" onClick={toggleSound} aria-label={muted ? t('header.soundOn') : t('header.soundOff')} title={muted ? t('header.soundOn') : t('header.soundOff')}>{muted ? '🔕' : '🔔'}</button>
     {view !== 'quiz' && <>
+      <LanguageSelect locale={locale} onChange={changeLanguage} />
       <ProfileMenu profile={profile} session={session} current={view} onOpen={openFromMenu} onSignOut={() => { supabase.auth.signOut() }} />
       {dataset?.views?.filter((v) => v.entry === 'start').map(viewButton)}
       {dataset && navButton('atlas', `🗂️ ${t('nav.fiches')}`)}

@@ -39,7 +39,7 @@ export function ProfileMenu({ profile, session, current, onOpen, onSignOut }: Pr
 
   return <div className="profile-menu" ref={rootRef}>
     <button ref={triggerRef} type="button" className="secondary" aria-expanded={open} aria-controls={listId} onClick={() => { playClick(); setOpen(!open) }}>
-      {profile ? `${profile.avatar} ${profile.pseudo}` : `👤 ${t('nav.profile')}`} <span aria-hidden="true">▾</span>
+      {profile?.pseudo ? `${profile.avatar} ${profile.pseudo}` : `👤 ${t('nav.profile')}`} <span aria-hidden="true">▾</span>
     </button>
     {open && <ul id={listId} className="profile-menu-list" aria-label={t('nav.profileMenu')}>
       {item('profile', `👤 ${t('nav.profile')}`)}

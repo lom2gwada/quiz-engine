@@ -2,10 +2,12 @@ import { engineConfig } from '../config'
 import { useState } from 'react'
 import { useT } from '../i18n'
 import { supabase } from '../utils/supabase'
+import type { Locale } from '../i18n/locale'
+import { LanguageSelect } from './LanguageSelect'
 
 /** Porte d'entrée de l'app (comme Oliver Quiz) : email + mot de passe, même compte que sur Oliver Quiz. Un lien d'invité (`?guest=`) la
  *  contourne — voir `AuthGate` —, et `onGuest` ajoute « Essayer sans compte » : une session invitée immédiate, sans rien partager à l'avance. */
-export function Login({ onGuest }: { onGuest?: () => void }) {
+export function Login({ onGuest, locale, onLocaleChange }: { onGuest?: () => void; locale?: Locale; onLocaleChange?: (locale: Locale) => void }) {
   const t = useT()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -23,6 +25,7 @@ export function Login({ onGuest }: { onGuest?: () => void }) {
 
   return <main className="app-shell">
     <section className="login-page">
+      {locale && onLocaleChange && <div className="login-lang"><LanguageSelect locale={locale} onChange={onLocaleChange} /></div>}
       <p className="eyebrow">{engineConfig().appName.toUpperCase()}</p>
       <h1>{t('auth.gateTitle')}</h1>
       <form onSubmit={submit}>

@@ -57,6 +57,9 @@ p { color: var(--text-muted); } .eyebrow { margin: 0; color: var(--accent-text);
 .login-page label { display: grid; gap: .4rem; color: var(--text-soft); }
 .login-page input { width: 100%; background: var(--surface-solid); color: var(--text); border: 1px solid var(--border-input); border-radius: .45rem; padding: .7rem; }
 .login-page .alert { margin: 0; }
+.login-lang { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
+.language-select { display: inline-flex; align-items: center; gap: .35rem; color: var(--text-soft); }
+.language-select select { width: auto; padding: .45rem .6rem; background: var(--surface-alt); color: var(--text); border: 1px solid var(--border-input); border-radius: .55rem; font: inherit; font-size: .85rem; cursor: pointer; }
 .login-guest { display: grid; gap: .8rem; margin-top: 1.4rem; padding-top: 1.4rem; border-top: 1px solid var(--border); }
 .login-guest p { margin: 0; color: var(--text-soft); font-size: .9rem; }
 .start-page, .quiz-card, .results { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 1rem; padding: clamp(1.2rem, 4vw, 2.5rem); box-shadow: var(--shadow); }
