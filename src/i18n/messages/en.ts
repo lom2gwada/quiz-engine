@@ -367,6 +367,8 @@ export const en: Record<MessageKey, string> = {
   'fiche.navLabel': "Browse the cards",
   'fiche.prev': "Previous card: {name}",
   'fiche.next': "Next card: {name}",
+  'dataInfo.updated': "Data last updated on {date}.",
+  'dataInfo.sources': "Sources:",
   'fiche.close': 'Close',
   'fiche.edit': 'Edit',
   'fiche.speak': "Listen",

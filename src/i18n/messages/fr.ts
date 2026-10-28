@@ -382,6 +382,8 @@ export const fr = {
   'fiche.navLabel': "Parcourir les fiches",
   'fiche.prev': "Fiche précédente : {name}",
   'fiche.next': "Fiche suivante : {name}",
+  'dataInfo.updated': "Données mises à jour le {date}.",
+  'dataInfo.sources': "Sources :",
   'fiche.close': 'Fermer',
   'fiche.edit': 'Modifier',
   'fiche.speak': "Écouter",

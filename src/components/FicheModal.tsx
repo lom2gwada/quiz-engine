@@ -4,7 +4,8 @@ import type { GenSchema, Row } from '../utils/quizGenerator'
 import type { DataI18n } from '../i18n/data'
 import { makeDatasetI18n } from '../i18n/dataset'
 import { useLocale, useT } from '../i18n'
-import type { FicheDecorator, SpeechTemplates } from '../types/app'
+import type { DataInfo, FicheDecorator, SpeechTemplates } from '../types/app'
+import { DataInfoNote } from './DataInfoNote'
 import { Fiche } from './Fiche'
 import { buildSpeech, speechLocale } from '../utils/speechText'
 import { FicheEditForm } from './FicheEditForm'
@@ -23,13 +24,15 @@ interface FicheModalProps {
   onRowUpdated?: (updatedRow: Row) => void
   /** Fiches voisines (valeurs FR canoniques) dans l'ordre courant ; absentes aux extrémités. Avec `onNavigate`, ajoute ← / →. */
   neighbors?: { prev?: string; next?: string }
+  /** Date de mise à jour et sources des données, en pied de fiche. */
+  dataInfo?: DataInfo
   onNavigate?: (canonical: string) => void
   onClose: () => void
 }
 
 /** Affiche une fiche dans une modale centrée (portail sur `<body>`) : Échap / clic hors panneau
  * / bouton × pour fermer. Admin sur un dataset éditable : bascule vers FicheEditForm. */
-export function FicheModal({ row, schema, decor, speech, i18n, canEdit, updateRow, onRowUpdated, neighbors, onNavigate, onClose }: FicheModalProps) {
+export function FicheModal({ row, schema, decor, speech, i18n, canEdit, updateRow, onRowUpdated, neighbors, dataInfo, onNavigate, onClose }: FicheModalProps) {
   const t = useT()
   const locale = useLocale()
   const closeRef = useRef<HTMLButtonElement>(null)
@@ -94,6 +97,7 @@ export function FicheModal({ row, schema, decor, speech, i18n, canEdit, updateRo
         {editing
           ? <FicheEditForm row={row} schema={schema} save={updateRow!} onCancel={() => setEditing(false)} onSaved={(updatedRow) => { onRowUpdated?.(updatedRow); setEditing(false) }} />
           : <Fiche row={row} schema={schema} decor={decor} i18n={i18n} />}
+        {!editing && <DataInfoNote info={dataInfo} />}
       </div>
     </div>,
     document.body,

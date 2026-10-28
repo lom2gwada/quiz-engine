@@ -6,7 +6,8 @@ import { makeDatasetI18n } from '../i18n/dataset'
 import { useLocale, useT } from '../i18n'
 import { storageKey } from '../config'
 import { playClick } from '../utils/sound'
-import type { FicheDecorator } from '../types/app'
+import type { DataInfo, FicheDecorator } from '../types/app'
+import { DataInfoNote } from './DataInfoNote'
 import { Fiche } from './Fiche'
 
 interface AtlasPageProps {
@@ -18,6 +19,8 @@ interface AtlasPageProps {
   i18n?: DataI18n
   /** Tri de départ (`Dataset.atlasSort`) ; absent : par nom. */
   defaultSort?: { column: string; direction?: 'asc' | 'desc' }
+  /** Date de mise à jour et sources des données. */
+  dataInfo?: DataInfo
   onBack: () => void
   /** Ouvre la fiche d'une entité en modale (clic sur une carte). Reçoit la valeur FR canonique. */
   onOpenFiche: (name: string) => void
@@ -35,7 +38,7 @@ const writeView = (view: AtlasView) => {
 /** Grille de fiches, une par entité, dans l'ordre du tri choisi. Filtre + tri génériques
  * depuis le schéma. Deux vues, mémorisées : compacte (image, nom et une valeur clé — la page tient en quelques écrans) ou
  * détaillée (toutes les fiches complètes). Dans les deux cas, cliquer une carte ouvre la fiche en modale. */
-export function AtlasPage({ rows, schema, decor, actions, i18n, defaultSort, onBack, onOpenFiche }: AtlasPageProps) {
+export function AtlasPage({ rows, schema, decor, actions, i18n, defaultSort, dataInfo, onBack, onOpenFiche }: AtlasPageProps) {
   const t = useT()
   const locale = useLocale()
   const data = useMemo(() => makeDatasetI18n(i18n, locale), [i18n, locale])
@@ -160,6 +163,7 @@ export function AtlasPage({ rows, schema, decor, actions, i18n, defaultSort, onB
           )
         })}
       </div>}
+      <DataInfoNote info={dataInfo} />
       {!sorted.length && <p className="atlas-empty">{t('atlas.empty', { query })}</p>}
     </section>
   )

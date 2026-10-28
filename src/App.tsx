@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { FilterPanel } from './components/FilterPanel'
 import { SubjectFilterPanel } from './components/SubjectFilterPanel'
+import { DataInfoNote } from './components/DataInfoNote'
 import { matchesSubjects } from './utils/subjectFilter'
 import { lastNameMatchers, setAnswerMatchers } from './utils/answerMatch'
 import { ProfileMenu, type ProfileMenuTarget } from './components/ProfileMenu'
@@ -554,6 +555,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
       {gameMode === 'timeAttack' && <p>{t('start.timeAttackHint', { n: formatNumber(filteredQuestions.length) })}</p>}
       {gameMode === 'noMistake' && <p>{t('start.noMistakeHint', { n: formatNumber(filteredQuestions.length) })}</p>}
       {gameMode === 'blitz' && <p>{t('start.blitzHint', { n: formatNumber(blitzAvailable) })}</p>}
+      <DataInfoNote info={dataset?.dataInfo} />
       <div className="quiz-actions"><button type="button" onClick={startQuiz} disabled={gameMode === 'blitz' ? !blitzAvailable : !filteredQuestions.length}>{t('start.play')}</button></div>
     </section>}
     {view === 'quiz' && <QuizPage quiz={quiz} questions={sessionQuestions} renderMap={dataset?.map?.render} mode={activeMode} timeLimitSeconds={activeTimeLimit} reviewBoxes={isReplay && reviewBoxes ? reviewBoxes : undefined} immediateFeedback={isReplay || (activeMode === 'classic' && !dailyRun && immediateFeedback)} onFinish={(nextAnswers, duration, shown, extra) => {
@@ -624,9 +626,10 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
         .finally(persist)
     }} onCancel={backToStart} />}
     {view === 'results' && <ResultPage questions={resultQuestions} answers={answers} categories={quiz.categories} elapsedSeconds={elapsedSeconds} onRestartSame={isReplay || dailyRun ? undefined : restartQuiz} onBackToSettings={backToStart} onViewHistory={() => viewHistory('results')} onViewFiche={dataset ? setFicheSubject : undefined} summary={<GameExtras blitz={activeMode === 'blitz' ? blitzSummary : null} daily={dailySummary} modeRecord={activeMode === 'blitz' ? null : modeRecordSummary} review={isReplay ? reviewChanges : null} newBadges={newBadges} />} />}
+    {view === 'results' && <DataInfoNote info={dataset?.dataInfo} className="data-info-results" />}
     <Suspense fallback={<p className="page-loading" role="status">{t('common.loading')}</p>}>
     {view === 'content' && <QuizContentPage quiz={quiz} dataset={dataset} onBack={() => navigate('start')} onCsvChange={loadCsv} onGenerate={generateFromPanel} onRegenerate={regenerateQuestions} onPreview={previewGenerated} sharedDefault={Boolean(dataset?.editable && isAdmin)} fileError={fileError} genError={genError} />}
-    {view === 'atlas' && dataset && <AtlasPage rows={dataset.rows} schema={dataset.schema} decor={dataset.ficheDecor} i18n={dataset.i18n} defaultSort={dataset.atlasSort} actions={dataset.views?.filter((v) => v.entry === 'atlas').map(viewButton)} onOpenFiche={setFicheSubject} onBack={() => navigate('start')} />}
+    {view === 'atlas' && dataset && <AtlasPage rows={dataset.rows} schema={dataset.schema} decor={dataset.ficheDecor} i18n={dataset.i18n} defaultSort={dataset.atlasSort} dataInfo={dataset.dataInfo} actions={dataset.views?.filter((v) => v.entry === 'atlas').map(viewButton)} onOpenFiche={setFicheSubject} onBack={() => navigate('start')} />}
     {dataset && (() => {
       const custom = dataset.views?.find((v) => v.id === view)
       return custom ? custom.render({ dataset, openFiche: setFicheSubject, back: () => navigate(custom.entry === 'atlas' ? 'atlas' : 'start') }) : null
@@ -634,7 +637,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
     {ficheSubject && dataset && (() => {
       const row = dataset.rows.find((r) => r[dataset.schema.subjectColumn] === ficheSubject)
       const index = ficheOrder.indexOf(ficheSubject)
-      return row ? <Suspense fallback={null}><FicheModal row={row} neighbors={index >= 0 ? { prev: ficheOrder[index - 1], next: ficheOrder[index + 1] } : undefined} onNavigate={setFicheSubject} schema={dataset.schema} decor={dataset.ficheDecor} speech={dataset.speech} i18n={dataset.i18n} canEdit={isAdmin && Boolean(dataset.editable && spec.remote)} updateRow={spec.remote?.updateRow} onRowUpdated={handleDatasetRowUpdated} onClose={() => setFicheSubject(null)} /></Suspense> : null
+      return row ? <Suspense fallback={null}><FicheModal row={row} neighbors={index >= 0 ? { prev: ficheOrder[index - 1], next: ficheOrder[index + 1] } : undefined} onNavigate={setFicheSubject} dataInfo={dataset.dataInfo} schema={dataset.schema} decor={dataset.ficheDecor} speech={dataset.speech} i18n={dataset.i18n} canEdit={isAdmin && Boolean(dataset.editable && spec.remote)} updateRow={spec.remote?.updateRow} onRowUpdated={handleDatasetRowUpdated} onClose={() => setFicheSubject(null)} /></Suspense> : null
     })()}
     {view === 'leaderboard' && <LeaderboardPage onBack={() => navigate('start')} historyKey={historyKeyOf(dataset, quiz)} userId={session?.user.id} />}
     {view === 'history' && <HistoryPage onBack={() => navigate(historyBack)} quiz={quiz} historyKey={historyKeyOf(dataset, quiz)} userId={session?.user.id} onReplayMissed={replayMissed} onPracticeWeak={practiceWeak} />}

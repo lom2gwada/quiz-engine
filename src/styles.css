@@ -168,6 +168,9 @@ pre { padding: 1rem; overflow: auto; background: var(--code-bg); border: 1px sol
 .immediate-feedback input { margin-top: .25rem; flex: none; width: auto; }
 .immediate-feedback small { display: block; color: var(--text-soft); font-size: .8rem; }
 .page-loading { margin: 2rem 0; color: var(--text-soft); }
+.data-info { margin: 1.2rem 0 0; color: var(--text-soft); font-size: .82rem; }
+.data-info a { color: var(--accent-text); }
+.fiche-modal .data-info { margin-top: 1rem; padding-top: .8rem; border-top: 1px solid var(--border); }
 .regenerate-btn { margin-bottom: 1.4rem; }
 .quiz-import { display: flex; flex-wrap: wrap; gap: .8rem; margin-bottom: 2rem; }.quiz-import .alert { flex-basis: 100%; margin-top: 0; }
 .generator-panel { margin-bottom: 2rem; padding: 1.2rem; border: 1px solid var(--border); border-radius: .8rem; background: var(--surface); }

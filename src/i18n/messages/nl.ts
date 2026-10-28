@@ -368,6 +368,8 @@ export const nl: Record<MessageKey, string> = {
   'fiche.navLabel': "Door de kaarten bladeren",
   'fiche.prev': "Vorige kaart: {name}",
   'fiche.next': "Volgende kaart: {name}",
+  'dataInfo.updated': "Gegevens bijgewerkt op {date}.",
+  'dataInfo.sources': "Bronnen:",
   'fiche.close': 'Sluiten',
   'fiche.edit': 'Bewerken',
   'fiche.speak': "Beluisteren",

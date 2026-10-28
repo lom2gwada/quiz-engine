@@ -89,6 +89,14 @@ export interface CategoryBoost {
 import type { AnswerMatcher } from '../utils/answerMatch'
 export type { AnswerMatcher }
 
+/** Date de mise à jour de l'ensemble des données et sources, affichées sur les fiches, la page Fiches, l'accueil et la correction. */
+export interface DataInfo {
+  /** Date de dernière mise à jour des données, `AAAA-MM-JJ`. */
+  updatedAt: string
+  /** Sources des données (nom, et lien si on en a un). */
+  sources?: { label: string; url?: string }[]
+}
+
 export interface Dataset {
   rows: Row[]
   schema: GenSchema
@@ -112,6 +120,8 @@ export interface Dataset {
   intro?: SpeechTemplates
   /** Regroupement des catégories sur l'accueil ; absent : une seule liste à plat. */
   categoryGroups?: CategoryGroup[]
+  /** Absent : aucune mention de date ni de source. */
+  dataInfo?: DataInfo
   /** Comparaison de réponse propre à une catégorie (clé = identifiant de catégorie, c'est-à-dire le nom de colonne), à la place de la
    *  comparaison de chaînes du moteur, pour les questions à saisie : notation métier (configuration électronique, formule chimique…).
    *  Utilisée au jeu, à la correction, en révision et dans les statistiques. */

@@ -369,6 +369,8 @@ export const ht: Record<MessageKey, string> = {
   'fiche.navLabel': "Pase nan fich yo",
   'fiche.prev': "Fich anvan an : {name}",
   'fiche.next': "Fich apre a : {name}",
+  'dataInfo.updated': "Done yo mete ajou le {date}.",
+  'dataInfo.sources': "Sous yo :",
   'fiche.close': 'Fèmen',
   'fiche.edit': 'Modifye',
   'fiche.speak': "Koute",

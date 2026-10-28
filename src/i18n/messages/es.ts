@@ -368,6 +368,8 @@ export const es: Record<MessageKey, string> = {
   'fiche.navLabel': "Recorrer las fichas",
   'fiche.prev': "Ficha anterior: {name}",
   'fiche.next': "Ficha siguiente: {name}",
+  'dataInfo.updated': "Datos actualizados el {date}.",
+  'dataInfo.sources': "Fuentes:",
   'fiche.close': 'Cerrar',
   'fiche.edit': 'Editar',
   'fiche.speak': "Escuchar",
