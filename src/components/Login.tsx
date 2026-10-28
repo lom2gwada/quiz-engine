@@ -3,9 +3,9 @@ import { useState } from 'react'
 import { useT } from '../i18n'
 import { supabase } from '../utils/supabase'
 
-/** Porte d'entrée obligatoire de l'app (comme Oliver Quiz) : email + mot de passe, même compte
- *  que sur Oliver Quiz. Un lien d'invité (`?guest=`) contourne cet écran — voir `AuthGate`. */
-export function Login() {
+/** Porte d'entrée de l'app (comme Oliver Quiz) : email + mot de passe, même compte que sur Oliver Quiz. Un lien d'invité (`?guest=`) la
+ *  contourne — voir `AuthGate` —, et `onGuest` ajoute « Essayer sans compte » : une session invitée immédiate, sans rien partager à l'avance. */
+export function Login({ onGuest }: { onGuest?: () => void }) {
   const t = useT()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -35,6 +35,10 @@ export function Login() {
         {error && <p className="alert" role="alert">{error}</p>}
         <button type="submit" disabled={loading}>{loading ? t('common.saving') : t('auth.signIn')}</button>
       </form>
+      {onGuest && <div className="login-guest">
+        <p>{t('auth.guestHint')}</p>
+        <button type="button" className="secondary" onClick={onGuest}>{t('auth.tryGuest')}</button>
+      </div>}
     </section>
   </main>
 }

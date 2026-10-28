@@ -274,6 +274,8 @@ export const en: Record<MessageKey, string> = {
   'auth.error': 'Incorrect email or password.',
   'auth.signOut': 'Sign out',
   'auth.connectedAs': 'Signed in as {email}',
+  'auth.tryGuest': "Try without an account",
+  'auth.guestHint': "No account yet? Play right away: your results stay on this device and are not ranked.",
   'auth.gateTitle': 'Sign in',
 
   // — guest link (temporary access without an account) —

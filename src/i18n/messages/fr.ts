@@ -285,6 +285,8 @@ export const fr = {
   'auth.error': 'Email ou mot de passe incorrect.',
   'auth.signOut': 'Se déconnecter',
   'auth.connectedAs': 'Connecté en tant que {email}',
+  'auth.tryGuest': "Essayer sans compte",
+  'auth.guestHint': "Pas encore de compte ? Jouez tout de suite : vos résultats restent sur cet appareil et n’entrent pas au classement.",
   'auth.gateTitle': 'Connexion',
 
   // — lien d'invité (accès temporaire sans compte) —

@@ -276,6 +276,8 @@ export const ht: Record<MessageKey, string> = {
   'auth.error': 'Imèl oswa modpas pa kòrèk.',
   'auth.signOut': 'Dekonekte',
   'auth.connectedAs': 'Konekte kòm {email}',
+  'auth.tryGuest': "Eseye san kont",
+  'auth.guestHint': "Poko gen kont ? Jwe touswit : rezilta ou yo rete sou aparèy sa a epi yo pa antre nan klasman an.",
   'auth.gateTitle': 'Konekte',
 
   // — lyen envite (aksè tanporè san kont) —

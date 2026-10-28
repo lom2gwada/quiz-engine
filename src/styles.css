@@ -57,6 +57,8 @@ p { color: var(--text-muted); } .eyebrow { margin: 0; color: var(--accent-text);
 .login-page label { display: grid; gap: .4rem; color: var(--text-soft); }
 .login-page input { width: 100%; background: var(--surface-solid); color: var(--text); border: 1px solid var(--border-input); border-radius: .45rem; padding: .7rem; }
 .login-page .alert { margin: 0; }
+.login-guest { display: grid; gap: .8rem; margin-top: 1.4rem; padding-top: 1.4rem; border-top: 1px solid var(--border); }
+.login-guest p { margin: 0; color: var(--text-soft); font-size: .9rem; }
 .start-page, .quiz-card, .results { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 1rem; padding: clamp(1.2rem, 4vw, 2.5rem); box-shadow: var(--shadow); }
 .filter-panel { display: flex; gap: 1.5rem; flex-wrap: wrap; align-items: flex-start; } .filter-panel > label { color: var(--text-soft); display: grid; gap: .4rem; flex: 1; min-width: 180px; }
 .category-filter { border: 0; margin: 0; padding: 0; color: var(--text-soft); display: grid; gap: .5rem; flex: 2; min-width: 260px; } .category-filter legend { padding: 0; }

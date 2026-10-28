@@ -275,6 +275,8 @@ export const nl: Record<MessageKey, string> = {
   'auth.error': 'Onjuiste e-mail of wachtwoord.',
   'auth.signOut': 'Uitloggen',
   'auth.connectedAs': 'Ingelogd als {email}',
+  'auth.tryGuest': "Proberen zonder account",
+  'auth.guestHint': "Nog geen account? Speel meteen: je resultaten blijven op dit apparaat en komen niet in de ranglijst.",
   'auth.gateTitle': 'Inloggen',
 
   // — gastlink (tijdelijke toegang zonder account) —

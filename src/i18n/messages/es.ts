@@ -275,6 +275,8 @@ export const es: Record<MessageKey, string> = {
   'auth.error': 'Correo o contraseña incorrectos.',
   'auth.signOut': 'Cerrar sesión',
   'auth.connectedAs': 'Conectado como {email}',
+  'auth.tryGuest': "Probar sin cuenta",
+  'auth.guestHint': "¿Aún no tienes cuenta? Juega ahora: tus resultados se quedan en este dispositivo y no entran en la clasificación.",
   'auth.gateTitle': 'Iniciar sesión',
 
   // — enlace de invitado (acceso temporal sin cuenta) —
