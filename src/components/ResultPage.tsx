@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
 import type { AnswersByQuestion, Category, Question } from '../types/quiz'
 import type { MessageKey, TFunction } from '../i18n'
-import { getT, useT } from '../i18n'
+import { getT, plural, useLocale, useT } from '../i18n'
 import { difficultyLabel } from './QuizPage'
 import { matchAnswer } from '../utils/answerMatch'
 import { formatNumericValue } from '../utils/number'
@@ -53,6 +53,8 @@ function correctnessBreakdown<T extends string>(t: TFunction, questions: Questio
     return {
       key,
       label: labelOf(key),
+      correct,
+      total: group.length,
       data: [
         { label: t('result.passed'), value: correct, color: '#34d399' },
         { label: t('result.failed'), value: group.length - correct, color: '#fb7185' },
@@ -109,6 +111,9 @@ export function ResultPage({ questions, answers, categories, elapsedSeconds, onR
   const { emoji, key } = mention(score)
   const byCategory = correctnessBreakdown(t, questions, answers, (question) => question.category, (id) => categories.find((category) => category.id === id)?.label ?? id)
   const byDifficulty = correctnessBreakdown(t, questions, answers, (question) => question.difficulty, (difficulty) => difficultyLabel(difficulty, t))
+  const locale = useLocale()
+  // « 3 / 5 réussies (60 %) » : ce que le graphique ne dit pas à qui ne voit pas ses couleurs.
+  const successRate = ({ correct, total: count }: { correct: number; total: number }) => t(plural('result.successRate', count, locale), { correct, total: count, percent: count ? Math.round((correct / count) * 100) : 0 })
   const displayScore = useAnimatedNumber(score)
   useEffect(() => { score >= 90 ? playVictory() : playFinish() }, [])
   return <section className="results">
@@ -131,11 +136,11 @@ export function ResultPage({ questions, answers, categories, elapsedSeconds, onR
     <div className="stats-groups">
       <div className="stats-group">
         <h3 className="stats-group-title">{t('result.byCategory')}</h3>
-        <div className="stats-grid">{byCategory.map((group) => <PieChart key={`category-${group.key}`} title={t('result.categoryScore', { label: group.label })} data={group.data} />)}</div>
+        <div className="stats-grid">{byCategory.map((group) => <PieChart key={`category-${group.key}`} title={group.label} summary={successRate(group)} data={group.data} />)}</div>
       </div>
       <div className="stats-group">
         <h3 className="stats-group-title">{t('result.byDifficulty')}</h3>
-        <div className="stats-grid">{byDifficulty.map((group) => <PieChart key={`difficulty-${group.key}`} title={t('result.categoryScore', { label: group.label })} data={group.data} />)}</div>
+        <div className="stats-grid">{byDifficulty.map((group) => <PieChart key={`difficulty-${group.key}`} title={group.label} summary={successRate(group)} data={group.data} />)}</div>
       </div>
     </div>
     <div className="corrections">{questions.map((question) => {

@@ -36,3 +36,20 @@ describe('« pts » : singulier et pluriel dans les 5 langues', () => {
     })
   }
 })
+
+describe('« x / n réussies (p %) » dans les 5 langues', () => {
+  const expected: Record<Locale, { one: string; other: string }> = {
+    fr: { one: '1 / 1 réussie (100 %)', other: '3 / 5 réussies (60 %)' },
+    en: { one: '1 / 1 correct (100%)', other: '3 / 5 correct (60%)' },
+    es: { one: '1 / 1 acertada (100 %)', other: '3 / 5 acertadas (60 %)' },
+    nl: { one: '1 / 1 goed (100 %)', other: '3 / 5 goed (60 %)' },
+    ht: { one: '1 / 1 reyisi (100 %)', other: '3 / 5 reyisi (60 %)' },
+  }
+  for (const locale of SUPPORTED_LOCALES) {
+    it(locale, () => {
+      const t = getT(locale)
+      expect(t(plural('result.successRate', 1, locale), { correct: 1, total: 1, percent: 100 })).toBe(expected[locale].one)
+      expect(t(plural('result.successRate', 5, locale), { correct: 3, total: 5, percent: 60 })).toBe(expected[locale].other)
+    })
+  }
+})
