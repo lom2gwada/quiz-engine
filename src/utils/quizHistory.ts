@@ -81,7 +81,7 @@ export function buildQuizResultPayload(questions: Question[], answers: AnswersBy
 
 async function pushQuizRowsToCloud(userId: string, rows: QuizResultRow[]): Promise<void> {
   if (!rows.length) return
-  const { error } = await supabase.from(table('quiz_results')).upsert(rows.map((row) => ({ ...row, user_id: userId })), { onConflict: 'id' })
+  const { error } = await supabase.from(table('quiz_results')).upsert(rows.map((row) => ({ ...row, user_id: userId })), { onConflict: 'id', ignoreDuplicates: true })
   if (error) throw error
 }
 
@@ -147,7 +147,7 @@ export function buildQuestionResultPayloads(questions: Question[], answers: Answ
 
 async function pushQuestionRowsToCloud(userId: string, rows: QuestionResultRow[]): Promise<void> {
   if (!rows.length) return
-  const { error } = await supabase.from(table('question_results')).upsert(rows.map((row) => ({ ...row, user_id: userId })), { onConflict: 'id' })
+  const { error } = await supabase.from(table('question_results')).upsert(rows.map((row) => ({ ...row, user_id: userId })), { onConflict: 'id', ignoreDuplicates: true })
   if (error) throw error
 }
 

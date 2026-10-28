@@ -1,4 +1,4 @@
-import { storageKey, table } from '../config'
+import { rpcName, storageKey, table } from '../config'
 import type { Question } from '../types/quiz'
 import { blitzPool, type BlitzStats } from './blitz'
 import { spreadQuestions } from './spreadQuestions'
@@ -112,8 +112,15 @@ export async function claimDaily(userId: string, day: string): Promise<ClaimResu
   return error.code === '23505' ? 'already' : 'error'
 }
 
-/** Inscrit le résultat de la tentative réservée (impossible de le modifier ensuite : règle RLS côté base). */
+/** Inscrit le résultat de la tentative réservée (impossible de le modifier ensuite : règle RLS côté base).
+ *  Par la fonction `finish_<prefixe>_daily`, qui refuse un score impossible (plus de bonnes réponses que de questions, durée plus courte
+ *  qu'une demi-seconde par question ou plus longue que le temps écoulé depuis la réservation) ; tant que cette fonction n'existe pas en base
+ *  (`docs/hardening.sql`), repli sur l'ancienne mise à jour directe. */
 export async function finishDaily(userId: string, day: string, stats: BlitzStats, elapsed: number): Promise<boolean> {
+  const rpc = await supabase.rpc(rpcName('finish_%_daily'), { p_day: day, p_correct: stats.correct, p_played: stats.played, p_best_streak: stats.bestStreak, p_elapsed: elapsed })
+  if (!rpc.error) return rpc.data === true
+  // PGRST202 / 42883 : fonction inconnue (migration pas encore appliquée) ; toute autre erreur est un vrai échec.
+  if (rpc.error.code !== 'PGRST202' && rpc.error.code !== '42883') return false
   const { data, error } = await supabase.from(table('daily_results'))
     .update({ finished_at: new Date().toISOString(), correct_count: stats.correct, played: stats.played, best_streak: stats.bestStreak, elapsed_seconds: elapsed })
     .eq('user_id', userId).eq('day', day).is('finished_at', null)

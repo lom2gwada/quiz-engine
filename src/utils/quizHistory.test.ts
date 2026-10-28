@@ -389,7 +389,7 @@ describe('saveQuizResult / fetchQuizHistory (sync cloud)', () => {
     const { saveQuizResult } = await import('./quizHistory')
     await saveQuizResult(buildQuizResultPayload([qcm], { q1: ['a'] }, categories, 10, 'Culture générale'), 'user-1')
     expect(supabase.from).toHaveBeenCalledWith('test_quiz_results')
-    expect(table.upsert).toHaveBeenCalledWith([expect.objectContaining({ user_id: 'user-1', quiz_title: 'Culture générale' })], { onConflict: 'id' })
+    expect(table.upsert).toHaveBeenCalledWith([expect.objectContaining({ user_id: 'user-1', quiz_title: 'Culture générale' })], { onConflict: 'id', ignoreDuplicates: true })
   })
 
   it('fusionne l’historique local et celui du cloud (union par id)', async () => {
