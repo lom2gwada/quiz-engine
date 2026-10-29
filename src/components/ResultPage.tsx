@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
+import type { DatasetMap } from '../types/app'
 import type { AnswersByQuestion, Category, Question } from '../types/quiz'
 import type { MessageKey, TFunction } from '../i18n'
 import { getT, plural, useLocale, useT } from '../i18n'
@@ -90,6 +91,8 @@ function mention(score: number): { emoji: string; key: MessageKey } {
 
 interface ResultPageProps {
   questions: Question[]
+  /** Carte / tableau de l'appli : rendu en correction des questions « Cliquez sur X » (bonne case + réponse donnée). */
+  renderMap?: DatasetMap['render']
   answers: AnswersByQuestion
   categories: Category[]
   elapsedSeconds: number
@@ -103,7 +106,9 @@ interface ResultPageProps {
   summary?: ReactNode
 }
 
-export function ResultPage({ questions, answers, categories, elapsedSeconds, onRestartSame, onBackToSettings, onViewHistory, onViewFiche, summary }: ResultPageProps) {
+const noop = () => {}
+
+export function ResultPage({ questions, renderMap, answers, categories, elapsedSeconds, onRestartSame, onBackToSettings, onViewHistory, onViewFiche, summary }: ResultPageProps) {
   const t = useT()
   const earned = questions.filter((question) => isCorrect(question, answers[question.id])).reduce((total, question) => total + question.points, 0)
   const total = questions.reduce((sum, question) => sum + question.points, 0)
@@ -149,6 +154,7 @@ export function ResultPage({ questions, answers, categories, elapsedSeconds, onR
         <h3>{correct ? t('result.correct') : t('result.incorrect')} — {question.question}</h3>
         {question.imageUrl && <QuestionImage src={question.imageUrl} alt={question.imageAlt} />}
         {question.shapeSvg && <QuestionShape svg={question.shapeSvg} alt={question.imageAlt} />}
+        {question.type === 'map' && renderMap && <div className="correction-map">{renderMap({ target: question.content.target, selected: typeof answers[question.id] === 'string' ? answers[question.id] as string : undefined, onPick: noop, review: true })}</div>}
         {!correct && <p><strong>{t('result.yourAnswer')}</strong> {userAnswer(question, answers[question.id], t)}</p>}
         {!correct && <p><strong>{t('result.goodAnswer')}</strong> {correctAnswer(question, t)}</p>}
         <p>{question.explanation}</p>

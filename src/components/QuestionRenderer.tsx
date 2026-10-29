@@ -9,7 +9,7 @@ import { OrderingQuestion } from './OrderingQuestion'
 import { QCMQuestion } from './QCMQuestion'
 import { TextQuestion } from './TextQuestion'
 
-export function QuestionRenderer({ question, answer, onChange, onSubmit, renderMap }: { question: Question; answer?: UserAnswer; onChange: (answer: UserAnswer) => void; onSubmit?: () => void; renderMap?: DatasetMap['render'] }) {
+export function QuestionRenderer({ question, answer, onChange, onSubmit, renderMap, review }: { question: Question; answer?: UserAnswer; onChange: (answer: UserAnswer) => void; onSubmit?: () => void; renderMap?: DatasetMap['render']; review?: boolean }) {
   switch (question.type) {
     case 'qcm': return <QCMQuestion question={question} answer={answer} onChange={onChange} />
     case 'text': return <TextQuestion question={question} answer={answer} onChange={onChange} onSubmit={onSubmit} />
@@ -18,7 +18,7 @@ export function QuestionRenderer({ question, answer, onChange, onSubmit, renderM
     case 'boolean': return <BooleanQuestion question={question} answer={answer} onChange={onChange} />
     case 'cloze': return <ClozeQuestion question={question} answer={answer} onChange={onChange} onSubmit={onSubmit} />
     case 'matching': return <MatchingQuestion question={question} answer={answer} onChange={onChange} />
-    case 'map': return <>{renderMap?.({ target: question.content.target, selected: typeof answer === 'string' ? answer : undefined, onPick: onChange })}</>
+    case 'map': return <>{renderMap?.({ target: question.content.target, selected: typeof answer === 'string' ? answer : undefined, onPick: onChange, review })}</>
     case 'numeric': return <NumericQuestion question={question} answer={answer} onChange={onChange} />
   }
 }

@@ -229,7 +229,7 @@ export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, 
       {question.shapeSvg && <QuestionShape svg={question.shapeSvg} alt={question.imageAlt} />}
       {question.type !== 'cloze' && <h2>{question.question}</h2>}
       <fieldset className="question-fieldset" disabled={isChecked}>
-        <QuestionRenderer question={question} answer={answers[question.id]} onChange={updateAnswer} onSubmit={advance} renderMap={renderMap} />
+        <QuestionRenderer question={question} answer={answers[question.id]} onChange={updateAnswer} onSubmit={advance} renderMap={renderMap} review={isChecked} />
       </fieldset>
     </div>
     {isChecked && (() => {

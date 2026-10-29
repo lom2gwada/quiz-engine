@@ -48,6 +48,8 @@ export interface MapQuestionProps {
   target: string
   selected?: string
   onPick: (canonical: string) => void
+  /** Correction : la carte n'est plus cliquable, elle montre la bonne réponse (`target`) et, si elle diffère, celle du joueur (`selected`). */
+  review?: boolean
 }
 
 /** Questions « Cliquez sur X » : `targets` = valeurs canoniques désignables, `render` affiche la carte cliquable (propre à l'appli). */
