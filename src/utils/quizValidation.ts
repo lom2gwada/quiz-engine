@@ -36,7 +36,7 @@ export function parseQuiz(value: unknown): Quiz {
 
 function parseQuestion(value: unknown): Question {
   if (!isRecord(value) || !isRecord(value.content)) throw new Error('Question ou contenu invalide.')
-  const { id, type, difficulty, question, topic, subject, subjectLabel, tags, explanation, points, content, imageUrl, imageAlt, shapeSvg } = value
+  const { id, type, difficulty, question, topic, subject, subjectLabel, subjects, tags, explanation, points, content, imageUrl, imageAlt, shapeSvg } = value
   const category = value.category ?? value.theme // `theme` : ancien nom accepté à l'import
   if (
     typeof id !== 'string' || typeof category !== 'string' || typeof question !== 'string' ||
@@ -45,6 +45,7 @@ function parseQuestion(value: unknown): Question {
     (topic !== undefined && typeof topic !== 'string') ||
     (subject !== undefined && typeof subject !== 'string') ||
     (subjectLabel !== undefined && typeof subjectLabel !== 'string') ||
+    (subjects !== undefined && !hasStrings(subjects)) ||
     (imageUrl !== undefined && (typeof imageUrl !== 'string' || !imageUrl)) ||
     (imageAlt !== undefined && typeof imageAlt !== 'string') ||
     (shapeSvg !== undefined && (typeof shapeSvg !== 'string' || !/^<svg[\s>]/.test(shapeSvg)))
@@ -55,6 +56,7 @@ function parseQuestion(value: unknown): Question {
     topic: topic as string | undefined,
     subject: subject as string | undefined,
     subjectLabel: subjectLabel as string | undefined,
+    subjects: subjects as string[] | undefined,
     imageUrl: imageUrl as string | undefined, imageAlt: imageAlt as string | undefined,
     shapeSvg: shapeSvg as string | undefined,
   }
