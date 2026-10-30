@@ -99,6 +99,13 @@ export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, 
     return () => clearInterval(interval)
   }, [])
 
+  // Correction affichée (révision, correction immédiate) : le focus passe sur « Suivante » / « Terminer » — les champs
+  // viennent d'être verrouillés —, pour enchaîner les questions avec la seule touche Entrée.
+  const nextRef = useRef<HTMLButtonElement>(null)
+  useEffect(() => {
+    if (isChecked) nextRef.current?.focus()
+  }, [isChecked, question?.id])
+
   // Blitz : chaque question a sa propre échéance (horloge murale, pas le compteur d'une seconde de `elapsed`, pour que
   // le temps par question soit exact). Une question sans réponse à l'échéance compte fausse ; `Infinity` = verrou une
   // fois la question quittée (clic tardif ou double clic sans effet).
@@ -252,8 +259,8 @@ export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, 
           : feedbackOn && !isChecked
             ? <button type="button" onClick={check}>{t('quiz.validate')}</button>
             : atEnd
-              ? <button type="button" onClick={finish}>{t('quiz.finish')}</button>
-              : <button type="button" onClick={() => setCurrent((value) => value + 1)}>{t('quiz.next')}</button>}
+              ? <button type="button" ref={nextRef} onClick={finish}>{t('quiz.finish')}</button>
+              : <button type="button" ref={nextRef} onClick={() => setCurrent((value) => value + 1)}>{t('quiz.next')}</button>}
       </div>
     </div>
   </section>
