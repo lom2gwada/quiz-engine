@@ -593,7 +593,7 @@ export function generateQuiz(
         const sorted = [...group].sort((a, b) =>
           direction === 'asc' ? asNumber(a[col]) - asNumber(b[col]) : asNumber(b[col]) - asNumber(a[col]))
         questions.push({
-          id: qid([col, 'ordering', ...idMembers]), type: 'ordering', category: categoryId, difficulty, points: CFG.order.points, tags: [col], subjects: idMembers,
+          id: qid([col, 'ordering', ...idMembers]), type: 'ordering', category: categoryId, difficulty, points: CFG.order.points, tags: [col], subjects: sorted.map(nameOf), // dans l'ordre de la bonne réponse : c'est celui dans lequel les fiches se parcourent
           question: T('prompt.ordering', { nouns, label, direction: grammar.direction(direction) }),
           topic: T('topic.labelList', { Label, list: members.join(', ') }),
           explanation: sorted
@@ -688,7 +688,7 @@ export function generateQuiz(
         const idMembers = [...group].map(nameOf).sort()
         const members = [...group].map(displayName).sort((a, b) => a.localeCompare(b, locale))
         questions.push({
-          id: qid([col, 'num-matching', ...idMembers]), type: 'matching', category: categoryId, difficulty: CFG.matching.difficulty, points: CFG.matching.points, tags: [col], subjects: idMembers,
+          id: qid([col, 'num-matching', ...idMembers]), type: 'matching', category: categoryId, difficulty: CFG.matching.difficulty, points: CFG.matching.points, tags: [col], subjects: group.map(nameOf),
           question: T('prompt.matching', { noun, label }),
           topic: T('topic.labelList', { Label, list: members.join(', ') }),
           explanation: group.map((r) => `${displayName(r)} → ${valOf(r)}`).join(' · '),
@@ -733,7 +733,7 @@ export function generateQuiz(
         const idMembers = [...group].map(nameOf).sort()
         const members = [...group].map(displayName).sort((a, b) => a.localeCompare(b, locale))
         questions.push({
-          id: qid([col, 'matching', ...idMembers]), type: 'matching', category: categoryId, difficulty: CFG.matching.difficulty, points: CFG.matching.points, tags: [col], subjects: idMembers,
+          id: qid([col, 'matching', ...idMembers]), type: 'matching', category: categoryId, difficulty: CFG.matching.difficulty, points: CFG.matching.points, tags: [col], subjects: group.map(nameOf),
           question: T('prompt.matching', { noun, label }),
           topic: T('topic.labelList', { Label, list: members.join(', ') }),
           explanation: group.map((r) => `${displayName(r)} → ${tr(r[col])}`).join(' · '),

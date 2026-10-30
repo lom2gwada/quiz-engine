@@ -24,6 +24,8 @@ interface FicheModalProps {
   onRowUpdated?: (updatedRow: Row) => void
   /** Fiches voisines (valeurs FR canoniques) dans l'ordre courant ; absentes aux extrémités. Avec `onNavigate`, ajoute ← / →. */
   neighbors?: { prev?: string; next?: string }
+  /** Fiche ouverte depuis une question de groupe : ses éléments (valeurs FR canoniques), dans l'ordre de la correction. Affiche leur liste et la position courante. */
+  group?: string[]
   /** Date de mise à jour et sources des données, en pied de fiche. */
   dataInfo?: DataInfo
   onNavigate?: (canonical: string) => void
@@ -32,7 +34,7 @@ interface FicheModalProps {
 
 /** Affiche une fiche dans une modale centrée (portail sur `<body>`) : Échap / clic hors panneau
  * / bouton × pour fermer. Admin sur un dataset éditable : bascule vers FicheEditForm. */
-export function FicheModal({ row, schema, decor, speech, i18n, canEdit, updateRow, onRowUpdated, neighbors, dataInfo, onNavigate, onClose }: FicheModalProps) {
+export function FicheModal({ row, schema, decor, speech, i18n, canEdit, updateRow, onRowUpdated, neighbors, group, dataInfo, onNavigate, onClose }: FicheModalProps) {
   const t = useT()
   const locale = useLocale()
   const closeRef = useRef<HTMLButtonElement>(null)
@@ -95,6 +97,10 @@ export function FicheModal({ row, schema, decor, speech, i18n, canEdit, updateRo
         {!editing && onNavigate && (prevName || nextName) && <nav className="fiche-nav" aria-label={t('fiche.navLabel')}>
           <button type="button" className="secondary" disabled={!prevName} onClick={() => neighbors?.prev && onNavigate(neighbors.prev)} aria-label={prevName ? t('fiche.prev', { name: prevName }) : undefined}>{prevName ? `← ${prevName}` : '←'}</button>
           <button type="button" className="secondary" disabled={!nextName} onClick={() => neighbors?.next && onNavigate(neighbors.next)} aria-label={nextName ? t('fiche.next', { name: nextName }) : undefined}>{nextName ? `${nextName} →` : '→'}</button>
+        </nav>}
+        {!editing && onNavigate && group && group.length > 1 && <nav className="fiche-group" aria-label={t('fiche.groupLabel')}>
+          <span className="fiche-group-context">{t('fiche.groupContext', { i: group.indexOf(canonical) + 1, n: group.length })}</span>
+          <div className="fiche-group-chips">{group.map((subject) => <button key={subject} type="button" className={subject === canonical ? 'fiche-group-chip is-current' : 'fiche-group-chip'} aria-current={subject === canonical ? 'true' : undefined} onClick={() => onNavigate(subject)}>{data.value(subject)}</button>)}</div>
         </nav>}
         {!editing && (canEdit && updateRow || (speech && sentences.length > 0)) && <div className="fiche-modal-actions">
           {speech && <SpeakButton sentences={sentences} locale={speechLocale(speech, locale)} />}

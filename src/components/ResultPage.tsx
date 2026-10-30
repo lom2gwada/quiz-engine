@@ -102,13 +102,15 @@ interface ResultPageProps {
   onViewHistory: () => void
   /** Ouvre la fiche du sujet d'une question ; absent s'il n'y a pas de jeu de données (quiz JSON importé). */
   onViewFiche?: (subject: string) => void
+  /** Question de groupe (classement, association) : ouvre les fiches de ses éléments, parcourables dans la modale. */
+  onViewFiches?: (subjects: string[]) => void
   /** Bloc affiché sous le score (bilan blitz…). */
   summary?: ReactNode
 }
 
 const noop = () => {}
 
-export function ResultPage({ questions, renderMap, answers, categories, elapsedSeconds, onRestartSame, onBackToSettings, onViewHistory, onViewFiche, summary }: ResultPageProps) {
+export function ResultPage({ questions, renderMap, answers, categories, elapsedSeconds, onRestartSame, onBackToSettings, onViewHistory, onViewFiche, onViewFiches, summary }: ResultPageProps) {
   const t = useT()
   const earned = questions.filter((question) => isCorrect(question, answers[question.id])).reduce((total, question) => total + question.points, 0)
   const total = questions.reduce((sum, question) => sum + question.points, 0)
@@ -161,6 +163,11 @@ export function ResultPage({ questions, renderMap, answers, categories, elapsedS
         {question.subject && onViewFiche && (
           <button type="button" className="link-button" onClick={() => onViewFiche(question.subject!)}>
             {t('result.viewFiche', { name: question.subjectLabel ?? question.subject })}
+          </button>
+        )}
+        {!question.subject && question.subjects?.length && onViewFiches && (
+          <button type="button" className="link-button" onClick={() => onViewFiches(question.subjects!)}>
+            {t('result.viewFiches', { n: question.subjects.length })}
           </button>
         )}
       </article>

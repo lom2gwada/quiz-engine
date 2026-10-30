@@ -150,6 +150,12 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
   // Tirage courant : seed + locale ayant produit `quiz`. Le quiz initial = seed de l'appli en FR.
   const genRef = useRef<{ seed: string; locale: Locale }>({ seed: spec.seed, locale: DEFAULT_LOCALE })
   const [ficheSubject, setFicheSubject] = useState<string | null>(null)
+  // Fiche ouverte depuis une question de groupe (classement, association) : ses éléments, dans l'ordre de la correction.
+  // La modale parcourt alors ces éléments (et non tout le jeu de données) ; absent = parcours habituel.
+  const [ficheGroup, setFicheGroup] = useState<string[] | null>(null)
+  const openFiche = (subject: string) => { setFicheGroup(null); setFicheSubject(subject) }
+  const openFicheGroup = (subjects: string[]) => { setFicheGroup(subjects); setFicheSubject(subjects[0] ?? null) }
+  const closeFiche = () => { setFicheSubject(null); setFicheGroup(null) }
   // Ordre de « fiche précédente / suivante » : celui du tri par défaut de la page Fiches — numéro atomique…, sinon alphabétique (nom affiché).
   const ficheOrder = useMemo(() => {
     if (!dataset) return []
@@ -558,7 +564,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
       <DataInfoNote info={dataset?.dataInfo} />
       <div className="quiz-actions"><button type="button" onClick={startQuiz} disabled={gameMode === 'blitz' ? !blitzAvailable : !filteredQuestions.length}>{t('start.play')}</button></div>
     </section>}
-    {view === 'quiz' && <QuizPage quiz={quiz} questions={sessionQuestions} renderMap={dataset?.map?.render} onViewFiche={dataset ? setFicheSubject : undefined}mode={activeMode} timeLimitSeconds={activeTimeLimit} reviewBoxes={isReplay && reviewBoxes ? reviewBoxes : undefined} immediateFeedback={isReplay || (activeMode === 'classic' && !dailyRun && immediateFeedback)} onFinish={(nextAnswers, duration, shown, extra) => {
+    {view === 'quiz' && <QuizPage quiz={quiz} questions={sessionQuestions} renderMap={dataset?.map?.render} onViewFiche={dataset ? openFiche : undefined} onViewFiches={dataset ? openFicheGroup : undefined} mode={activeMode} timeLimitSeconds={activeTimeLimit} reviewBoxes={isReplay && reviewBoxes ? reviewBoxes : undefined} immediateFeedback={isReplay || (activeMode === 'classic' && !dailyRun && immediateFeedback)} onFinish={(nextAnswers, duration, shown, extra) => {
       setAnswers(nextAnswers); setResultQuestions(shown); setElapsedSeconds(duration); replace('results')
       const historyKey = historyKeyOf(dataset, quiz)
       if (isReplay && reviewBoxes) setReviewChanges(computeReviewChanges(reviewBoxes, buildQuestionResultPayloads(shown, nextAnswers, historyKey)))
@@ -625,19 +631,21 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
         .catch(() => {})
         .finally(persist)
     }} onCancel={backToStart} />}
-    {view === 'results' && <ResultPage questions={resultQuestions} renderMap={dataset?.map?.render} answers={answers} categories={quiz.categories} elapsedSeconds={elapsedSeconds} onRestartSame={isReplay || dailyRun ? undefined : restartQuiz} onBackToSettings={backToStart} onViewHistory={() => viewHistory('results')} onViewFiche={dataset ? setFicheSubject : undefined} summary={<GameExtras blitz={activeMode === 'blitz' ? blitzSummary : null} daily={dailySummary} modeRecord={activeMode === 'blitz' ? null : modeRecordSummary} review={isReplay ? reviewChanges : null} newBadges={newBadges} />} />}
+    {view === 'results' && <ResultPage questions={resultQuestions} renderMap={dataset?.map?.render} answers={answers} categories={quiz.categories} elapsedSeconds={elapsedSeconds} onRestartSame={isReplay || dailyRun ? undefined : restartQuiz} onBackToSettings={backToStart} onViewHistory={() => viewHistory('results')} onViewFiche={dataset ? openFiche : undefined} onViewFiches={dataset ? openFicheGroup : undefined} summary={<GameExtras blitz={activeMode === 'blitz' ? blitzSummary : null} daily={dailySummary} modeRecord={activeMode === 'blitz' ? null : modeRecordSummary} review={isReplay ? reviewChanges : null} newBadges={newBadges} />} />}
     {view === 'results' && <DataInfoNote info={dataset?.dataInfo} className="data-info-results" />}
     <Suspense fallback={<p className="page-loading" role="status">{t('common.loading')}</p>}>
     {view === 'content' && <QuizContentPage quiz={quiz} dataset={dataset} onBack={() => navigate('start')} onCsvChange={loadCsv} onGenerate={generateFromPanel} onRegenerate={regenerateQuestions} onPreview={previewGenerated} sharedDefault={Boolean(dataset?.editable && isAdmin)} fileError={fileError} genError={genError} />}
-    {view === 'atlas' && dataset && <AtlasPage rows={dataset.rows} schema={dataset.schema} decor={dataset.ficheDecor} i18n={dataset.i18n} defaultSort={dataset.atlasSort} dataInfo={dataset.dataInfo} actions={dataset.views?.filter((v) => v.entry === 'atlas').map(viewButton)} onOpenFiche={setFicheSubject} onBack={() => navigate('start')} />}
+    {view === 'atlas' && dataset && <AtlasPage rows={dataset.rows} schema={dataset.schema} decor={dataset.ficheDecor} i18n={dataset.i18n} defaultSort={dataset.atlasSort} dataInfo={dataset.dataInfo} actions={dataset.views?.filter((v) => v.entry === 'atlas').map(viewButton)} onOpenFiche={openFiche} onBack={() => navigate('start')} />}
     {dataset && (() => {
       const custom = dataset.views?.find((v) => v.id === view)
-      return custom ? custom.render({ dataset, openFiche: setFicheSubject, back: () => navigate(custom.entry === 'atlas' ? 'atlas' : 'start') }) : null
+      return custom ? custom.render({ dataset, openFiche, back: () => navigate(custom.entry === 'atlas' ? 'atlas' : 'start') }) : null
     })()}
     {ficheSubject && dataset && (() => {
       const row = dataset.rows.find((r) => r[dataset.schema.subjectColumn] === ficheSubject)
-      const index = ficheOrder.indexOf(ficheSubject)
-      return row ? <Suspense fallback={null}><FicheModal row={row} neighbors={index >= 0 ? { prev: ficheOrder[index - 1], next: ficheOrder[index + 1] } : undefined} onNavigate={setFicheSubject} dataInfo={dataset.dataInfo} schema={dataset.schema} decor={dataset.ficheDecor} speech={dataset.speech} i18n={dataset.i18n} canEdit={isAdmin && Boolean(dataset.editable && spec.remote)} updateRow={spec.remote?.updateRow} onRowUpdated={handleDatasetRowUpdated} onClose={() => setFicheSubject(null)} /></Suspense> : null
+      const inGroup = ficheGroup?.includes(ficheSubject) ? ficheGroup : null
+      const order = inGroup ?? ficheOrder
+      const index = order.indexOf(ficheSubject)
+      return row ? <Suspense fallback={null}><FicheModal row={row} neighbors={index >= 0 ? { prev: order[index - 1], next: order[index + 1] } : undefined} group={inGroup ?? undefined} onNavigate={setFicheSubject} dataInfo={dataset.dataInfo} schema={dataset.schema} decor={dataset.ficheDecor} speech={dataset.speech} i18n={dataset.i18n} canEdit={isAdmin && Boolean(dataset.editable && spec.remote)} updateRow={spec.remote?.updateRow} onRowUpdated={handleDatasetRowUpdated} onClose={closeFiche} /></Suspense> : null
     })()}
     {view === 'leaderboard' && <LeaderboardPage onBack={() => navigate('start')} historyKey={historyKeyOf(dataset, quiz)} userId={session?.user.id} />}
     {view === 'history' && <HistoryPage onBack={() => navigate(historyBack)} quiz={quiz} historyKey={historyKeyOf(dataset, quiz)} userId={session?.user.id} onReplayMissed={replayMissed} onPracticeWeak={practiceWeak} />}

@@ -54,9 +54,11 @@ interface QuizPageProps {
   renderMap?: DatasetMap['render']
   /** Ouvre la fiche complète d'un sujet (valeur canonique) : bouton à droite de l'encadré de correction, quand la question porte un sujet. */
   onViewFiche?: (subject: string) => void
+  /** Question de groupe (classement, association) : ouvre la fiche du premier élément ; la modale permet de parcourir les autres. */
+  onViewFiches?: (subjects: string[]) => void
 }
 
-export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, onFinish, onCancel, renderMap, reviewBoxes, immediateFeedback, onViewFiche }: QuizPageProps) {
+export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, onFinish, onCancel, renderMap, reviewBoxes, immediateFeedback, onViewFiche, onViewFiches }: QuizPageProps) {
   const t = useT()
   const locale = useLocale()
   const [current, setCurrent] = useState(0)
@@ -244,13 +246,15 @@ export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, 
     {isChecked && (() => {
       const correct = isCorrect(question, answers[question.id])
       const fiche = onViewFiche && question.subject ? question.subject : undefined
-      return <div className={`${correct ? 'quiz-feedback is-correct' : 'quiz-feedback is-wrong'}${fiche ? ' has-fiche' : ''}`} role="status">
+      const group = !fiche && onViewFiches && question.subjects?.length ? question.subjects : undefined
+      return <div className={`${correct ? 'quiz-feedback is-correct' : 'quiz-feedback is-wrong'}${fiche || group ? ' has-fiche' : ''}`} role="status">
         <div className="quiz-feedback-text">
           <p><strong>{correct ? t('result.correct') : t('result.incorrect')}</strong></p>
           {!correct && <p><strong>{t('result.goodAnswer')}</strong> {correctAnswer(question, t)}</p>}
           {question.explanation && <p>{question.explanation}</p>}
         </div>
         {fiche && <button type="button" className="secondary quiz-feedback-fiche" onClick={() => onViewFiche!(fiche)}>{t('result.viewFiche', { name: question.subjectLabel ?? fiche })}</button>}
+        {group && <button type="button" className="secondary quiz-feedback-fiche" onClick={() => onViewFiches!(group)}>{t('result.viewFiches', { n: group.length })}</button>}
       </div>
     })()}
     {(timeAttack || noMistake) && atEnd && <p className="hint-banner">{t('quiz.poolExhausted')}</p>}
