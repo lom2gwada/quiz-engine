@@ -558,7 +558,7 @@ function AppInner({ spec, profile, onProfileChange, session, dbData, isAdmin }: 
       <DataInfoNote info={dataset?.dataInfo} />
       <div className="quiz-actions"><button type="button" onClick={startQuiz} disabled={gameMode === 'blitz' ? !blitzAvailable : !filteredQuestions.length}>{t('start.play')}</button></div>
     </section>}
-    {view === 'quiz' && <QuizPage quiz={quiz} questions={sessionQuestions} renderMap={dataset?.map?.render} mode={activeMode} timeLimitSeconds={activeTimeLimit} reviewBoxes={isReplay && reviewBoxes ? reviewBoxes : undefined} immediateFeedback={isReplay || (activeMode === 'classic' && !dailyRun && immediateFeedback)} onFinish={(nextAnswers, duration, shown, extra) => {
+    {view === 'quiz' && <QuizPage quiz={quiz} questions={sessionQuestions} renderMap={dataset?.map?.render} onViewFiche={dataset ? setFicheSubject : undefined}mode={activeMode} timeLimitSeconds={activeTimeLimit} reviewBoxes={isReplay && reviewBoxes ? reviewBoxes : undefined} immediateFeedback={isReplay || (activeMode === 'classic' && !dailyRun && immediateFeedback)} onFinish={(nextAnswers, duration, shown, extra) => {
       setAnswers(nextAnswers); setResultQuestions(shown); setElapsedSeconds(duration); replace('results')
       const historyKey = historyKeyOf(dataset, quiz)
       if (isReplay && reviewBoxes) setReviewChanges(computeReviewChanges(reviewBoxes, buildQuestionResultPayloads(shown, nextAnswers, historyKey)))

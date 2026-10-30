@@ -160,6 +160,10 @@ pre { padding: 1rem; overflow: auto; background: var(--code-bg); border: 1px sol
 .question-body.is-locked { pointer-events: none; }
 .quiz-feedback { margin: 1rem 0 0; padding: .8rem 1rem; border-radius: .7rem; border: 1px solid var(--border); background: var(--surface-alt); display: grid; gap: .35rem; }
 .quiz-feedback p { margin: 0; }
+.quiz-feedback-text { display: grid; gap: .35rem; min-width: 0; }
+.quiz-feedback.has-fiche { grid-template-columns: 1fr auto; align-items: center; gap: .35rem 1rem; }
+.quiz-feedback .quiz-feedback-fiche { width: auto; padding: .45rem .8rem; font-size: .85rem; white-space: nowrap; }
+@media (max-width: 550px) { .quiz-feedback.has-fiche { grid-template-columns: 1fr; } .quiz-feedback .quiz-feedback-fiche { justify-self: end; } }
 .quiz-feedback.is-correct { border-color: var(--success); }
 .quiz-feedback.is-correct strong:first-child { color: var(--success-text); }
 .quiz-feedback.is-wrong { border-color: var(--error); }

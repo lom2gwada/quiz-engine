@@ -63,6 +63,12 @@ export function FicheModal({ row, schema, decor, speech, i18n, canEdit, updateRo
 
   const sentences = useMemo(() => buildSpeech(row, schema, i18n, locale, speech), [row, schema, i18n, locale, speech])
 
+  // À la fermeture, le focus retourne là où il était (ex. « Suivante » après une correction) : le clavier reprend où il s'était arrêté.
+  useEffect(() => {
+    const opener = document.activeElement
+    return () => { if (opener instanceof HTMLElement && opener.isConnected) opener.focus() }
+  }, [])
+
   useEffect(() => {
     closeRef.current?.focus()
     const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose() }
