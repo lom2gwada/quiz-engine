@@ -177,6 +177,9 @@ pre { padding: 1rem; overflow: auto; background: var(--code-bg); border: 1px sol
 .immediate-feedback input { margin-top: .25rem; flex: none; width: auto; }
 .immediate-feedback small { display: block; color: var(--text-soft); font-size: .8rem; }
 .page-loading { margin: 2rem 0; color: var(--text-soft); }
+.app-error { display: grid; gap: 1rem; justify-items: start; max-width: 32rem; margin: 4rem auto; }
+.app-error h1 { margin: 0; }
+.app-error p { margin: 0; color: var(--text-soft); }
 .data-info { margin: 1.2rem 0 0; color: var(--text-soft); font-size: .82rem; }
 .data-info a { color: var(--accent-text); }
 .fiche-modal .data-info { margin-top: 1rem; padding-top: .8rem; border-top: 1px solid var(--border); }

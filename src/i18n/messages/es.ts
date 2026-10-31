@@ -8,6 +8,11 @@ export const es: Record<MessageKey, string> = {
   'common.saving': 'Guardando…',
   'common.loading': 'Cargando…',
   'common.or': ' o ',
+  'error.updated.title': 'La aplicación se ha actualizado',
+  'error.updated.body': 'Hay una nueva versión en línea. Recarga la página para continuar.',
+  'error.generic.title': 'Ha ocurrido un error',
+  'error.generic.body': 'Recarga la página para continuar. Si el problema persiste, inténtalo de nuevo más tarde.',
+  'error.reload': 'Recargar la página',
 
   'header.by': 'por {author}',
   'header.seed': "seed «{seed}»",

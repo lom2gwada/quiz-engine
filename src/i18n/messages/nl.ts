@@ -8,6 +8,11 @@ export const nl: Record<MessageKey, string> = {
   'common.saving': 'Opslaan…',
   'common.loading': 'Laden…',
   'common.or': ' of ',
+  'error.updated.title': 'De app is bijgewerkt',
+  'error.updated.body': 'Er staat een nieuwe versie online. Laad de pagina opnieuw om door te gaan.',
+  'error.generic.title': 'Er is iets misgegaan',
+  'error.generic.body': 'Laad de pagina opnieuw om door te gaan. Blijft het probleem bestaan, probeer het dan later opnieuw.',
+  'error.reload': 'Pagina opnieuw laden',
 
   'header.by': 'door {author}',
   'header.seed': "seed “{seed}”",

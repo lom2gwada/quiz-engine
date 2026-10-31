@@ -8,6 +8,11 @@ export const fr = {
   'common.saving': 'Enregistrement…',
   'common.loading': 'Chargement…',
   'common.or': ' ou ',
+  'error.updated.title': 'L\'appli a été mise à jour',
+  'error.updated.body': 'Une nouvelle version est en ligne. Rechargez la page pour continuer.',
+  'error.generic.title': 'Une erreur est survenue',
+  'error.generic.body': 'Rechargez la page pour continuer. Si le problème persiste, réessayez un peu plus tard.',
+  'error.reload': 'Recharger la page',
 
   // — en-tête / navigation —
   'header.by': 'par {author}',

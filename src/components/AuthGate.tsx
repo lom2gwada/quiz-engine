@@ -6,12 +6,17 @@ import { useAuth } from '../hooks/useAuth'
 import { LocaleProvider, useT } from '../i18n'
 import { applyLocale, resolveLocale, type Locale } from '../i18n/locale'
 import { readLocalePreference, writeLocalePreference } from '../utils/localePreference'
+import { ErrorBoundary } from './ErrorBoundary'
 import { checkGuestPass, hasGuestPassInSession, markGuestPassInSession } from '../utils/guestPass'
 
 /** Porte d'entrée de l'app : connexion, ou « Essayer sans compte », ou lien d'invité valide (`?guest=<token>`,
  *  vérifié côté cloud) — l'invité entre alors dans l'app exactement comme un visiteur hors-ligne
  *  (pas de session, tout reste local, aucun accès aux données du compte réel). */
 export function AuthGate({ spec }: { spec: QuizAppSpec }) {
+  return <ErrorBoundary><AuthGateContent spec={spec} /></ErrorBoundary>
+}
+
+function AuthGateContent({ spec }: { spec: QuizAppSpec }) {
   const { session, loading } = useAuth()
   const [guestChecked, setGuestChecked] = useState(false)
   const [guestValid, setGuestValid] = useState(false)

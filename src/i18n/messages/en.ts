@@ -7,6 +7,11 @@ export const en: Record<MessageKey, string> = {
   'common.saving': 'Saving…',
   'common.loading': 'Loading…',
   'common.or': ' or ',
+  'error.updated.title': 'The app has been updated',
+  'error.updated.body': 'A new version is online. Reload the page to continue.',
+  'error.generic.title': 'Something went wrong',
+  'error.generic.body': 'Reload the page to continue. If the problem persists, try again a little later.',
+  'error.reload': 'Reload the page',
 
   'header.by': 'by {author}',
   'header.seed': "seed “{seed}”",

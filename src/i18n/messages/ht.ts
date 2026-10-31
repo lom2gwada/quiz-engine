@@ -9,6 +9,11 @@ export const ht: Record<MessageKey, string> = {
   'common.saving': 'N ap anrejistre…',
   'common.loading': 'N ap chaje…',
   'common.or': ' oswa ',
+  'error.updated.title': 'Aplikasyon an mete ajou',
+  'error.updated.body': 'Gen yon nouvo vèsyon ki sou entènèt. Rechaje paj la pou kontinye.',
+  'error.generic.title': 'Gen yon pwoblèm ki rive',
+  'error.generic.body': 'Rechaje paj la pou kontinye. Si pwoblèm nan rete, eseye ankò yon ti kras pita.',
+  'error.reload': 'Rechaje paj la',
 
   'header.by': 'pa {author}',
   'header.seed': "seed «{seed}»",
