@@ -104,10 +104,13 @@ export function QuizPage({ quiz, questions, mode = 'classic', timeLimitSeconds, 
   }, [])
 
   // Correction affichée (révision, correction immédiate) : le focus passe sur « Suivante » / « Terminer » — les champs
-  // viennent d'être verrouillés —, pour enchaîner les questions avec la seule touche Entrée.
+  // viennent d'être verrouillés —, pour enchaîner les questions avec la seule touche Entrée. Le focus bouge un tick plus tard :
+  // déplacé pendant la frappe qui a validé, il recevrait la suite de cette même frappe (keypress) et passerait aussitôt à la question suivante.
   const nextRef = useRef<HTMLButtonElement>(null)
   useEffect(() => {
-    if (isChecked) nextRef.current?.focus()
+    if (!isChecked) return
+    const timer = setTimeout(() => nextRef.current?.focus(), 0)
+    return () => clearTimeout(timer)
   }, [isChecked, question?.id])
 
   // Blitz : chaque question a sa propre échéance (horloge murale, pas le compteur d'une seconde de `elapsed`, pour que
