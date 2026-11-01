@@ -3,7 +3,7 @@ import type { NumericQuestion as Question, UserAnswer } from '../types/quiz'
 import { formatNumericValue } from '../utils/number'
 import { initialNumericValue } from '../utils/numericRange'
 
-export function NumericQuestion({ question, answer, onChange }: { question: Question; answer?: UserAnswer; onChange: (value: string) => void }) {
+export function NumericQuestion({ question, answer, onChange, onSubmit }: { question: Question; answer?: UserAnswer; onChange: (value: string) => void; onSubmit?: () => void }) {
   const { min, max, step, unit, isYear } = question.content
   const hasAnswer = typeof answer === 'string' && answer !== ''
   const value = hasAnswer ? Number(answer) : initialNumericValue(min, max, step)
@@ -19,7 +19,7 @@ export function NumericQuestion({ question, answer, onChange }: { question: Ques
   }, [])
 
   return <div className="numeric">
-    <input type="range" className="numeric-range" min={min} max={max} step={step} value={value} onChange={(event) => onChange(event.target.value)} />
+    <input type="range" className="numeric-range" min={min} max={max} step={step} value={value} onChange={(event) => onChange(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') onSubmit?.() }} />
     <div className="numeric-value">{show(value)}</div>
     <div className="numeric-bounds"><span>{show(min)}</span><span>{show(max)}</span></div>
   </div>

@@ -19,6 +19,6 @@ export function QuestionRenderer({ question, answer, onChange, onSubmit, renderM
     case 'cloze': return <ClozeQuestion question={question} answer={answer} onChange={onChange} onSubmit={onSubmit} />
     case 'matching': return <MatchingQuestion question={question} answer={answer} onChange={onChange} />
     case 'map': return <>{renderMap?.({ target: question.content.target, selected: typeof answer === 'string' ? answer : undefined, onPick: onChange, review })}</>
-    case 'numeric': return <NumericQuestion question={question} answer={answer} onChange={onChange} />
+    case 'numeric': return <NumericQuestion question={question} answer={answer} onChange={onChange} onSubmit={onSubmit} />
   }
 }
