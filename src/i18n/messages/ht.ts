@@ -194,6 +194,7 @@ export const ht: Record<MessageKey, string> = {
   'result.noAnswer': 'Pa gen repons',
   'result.viewFiche': 'Wè fich {name} →',
   'result.viewFiches': "Wè {n} fich yo →",
+  'result.speakExplanation': "Koute eksplikasyon an",
   'result.mention.excellent': 'Ekselan',
   'result.mention.veryGood': 'Trè byen',
   'result.mention.good': 'Byen',

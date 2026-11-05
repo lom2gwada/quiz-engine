@@ -193,6 +193,7 @@ export const es: Record<MessageKey, string> = {
   'result.noAnswer': 'Sin respuesta',
   'result.viewFiche': 'Ver la ficha {name} →',
   'result.viewFiches': "Ver las {n} fichas →",
+  'result.speakExplanation': "Escuchar la explicación",
   'result.mention.excellent': 'Excelente',
   'result.mention.veryGood': 'Muy bien',
   'result.mention.good': 'Bien',

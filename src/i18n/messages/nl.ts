@@ -193,6 +193,7 @@ export const nl: Record<MessageKey, string> = {
   'result.noAnswer': 'Geen antwoord',
   'result.viewFiche': 'Bekijk de kaart {name} →',
   'result.viewFiches': "Bekijk de {n} kaarten →",
+  'result.speakExplanation': "Uitleg beluisteren",
   'result.mention.excellent': 'Uitstekend',
   'result.mention.veryGood': 'Heel goed',
   'result.mention.good': 'Goed',

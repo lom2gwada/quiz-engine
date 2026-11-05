@@ -13,6 +13,7 @@ import { Confetti } from './Confetti'
 import { PieChart } from './PieChart'
 import { QuestionImage } from './QuestionImage'
 import { QuestionShape } from './QuestionShape'
+import { SpeakButton } from './SpeakButton'
 
 /** Traducteur par défaut (français) pour les helpers appelés hors composant / dans les tests. */
 const frT = getT()
@@ -160,6 +161,7 @@ export function ResultPage({ questions, renderMap, answers, categories, elapsedS
         {!correct && <p><strong>{t('result.yourAnswer')}</strong> {userAnswer(question, answers[question.id], t)}</p>}
         {!correct && <p><strong>{t('result.goodAnswer')}</strong> {correctAnswer(question, t)}</p>}
         <p>{question.explanation}</p>
+        {question.explanation && <div className="correction-speak"><SpeakButton sentences={[question.explanation]} locale={locale} label={t('result.speakExplanation')} /></div>}
         {question.subject && onViewFiche && (
           <button type="button" className="link-button" onClick={() => onViewFiche(question.subject!)}>
             {t('result.viewFiche', { name: question.subjectLabel ?? question.subject })}

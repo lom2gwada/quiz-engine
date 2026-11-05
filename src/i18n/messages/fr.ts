@@ -201,6 +201,7 @@ export const fr = {
   'result.noAnswer': 'Aucune réponse',
   'result.viewFiche': 'Voir la fiche {name} →',
   'result.viewFiches': "Voir les fiches ({n}) →",
+  'result.speakExplanation': "Écouter l'explication",
   'result.mention.excellent': 'Excellent',
   'result.mention.veryGood': 'Très bien',
   'result.mention.good': 'Bien',
