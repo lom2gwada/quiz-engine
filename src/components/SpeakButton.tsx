@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Locale } from '../i18n/locale'
 import { useT } from '../i18n'
 import { speakSentences, speechDiagnostics, speechSupported, stopSpeaking } from '../utils/speech'
@@ -13,9 +13,12 @@ export function SpeakButton({ sentences, locale, label }: { sentences: string[];
   const t = useT()
   const [speaking, setSpeaking] = useState(false)
   const [failed, setFailed] = useState<string | null>(null)
+  const playing = useRef(false)
+  playing.current = speaking
   const key = sentences.join('\n')
 
-  useEffect(() => () => { stopSpeaking(); setSpeaking(false); setFailed(null) }, [key, locale])
+  // Texte changé ou bouton retiré (carte repliée) : on n'interrompt que sa propre lecture, pas celle d'un autre bouton.
+  useEffect(() => () => { if (playing.current) stopSpeaking(); setSpeaking(false); setFailed(null) }, [key, locale])
 
   if (!speechSupported() || !sentences.length) return null
 
